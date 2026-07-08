@@ -64,7 +64,7 @@ export default function App() {
         {/* HEADER BRAND BAR */}
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, borderBottom: '1px solid #e2e8f0', paddingBottom: 20 }}>
           <div>
-            <h1 style={{ fontSize: 28, fontWeight: 800, trackingLetter: '-0.03em', margin: 0, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.03em', margin: 0, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 32 }}>🚚</span> BEN <span style={{ fontWeight: 400, color: '#64748b', fontSize: 24 }}>LOGISTICS</span>
             </h1>
             <p style={{ color: '#64748b', fontSize: 14, margin: '4px 0 0 0', fontWeight: 500 }}>Milton Keynes Carrier & Operations Hub</p>
@@ -151,7 +151,7 @@ export default function App() {
 /* ==========================================================================
    1. BOOK JOB FORM COMPONENT
    ========================================================================== */
-function BookJobForm({ retailerId, mode, onJobCreated }: { retailerId: string, mode: 'retailer' | 'driver', onJobCreated: () => void }) { 
+function BookJobForm({ retailerId, onJobCreated }: { retailerId: string, mode: 'retailer' | 'driver', onJobCreated: () => void }) { 
   const [jobData, setJobData] = useState({ 
     vehicle_setup: 'clientVehicle', 
     loop_profile: 'assembly', 
