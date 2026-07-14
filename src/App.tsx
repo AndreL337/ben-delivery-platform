@@ -100,14 +100,20 @@ export default function App() {
     try {
       const regionalTerritoryTag = `Milton Keynes (${role})`;
 
+      // Safely build the strictly required vehicle_type
+      const calculatedVehicleType = make.trim() && model.trim() 
+        ? `${make.trim()} ${model.trim()}` 
+        : role === 'Porter' ? 'No Asset / Porter' : 'Standard Van';
+
       const { error } = await supabase.from('drivers_waitlist').insert([{ 
         full_name: driverName.trim(), 
         phone_number: driverPhone.trim(),
         email: email.trim(),
         role: role,
-        vehicle_make: make,
-        vehicle_model: model,
-        vehicle_year: parseInt(year) || 0,
+        vehicle_type: calculatedVehicleType, // <-- Satisfies the NOT NULL constraint perfectly
+        vehicle_make: make.trim() || null,
+        vehicle_model: model.trim() || null,
+        vehicle_year: parseInt(year) || null, // <-- Safely sends null if empty instead of 0
         is_insured: isInsured,
         region: regionalTerritoryTag 
       }])
@@ -115,6 +121,7 @@ export default function App() {
       if (error) throw error
       setWaitlistSubmitted(true)
       
+      // Reset form
       setDriverName(''); setDriverPhone(''); setEmail(''); setRole('Driver'); 
       setMake(''); setModel(''); setYear(''); setIsInsured(false);
     } catch (err: any) { 
