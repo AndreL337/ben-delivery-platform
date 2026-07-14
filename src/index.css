@@ -1,13 +1,25 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+/* Hard fallback mappings if your framework ignores Tailwind background strings */
+.bg-slate-900 {
+  background-color: #0f172a !important;
+}
+.bg-white {
+  background-color: #ffffff !important;
+}
+
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #FAFAF7;
-  color: #1a1a1a;
+  background-color: #FAFBF9 !important; /* Main backdrop with an ultra-light mint/fresh cast */
+  color: #0f172a;
 }
 
 h1, h2, h3, h4 {
@@ -19,9 +31,25 @@ a {
   color: inherit;
 }
 
+/* ================================= BEN LOGISTICS BRANDING TOKENS ================================= */
+:root {
+  --ben-primary: #064e3b;      /* High-contrast Deep Forest Green Core */
+  --ben-primary-hover: #065f46;/* Vibrant emerald green overlay on hover transitions */
+  --ben-accent: #eab308;       /* High-visibility logistics warning Gold / Amber */
+  --ben-accent-dark: #d97706;  /* Deep gold contrast boundary lines */
+  --ben-bg: #f0fdf4;           /* Soft mint/green subtle card container fill background */
+  --ben-border: rgba(16, 185, 129, 0.15); /* Delicate sage/emerald border framework separators */
+}
+
+/* Force layout alignment parameters even if layout engines conflict */
+.flex { display: flex !important; }
+.justify-between { justify-content: space-between !important; }
+.items-center { align-items: center !important; }
+
+/* Updated Legacy Global Form Class Overrides if used by your template sections */
 .btn-primary {
-  background: #52BE80;
-  color: white;
+  background: var(--ben-primary) !important;
+  color: white !important;
   border: none;
   padding: 14px 32px;
   border-radius: 50px;
@@ -30,26 +58,74 @@ a {
   cursor: pointer;
   transition: background 0.2s, transform 0.2s;
   display: inline-block;
+  box-shadow: 0 2px 4px rgba(6, 78, 59, 0.1);
 }
 
 .btn-primary:hover {
-  background: #27AE60;
+  background: var(--ben-primary-hover) !important;
   transform: translateY(-2px);
 }
 
 .btn-outline {
-  background: rgba(255,255,255,0.8);
-  color: #1a1a1a;
-  border: 2px solid rgba(82,190,128,0.3);
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: var(--ben-primary) !important;
+  border: 2px solid var(--ben-border);
   padding: 14px 32px;
   border-radius: 50px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: border 0.2s;
+  transition: border-color 0.2s, background-color 0.2s;
   display: inline-block;
 }
 
 .btn-outline:hover {
-  border-color: #52BE80;
+  border-color: var(--ben-primary);
+  background-color: var(--ben-bg);
+}
+
+/* Premium High-Fidelity Custom Class Card & Interactive Action Component Overrides */
+.ben-card {
+  background-color: #ffffff !important;
+  border: 1px solid var(--ben-border) !important;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(6, 78, 59, 0.04);
+  padding: 1.5rem;
+}
+
+.ben-btn-primary {
+  background-color: var(--ben-primary) !important;
+  color: #ffffff !important;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 10px 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(6, 78, 59, 0.08);
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.ben-btn-primary:hover {
+  background-color: var(--ben-primary-hover) !important;
+  transform: translateY(-1px);
+}
+
+.ben-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* New High-Visibility Status Tags (E.g., for In Transit, Completed nodes) */
+.ben-status-alert {
+  background-color: #fef9c3 !important; /* Light alert yellow backdrop context */
+  color: #854d0e !important;            /* Dark readable contrast amber label text */
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.text-meta {
+  font-size: 12px;
+  color: #475569; /* Balanced visibility sub-slate tracking string text */
 }

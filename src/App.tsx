@@ -1,27 +1,381 @@
-import { useState, useEffect, useRef } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import React, { useState, useEffect } from 'react'
+import { createClient } from '@supabase/supabase-js'
+import './App.css'
 
-// Initialize Supabase using your environment variables or fallback placeholders
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-project-id.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummykey';
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabaseUrl = 'https://taqwjalqflxxuskschzc.supabase.co'
+const supabaseAnonKey = 'sb_publishable_O6UTqJSmaEUl0ua23lh0zw_TUblF7U5'
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Calibrated operational pricing matrix
+const PRICING_MATRIX = {
+  independent: {
+    roc: { grossFee: 380, platformFee: 57, netPool: 323, targetVolume: "10-22 Stops" },
+    assembly: { grossFee: 460, platformFee: 69, netPool: 391, targetVolume: "4-8 Stops" }
+  },
+  clientVehicle: {
+    roc: { grossFee: 320, platformFee: 48, netPool: 272, targetVolume: "10-22 Stops" },
+    assembly: { grossFee: 380, platformFee: 57, netPool: 323, targetVolume: "4-8 Stops" }
+  }
+};
 
 export default function App() {
-  const [retailerTab, setRetailerTab] = useState<'book' | 'track' | 'ledger'>('book');
-  const [activeJobs, setActiveJobs] = useState<any[]>([]);
-  const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
-  const [waitlistLoading, setWaitlistLoading] = useState(false);
+  const [session, setSession] = useState<any>(null)
+  const [showLogin, setShowLogin] = useState(false)
+  const [authEmail, setAuthEmail] = useState('')
+  const [authPassword, setAuthPassword] = useState('')
+  const [authLoading, setAuthLoading] = useState(false)
+  const [authError, setAuthError] = useState('')
+  const [roleMode, setRoleMode] = useState<'retailer' | 'driver'>('retailer')
 
-  // Background Live Syncing for Jobs List
-  const fetchLogisticsData = async () => {
+  // Waitlist States (Restored and Expanded)
+  const [driverName, setDriverName] = useState('')
+  const [driverPhone, setDriverPhone] = useState('')
+  const [waitlistSubmitted, setWaitlistSubmitted] = useState(false)
+  const [waitlistLoading, setWaitlistLoading] = useState(false)
+  const [email, setEmail] = useState('')
+  const [role, setRole] = useState('Driver')
+  const [make, setMake] = useState('')
+  const [model, setModel] = useState('')
+  const [year, setYear] = useState('')
+  const [isInsured, setIsInsured] = useState(false)
+
+  // Interactive Live Run Matrix Calculator States
+  const [vehicleSetup, setVehicleSetup] = useState<'independent' | 'clientVehicle'>('clientVehicle')
+  const [loopProfile, setLoopProfile] = useState<'roc' | 'assembly'>('assembly')
+  
+  const currentTier = PRICING_MATRIX[vehicleSetup][loopProfile];
+
+  useEffect(() => {
+    // Check role on initial load
+    supabase.auth.getSession().then(({ data: { session } }) => { 
+      setSession(session);
+      if (session?.user?.user_metadata?.role) {
+        setRoleMode(session.user.user_metadata.role);
+      }
+    });
+
+    // Check role any time the auth state changes (like when provisioning)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { 
+      setSession(session);
+      if (session?.user?.user_metadata?.role) {
+        setRoleMode(session.user.user_metadata.role);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [])
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // 🚀 FAST-TRACK DEBUG OVERRIDE: Log in instantly without real credentials
+    if (authEmail.trim().toLowerCase() === 'driver') {
+      setRoleMode('driver');
+      setSession({ user: { id: 'debug-driver-id' } });
+      return;
+    }
+    if (authEmail.trim().toLowerCase() === 'retailer') {
+      setRoleMode('retailer');
+      setSession({ user: { id: 'debug-retailer-id' } });
+      return;
+    }
+
+    let logEmail = authEmail.trim();
+    setAuthLoading(true)
+    setAuthError('')
     try {
-      const { data: jobs } = await supabase
-        .from('jobs')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (jobs) setActiveJobs(jobs);
-    } catch (err) {
-      console.error("Data fetch error:", err);
+      const { data, error } = await supabase.auth.signInWithPassword({ email: logEmail, password: authPassword })
+      if (error) throw error
+
+      // Extract the assigned role from the Supabase auth user metadata profile
+      const userRole = data.user?.user_metadata?.role; 
+      
+      if (userRole === 'driver') {
+        setRoleMode('driver');
+      } else if (userRole === 'retailer') {
+        setRoleMode('retailer');
+      } else {
+        // Fallback safety gate
+        setRoleMode('driver'); 
+      }
+    } catch (err: any) { 
+      setAuthError(err.message || 'Invalid login credentials.') 
+    }
+    setAuthLoading(false)
+  }
+
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setWaitlistLoading(true)
+    try {
+      const regionalTerritoryTag = `Milton Keynes (${role})`;
+
+      const { error } = await supabase.from('driver_waitlist').insert([{ 
+        full_name: driverName.trim(), 
+        phone_number: driverPhone.trim(),
+        email: email.trim(),
+        role: role,
+        vehicle_make: make,
+        vehicle_model: model,
+        vehicle_year: parseInt(year) || 0,
+        is_insured: isInsured,
+        region: regionalTerritoryTag 
+      }])
+      
+      if (error) throw error
+      setWaitlistSubmitted(true)
+      
+      // Reset form
+      setDriverName(''); setDriverPhone(''); setEmail(''); setRole('Driver'); 
+      setMake(''); setModel(''); setYear(''); setIsInsured(false);
+    } catch (err: any) { 
+      alert(`Waitlist Sync Error: ${err.message}`) 
+    }
+    setWaitlistLoading(false)
+  }
+
+  return (
+    <div className="landing-container">
+      
+      {/* 1. FLOATING PILL NAVBAR */}
+      <div className="navbar-pill">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ background: '#76bd43', color: 'white', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14 }}>B</div>
+          <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: '-0.5px' }}>Ben</span>
+        </div>
+        
+        <div className="nav-links">
+          <a href="#services">Services</a>
+          <a href="#cases">Case Studies</a>
+          <a href="#about">About</a>
+          <a href="#contact">Contact</a>
+        </div>
+
+        <div>
+          {!session ? (
+            <button onClick={() => setShowLogin(!showLogin)} className="btn-green">
+              {showLogin ? '← Fleet Page' : 'Operator Portal'}
+            </button>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, background: '#111827', color: 'white', padding: '6px 12px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Verified {roleMode}
+              </span>
+              <button 
+                onClick={() => { 
+                  supabase.auth.signOut(); 
+                  setSession(null); 
+                  setRoleMode('retailer'); 
+                  setShowLogin(false);
+                }} 
+                className="btn-green" 
+                style={{ background: '#E74C3C', padding: '8px 16px' }}
+              >
+                Disconnect
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 2. DYNAMIC WORKSPACE GATEWAY */}
+      {!session ? (
+        showLogin ? (
+          /* CONSOLE LOGIN VIEW */
+          <div style={{ maxWidth: 500, margin: '0 auto' }}>
+            <form onSubmit={handleLogin} className="form-panel" style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0 }}>Operator Sign In</h2>
+              {authError && <p style={{ color: 'red', margin: 0 }}>⚠️ {authError}</p>}
+              
+              <p style={{ fontSize: 11, color: '#666', margin: '-8px 0 8px 0' }}>💡 Pro Tip: Type <strong>driver</strong> or <strong>retailer</strong> in the email field to bypass.</p>
+
+              <input type="text" placeholder="Email Address (or type 'driver')" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} required />
+              <input type="password" placeholder="Security Password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required />
+              <button type="submit" disabled={authLoading} className="btn-green" style={{ width: '100%', padding: 16, fontSize: 16 }}>
+                {authLoading ? 'Verifying...' : 'Authenticate Operator →'}
+              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0' }}>
+                <div style={{ flex: 1, height: 1, background: '#cbd5e1' }}></div>
+                <span style={{ padding: '0 12px', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sandbox Environment Provisioners</span>
+                <div style={{ flex: 1, height: 1, background: '#cbd5e1' }}></div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                <button type="button" className="btn-white" style={{ fontSize: 11, padding: '10px 4px', border: '1px solid #cbd5e1', borderRadius: 12, background: 'white' }}
+                  onClick={async () => {
+                    setAuthLoading(true);
+                    const email = `driver_${Math.floor(Math.random() * 10000)}@benlogistics.co.uk`;
+                    const { error } = await supabase.auth.signUp({ email, password: 'Password123!', options: { data: { role: 'driver' } } });
+                    if (error) alert(`Provisioning failed: ${error.message}`);
+                    else alert(`Driver Created Successfully!\nEmail: ${email}\nPassword: Password123!`);
+                    setAuthLoading(false);
+                  }}>🛠️ Provision Test Driver</button>
+
+                <button type="button" className="btn-white" style={{ fontSize: 11, padding: '10px 4px', border: '1px solid #cbd5e1', borderRadius: 12, background: 'white' }}
+                  onClick={async () => {
+                    setAuthLoading(true);
+                    const email = `retailer_${Math.floor(Math.random() * 10000)}@benlogistics.co.uk`;
+                    const { error } = await supabase.auth.signUp({ email, password: 'Password123!', options: { data: { role: 'retailer' } } });
+                    if (error) alert(`Provisioning failed: ${error.message}`);
+                    else alert(`Retailer Created Successfully!\nEmail: ${email}\nPassword: Password123!`);
+                    setAuthLoading(false);
+                  }}>🏬 Provision Test Retailer</button>
+              </div>
+            </form>
+          </div>
+        ) : (
+          /* LANDING PAGE VISUALS */
+          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 48, textAlign: 'left', alignItems: 'start' }}>
+            
+            <div>
+              <span style={{ background: 'white', padding: '6px 16px', borderRadius: 50, fontSize: 12, fontWeight: 700, color: '#444', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+                Live Run Matrix Engine
+              </span>
+              <h2 style={{ fontSize: '3rem', fontWeight: 800, letterSpacing: '-1.5px', color: '#111', marginTop: 24, marginBottom: 0, lineHeight: 1.1 }}>
+                Transparent Flat-Rate Daily Operations
+              </h2>
+              <p style={{ fontSize: '1rem', color: '#555', lineHeight: 1.5, marginTop: 12, marginBottom: 24, fontWeight: 500 }}>
+                Completely eliminate volumetric spreadsheet drag. Adjust the operational parameters below to see the exact ledger allocations across the 2-man crew roster.
+              </p>
+
+              <div className="form-panel" style={{ display: 'flex', flexDirection: 'column', gap: 16, background: 'rgba(255,255,255,0.6)', padding: 20, borderRadius: 16, border: '1px solid rgba(0,0,0,0.05)', marginBottom: 24 }}>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#666', letterSpacing: '1px', display: 'block', marginBottom: 6 }}>Vehicle Assets Operational Setup</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#e2e8f0', padding: 3, borderRadius: 30 }}>
+                    <button type="button" onClick={() => setVehicleSetup('clientVehicle')} style={{ padding: '8px 12px', border: 'none', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 700, background: vehicleSetup === 'clientVehicle' ? '#111' : 'transparent', color: vehicleSetup === 'clientVehicle' ? 'white' : '#555' }}>Client Vehicle</button>
+                    <button type="button" onClick={() => setVehicleSetup('independent')} style={{ padding: '8px 12px', border: 'none', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 700, background: vehicleSetup === 'independent' ? '#111' : 'transparent', color: vehicleSetup === 'independent' ? 'white' : '#555' }}>Independent Van</button>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#666', letterSpacing: '1px', display: 'block', marginBottom: 6 }}>Route Manifest Classification</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#e2e8f0', padding: 3, borderRadius: 30 }}>
+                    <button type="button" onClick={() => setLoopProfile('roc')} style={{ padding: '8px 12px', border: 'none', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 700, background: loopProfile === 'roc' ? '#76bd43' : 'transparent', color: loopProfile === 'roc' ? 'white' : '#555' }}>Standard ROC</button>
+                    <button type="button" onClick={() => setLoopProfile('assembly')} style={{ padding: '8px 12px', border: 'none', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 700, background: loopProfile === 'assembly' ? '#76bd43' : 'transparent', color: loopProfile === 'assembly' ? 'white' : '#555' }}>Delivery & Assembly</button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '12px 16px', borderRadius: 12, border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: '#666' }}>Target Route Capacity</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#111', background: '#FAFCEF', border: '1px solid #E8F5C8', padding: '4px 10px', borderRadius: 6 }}>{currentTier.targetVolume}</span>
+                </div>
+
+                <div style={{ background: 'white', padding: 16, borderRadius: 12, border: '1px solid #eee', display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, borderBottom: '1px solid #f5f5f5', paddingBottom: 6 }}>
+                    <span style={{ color: '#666', fontWeight: 500 }}>Flat Route Booking Fee</span>
+                    <span style={{ fontWeight: 800 }}>£{currentTier.grossFee.toFixed(2)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#888', borderBottom: '1px solid #f5f5f5', paddingBottom: 6 }}>
+                    <span>Ben Network Infrastructure Fee (15%)</span>
+                    <span>- £{currentTier.platformFee.toFixed(2)}</span>
+                  </div>
+                  
+                  <div style={{ background: '#FAFCEF', border: '1px solid #E8F5C8', padding: '14px 16px', borderRadius: 12, marginTop: 4, textAlign: 'left' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#4D7C0F', display: 'block' }}>Net Dispatched Labour Pool</span>
+                        <p style={{ color: '#555', fontSize: 11, margin: '2px 0 0 0', lineHeight: 1.3 }}>Total day rate allocated straight to the cab. Crew maintains full control to split payouts manually or apply standard 60/40 distributions before route dispatch.</p>
+                      </div>
+                      <span style={{ color: '#76bd43', fontSize: '1.8rem', fontWeight: 900, paddingLeft: 12 }}>£{currentTier.netPool.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="form-panel" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {waitlistSubmitted ? (
+              <div style={{ textAlign: 'center', padding: '40px 0', background: 'white', borderRadius: 16, border: '1px solid #eee' }}>
+                <span style={{ fontSize: 48 }}>✅</span>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: 16 }}>Entry Logged. Welcome to Ben.</h3>
+                <p style={{ color: '#555', fontSize: 14, padding: '0 20px', lineHeight: 1.6 }}>
+                  We’ve received your professional credentials. You'll receive a confirmation email shortly. 
+                  We are currently onboarding MK crews—keep your phone handy for a verification text.
+                </p>
+                <button onClick={() => setWaitlistSubmitted(false)} style={{ marginTop: 20, background: 'none', border: 'none', color: '#666', textDecoration: 'underline', cursor: 'pointer' }}>
+                  Submit another crew
+                </button>
+              </div>
+            ) : (
+                <form onSubmit={handleWaitlistSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div>
+                    <h3 style={{ fontSize: '1.6rem', fontWeight: 800, margin: '0 0 4px 0' }}>Join the MK Network</h3>
+                    <p style={{ color: '#555', fontSize: 13, margin: 0 }}>Register your crew profile to access the Milton Keynes network array.</p>
+                  </div>
+                  
+                  <input type="text" placeholder="Full Name / Fleet Lead" value={driverName} onChange={(e) => setDriverName(e.target.value)} required />
+                  <input type="tel" placeholder="Mobile Contact Number" value={driverPhone} onChange={(e) => setDriverPhone(e.target.value)} required />
+                  <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  
+                  <select value={role} onChange={(e) => setRole(e.target.value)} style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid #ccc', background: 'white' }}>
+                    <option value="Driver">Professional Driver</option>
+                    <option value="Porter">Delivery Porter / Mate</option>
+                  </select>
+
+                  <input type="text" placeholder="Vehicle Make" value={make} onChange={(e) => setMake(e.target.value)} />
+                  <input type="text" placeholder="Vehicle Model" value={model} onChange={(e) => setModel(e.target.value)} />
+                  <input type="number" placeholder="Vehicle Year" value={year} onChange={(e) => setYear(e.target.value)} />
+
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#555', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={isInsured} onChange={(e) => setIsInsured(e.target.checked)} required />
+                    I confirm I hold valid Goods in Transit insurance.
+                  </label>
+
+                  <button type="submit" disabled={waitlistLoading} className="btn-green" style={{ width: '100%', padding: 16, fontSize: 15, background: '#111' }}>
+                    {waitlistLoading ? 'Securing Allocation...' : 'Secure Route Allocation Spot →'}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        )
+      ) : (
+        /* SECURE BACKEND LOGISTICS DASHBOARD (ROLE EXTRACTED & LOCKED) */
+        <div className="form-panel" style={{ maxWidth: 600, margin: '0 auto', width: '100%' }}>
+          <div style={{ marginBottom: 16, borderBottom: '1px solid #e2e8f0', paddingBottom: 12 }}>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, textTransform: 'capitalize' }}>
+              {roleMode} Workspace
+            </h2>
+            <p style={{ color: '#666', fontSize: 11, margin: '2px 0 0 0' }}>
+              Secure encrypted connection to the Ben Milton Keynes delivery hub node.
+            </p>
+          </div>
+          
+          {/* Renders ONLY the user's specific workflow based on their extracted role */}
+          <BookJobForm retailerId={session.user.id} mode={roleMode} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer' | 'driver' }) {
+  const [jobData, setJobData] = useState({ vehicle_setup: 'clientVehicle', loop_profile: 'assembly', pickup_address: '', drop_addresses: '' })
+  const [activeJobs, setActiveJobs] = useState<any[]>([])
+  const [complianceAccepted, setComplianceAccepted] = useState(false)
+  const [retailerTab, setRetailerTab] = useState<'book' | 'track' | 'ledger'>('book')
+  const [activeGateJobId, setActiveGateJobId] = useState<string | null>(null)
+  const [activeDropIndex, setActiveDropIndex] = useState<number | null>(null)
+  const [customerSignee, setCustomerSignee] = useState('')
+  const [dropImage, setDropImage] = useState<string | null>(null)
+  const [isDrawing, setIsDrawing] = useState(false)
+
+  const fetchLogisticsData = async () => {
+    const { data: jobs } = await supabase.from('jobs').select('*').order('created_at', { ascending: false })
+    if (jobs) setActiveJobs(jobs)
+  }
+
+  const uploadPoD = async (jobId: string, file: File) => {
+    // 1. Upload file to Supabase Storage
+    const { data: uploadData, error } = await supabase.storage
+      .from('pod-images')
+      .upload(`${jobId}/${Date.now()}.jpg`, file);
+    
+    if (uploadData) {
+      // 2. Update job status to Completed
+      await supabase.from('jobs').update({ status: 'Completed' }).eq('id', jobId);
+      fetchLogisticsData();
     }
   };
 
@@ -31,512 +385,168 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  // Public Waitlist Form Handler
-  const handleWaitlistSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const exportLedgerToCSV = () => {
+    const completedJobs = activeJobs.filter(j => j.status === 'Completed');
+    const headers = ["Date", "Pickup Address", "Gross Fare (£)", "Agency Commission (£)"];
+    const csvRows = completedJobs.map(job => {
+      const date = new Date(job.created_at).toLocaleDateString();
+      return [date, `"${job.pickup_address}"`, 380, 57].join(",");
+    });
+    const csvString = [headers.join(","), ...csvRows].join("\n");
+    const blob = new Blob([csvString], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('href', url);
+    a.setAttribute('download', `Ben_Agency_Ledger_${new Date().toLocaleDateString()}.csv`);
+    a.click();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setWaitlistLoading(true);
-    const formData = new FormData(e.currentTarget);
-    
-    const payload = {
-      full_name: formData.get('full_name'),
-      phone_number: formData.get('phone_number'),
-      vehicle_type: formData.get('vehicle_type'),
-      region: 'Milton Keynes',
-      is_insured: formData.get('is_insured') === 'true'
-    };
-
-    try {
-      const { error } = await supabase.from('driver_waitlist').insert([payload]);
-      if (error) throw error;
-      setWaitlistSubmitted(true);
-    } catch (error) {
-      console.error(error);
-      alert('Waitlist submission error. Please try again.');
-    } finally {
-      setWaitlistLoading(false);
-    }
-  };
-
-  return (
-    <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', minHeight: '100vh', backgroundColor: '#f1f5f9', padding: '40px 20px', color: '#0f172a' }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        
-        {/* HEADER BRAND BAR */}
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32, borderBottom: '1px solid #e2e8f0', paddingBottom: 20 }}>
-          <div>
-            <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.03em', margin: 0, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 32 }}>🚚</span> BEN <span style={{ fontWeight: 400, color: '#64748b', fontSize: 24 }}>LOGISTICS</span>
-            </h1>
-            <p style={{ color: '#64748b', fontSize: 14, margin: '4px 0 0 0', fontWeight: 500 }}>Milton Keynes Carrier & Operations Hub</p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#ffffff', padding: '8px 16px', borderRadius: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#22c55e', display: 'inline-block', animation: 'pulse 2s infinite' }}></span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>Operational Infrastructure Link Live</span>
-          </div>
-        </header>
-
-        {/* SECTION 1: PUBLIC DRIVER WAITLIST MODULE */}
-        <section style={{ backgroundColor: '#ffffff', borderRadius: 16, padding: 32, marginBottom: 32, boxShadow: '0 4px 10px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -1px rgba(15, 23, 42, 0.02)', border: '1px solid #e2e8f0' }}>
-          <div style={{ borderLeft: '4px solid #0f172a', paddingLeft: 16, marginBottom: 24 }}>
-            <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: '#0f172a' }}>Crew Gateway Registry</h2>
-            <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: 14 }}>Supply-side onboard pipeline optimization</p>
-          </div>
-          
-          {waitlistSubmitted ? (
-            <div style={{ padding: '20px 24px', backgroundColor: '#f0fdf4', color: '#166534', borderRadius: 12, fontWeight: 600, border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: 12, fontSize: 15 }}>
-              <span style={{ fontSize: 22 }}>🎉</span> Fleet Entry Registered & Logged! Core automated validation routing active.
-            </div>
-          ) : (
-            <form onSubmit={handleWaitlistSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20, alignItems: 'end' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: 13, fontWeight: 600, color: '#475569' }}>Lead Driver Name</label>
-                <input name="full_name" placeholder="John Doe" required style={{ padding: '12px 14px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 14, outline: 'none', backgroundColor: '#f8fafc', transition: 'border 0.2s' }} />
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: 13, fontWeight: 600, color: '#475569' }}>Mobile Contact</label>
-                <input name="phone_number" placeholder="07123 456789" required style={{ padding: '12px 14px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 14, outline: 'none', backgroundColor: '#f8fafc' }} />
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <label style={{ fontSize: 13, fontWeight: 600, color: '#475569' }}>Asset Configuration Setup</label>
-                <select name="vehicle_type" style={{ padding: '12px 14px', borderRadius: 8, border: '1px solid #cbd5e1', backgroundColor: '#f8fafc', fontSize: 14, outline: 'none' }}>
-                  <option value="Van Crew">2-Man Van Crew (3.5T LWB)</option>
-                  <option value="Porter/Mate">Independent Porter / Mate</option>
-                </select>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <label style={{ fontSize: 13, display: 'flex', gap: 10, alignItems: 'center', cursor: 'pointer', color: '#475569', fontWeight: 500, userSelect: 'none' }}>
-                  <input type="checkbox" name="is_insured" value="true" required style={{ width: 18, height: 18, accentColor: '#0f172a', cursor: 'pointer' }} /> 
-                  <span>GIT & Public Liability Insured</span>
-                </label>
-                <button type="submit" disabled={waitlistLoading} style={{ padding: '12px 24px', backgroundColor: '#0f172a', color: '#ffffff', fontWeight: 600, borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 14, transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                  {waitlistLoading ? 'Processing Pipeline...' : 'Request Registry Entry →'}
-                </button>
-              </div>
-            </form>
-          )}
-        </section>
-
-        {/* SECTION 2: SYSTEM OPERATIONS CORE CONTROLLER */}
-        <main style={{ backgroundColor: '#ffffff', borderRadius: 16, padding: 32, boxShadow: '0 4px 10px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -1px rgba(15, 23, 42, 0.02)', border: '1px solid #e2e8f0' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28, borderBottom: '1px solid #f1f5f9', paddingBottom: 20 }}>
-            <div>
-              <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: '#0f172a' }}>System Control Environment</h2>
-              <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: 14 }}>Real-time manifest injection and route validation engine</p>
-            </div>
-          </div>
-
-          {/* Tab Switcher Dashboard Controls */}
-          <div style={{ display: 'flex', gap: 8, backgroundColor: '#f1f5f9', padding: 6, borderRadius: 10, marginBottom: 32, maxWidth: 450 }}>
-            <button onClick={() => setRetailerTab('book')} style={{ flex: 1, padding: '10px 16px', backgroundColor: retailerTab === 'book' ? '#ffffff' : 'transparent', color: retailerTab === 'book' ? '#0f172a' : '#64748b', fontWeight: 600, borderRadius: 6, border: 'none', cursor: 'pointer', boxShadow: retailerTab === 'book' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', fontSize: 14, transition: 'all 0.15s' }}>Book Manifest</button>
-            <button onClick={() => setRetailerTab('track')} style={{ flex: 1, padding: '10px 16px', backgroundColor: retailerTab === 'track' ? '#ffffff' : 'transparent', color: retailerTab === 'track' ? '#0f172a' : '#64748b', fontWeight: 600, borderRadius: 6, border: 'none', cursor: 'pointer', boxShadow: retailerTab === 'track' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', fontSize: 14, transition: 'all 0.15s' }}>Track Runs ({activeJobs.length})</button>
-            <button onClick={() => setRetailerTab('ledger')} style={{ flex: 1, padding: '10px 16px', backgroundColor: retailerTab === 'ledger' ? '#ffffff' : 'transparent', color: retailerTab === 'ledger' ? '#0f172a' : '#64748b', fontWeight: 600, borderRadius: 6, border: 'none', cursor: 'pointer', boxShadow: retailerTab === 'ledger' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', fontSize: 14, transition: 'all 0.15s' }}>Audit Ledger</button>
-          </div>
-
-          {/* Tab Content Components */}
-          <div style={{ animation: 'fadeIn 0.2s ease-out' }}>
-            {retailerTab === 'book' && <BookJobForm retailerId="RETAIL-01" mode="retailer" onJobCreated={fetchLogisticsData} />}
-            {retailerTab === 'track' && <TrackView activeJobs={activeJobs} fetchLogisticsData={fetchLogisticsData} />}
-            {retailerTab === 'ledger' && <LedgerView activeJobs={activeJobs} />}
-          </div>
-        </main>
-
-      </div>
-    </div>
-  );
-}
-
-/* ==========================================================================
-   1. BOOK JOB FORM COMPONENT
-   ========================================================================== */
-function BookJobForm({ retailerId, onJobCreated }: { retailerId: string, mode: 'retailer' | 'driver', onJobCreated: () => void }) { 
-  const [jobData, setJobData] = useState({ 
-    vehicle_setup: 'clientVehicle', 
-    loop_profile: 'assembly', 
-    pickup_address: '', 
-    drop_addresses: '' 
-  });
-  const [complianceAccepted, setComplianceAccepted] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => { 
-    e.preventDefault(); 
-    if (!complianceAccepted) {
-      alert("Compliance framework agreement validation required.");
-      return;
-    }
-    
-    const dropArray = jobData.drop_addresses
-      .split('\n')
-      .map(addr => addr.trim())
-      .filter(addr => addr.length > 0)
-      .map(addr => ({ address: addr, status: 'Pending', signed_by: null, signature_img: null }));
-
-    const payload = {
-      retailer_id: retailerId,
-      vehicle_setup: jobData.vehicle_setup,
-      loop_profile: jobData.loop_profile,
-      pickup_address: jobData.pickup_address,
-      drops: dropArray,
-      status: 'Unassigned',
-      created_at: new Date().toISOString()
-    };
-
-    try {
-      setLoading(true);
-      const { error } = await supabase.from('jobs').insert([payload]);
-      if (error) throw error;
-      
-      setJobData({ vehicle_setup: 'clientVehicle', loop_profile: 'assembly', pickup_address: '', drop_addresses: '' });
-      setComplianceAccepted(false);
-      onJobCreated();
-      alert("Operational manifest injected successfully.");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to inject manifest.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 20 }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label style={{ fontSize: 13, fontWeight: 600, color: '#475569' }}>Fleet Asset Profile Requirements</label>
-          <select 
-            value={jobData.vehicle_setup} 
-            onChange={e => setJobData({ ...jobData, vehicle_setup: e.target.value })}
-            style={{ padding: 12, borderRadius: 8, border: '1px solid #cbd5e1', backgroundColor: '#f8fafc', fontSize: 14, outline: 'none' }}
-          >
-            <option value="clientVehicle">Independent 3.5T Box Van Setup</option>
-            <option value="lutonTailLift">Luton Van with Hydraulic Tail Lift</option>
-            <option value="flatbedSecure">Flatbed with Heavy Freight Strapping</option>
-          </select>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <label style={{ fontSize: 13, fontWeight: 600, color: '#475569' }}>Workflow Standard Handling Loop</label>
-          <select 
-            value={jobData.loop_profile} 
-            onChange={e => setJobData({ ...jobData, loop_profile: e.target.value })}
-            style={{ padding: 12, borderRadius: 8, border: '1px solid #cbd5e1', backgroundColor: '#f8fafc', fontSize: 14, outline: 'none' }}
-          >
-            <option value="assembly">White-Glove In-Home Room Assembly</option>
-            <option value="threshold">Standard Threshold Curbside Drop</option>
-            <option value="crossdock">Cross-Dock Consolidation Swap</option>
-          </select>
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <label style={{ fontSize: 13, fontWeight: 600, color: '#475569' }}>Origin Base Depot Address</label>
-        <input 
-          type="text" 
-          value={jobData.pickup_address}
-          onChange={e => setJobData({ ...jobData, pickup_address: e.target.value })}
-          placeholder="e.g., Ben Logistics Hub MK, Unit 4B Industrial Way, Milton Keynes"
-          required 
-          style={{ padding: 12, borderRadius: 8, border: '1px solid #cbd5e1', backgroundColor: '#f8fafc', fontSize: 14, outline: 'none' }} 
-        />
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <label style={{ fontSize: 13, fontWeight: 600, color: '#475569' }}>Consignment Destination Nodes (One Drop Address per line)</label>
-        <textarea 
-          rows={4}
-          value={jobData.drop_addresses}
-          onChange={e => setJobData({ ...jobData, drop_addresses: e.target.value })}
-          placeholder="10 Saxon Gate, Milton Keynes MK9 2EQ&#10;52 Silbury Blvd, Milton Keynes MK9 2AZ"
-          required 
-          style={{ padding: 14, borderRadius: 8, border: '1px solid #cbd5e1', backgroundColor: '#f8fafc', fontFamily: 'monospace', fontSize: 13, outline: 'none', lineHeight: '1.5' }} 
-        />
-      </div>
-
-      <label style={{ fontSize: 13, display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer', backgroundColor: '#f8fafc', padding: 16, borderRadius: 10, border: '1px solid #e2e8f0', color: '#475569', lineHeight: '1.4' }}>
-        <input 
-          type="checkbox" 
-          checked={complianceAccepted}
-          onChange={e => setComplianceAccepted(e.target.checked)}
-          style={{ marginTop: 2, width: 16, height: 16, accentColor: '#0f172a' }} 
-        />
-        <span>I attest that all specified consignments perfectly match operational dimension parameters and meet cross-jurisdiction regulatory transit compliance framework standards.</span>
-      </label>
-
-      <button type="submit" disabled={loading} style={{ padding: '14px 28px', backgroundColor: '#2563eb', color: '#ffffff', fontWeight: 600, borderRadius: 8, border: 'none', cursor: 'pointer', alignSelf: 'flex-start', fontSize: 14, boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)', transition: 'all 0.2s' }}>
-        {loading ? "Injecting Sequence..." : "Commit Manifest RunSequence →"}
-      </button>
-    </form>
-  ); 
-}
-
-/* ==========================================================================
-   2. OPERATIONAL TRACK VIEW TERMINAL
-   ========================================================================== */
-function TrackView({ activeJobs, fetchLogisticsData }: { activeJobs: any[], fetchLogisticsData: () => void }) {
-  const [activeGateJobId, setActiveGateJobId] = useState<string | null>(null);
-  const [activeDropIndex, setActiveDropIndex] = useState<number | null>(null);
-  const [customerSignee, setCustomerSignee] = useState('');
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-
-  // Drawing Canvas mechanics
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 3;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
-    setIsDrawing(true);
-  };
-
-  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !canvasRef.current) return;
-    const ctx = canvasRef.current.getContext('2d');
-    if (!ctx) return;
-    ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
-    ctx.stroke();
-  };
-
-  const clearCanvas = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-  };
-
-  const updateJobStatus = async (jobId: string, nextStatus: string) => {
-    try {
-      const { error } = await supabase.from('jobs').update({ status: nextStatus }).eq('id', jobId);
-      if (error) throw error;
+    const { data } = await supabase.from('jobs').insert([{ retailer_id: retailerId, pickup_address: jobData.pickup_address, drop_addresses: jobData.drop_addresses, status: 'Unassigned' }]).select();
+    if (data) {
+      await supabase.from('payouts').insert([{ job_id: data[0].id, total_charged_to_retailer: 380, payout_status: 'Pending' }]);
       fetchLogisticsData();
-    } catch (err) {
-      console.error(err);
     }
-  };
-
-  const commitDropCompletion = async (job: any) => {
-    if (!customerSignee.trim() || !canvasRef.current) {
-      alert("Signee naming and canvas structural authorization data required.");
-      return;
-    }
-
-    const signatureDataUrl = canvasRef.current.toDataURL();
-    const updatedDrops = [...job.drops];
-    
-    if (activeDropIndex !== null) {
-      updatedDrops[activeDropIndex] = {
-        ...updatedDrops[activeDropIndex],
-        status: 'Completed',
-        signed_by: customerSignee,
-        signature_img: signatureDataUrl
-      };
-    }
-
-    const allDone = updatedDrops.every(d => d.status === 'Completed');
-    const nextSystemStatus = allDone ? 'Completed' : 'In Transit';
-
-    try {
-      const { error } = await supabase
-        .from('jobs')
-        .update({ drops: updatedDrops, status: nextSystemStatus })
-        .eq('id', job.id);
-
-      if (error) throw error;
-      
-      setCustomerSignee('');
-      setActiveDropIndex(null);
-      fetchLogisticsData();
-      alert("Node verification token finalized into immutable routing store.");
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  if (activeJobs.length === 0) {
-    return (
-      <div style={{ textAlign: 'center', padding: '48px 0', color: '#64748b' }}>
-        <p style={{ fontSize: 28, margin: '0 0 10px 0' }}>📦</p>
-        <p style={{ margin: 0, fontStyle: 'italic', fontSize: 14 }}>No active manifest pipelines detected in systemic routing store arrays.</p>
-      </div>
-    );
   }
 
+  const parseDrops = (job: any) => job.drop_addresses ? job.drop_addresses.split(',').map((a: string) => a.trim()) : [];
+  const activeDriverJob = activeJobs.find(job => job.status === 'Assigned' || job.status === 'In Progress');
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      {activeJobs.map(job => (
-        <div key={job.id} style={{ border: '1px solid #e2e8f0', borderRadius: 12, padding: 24, backgroundColor: '#f8fafc', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16, marginBottom: 20 }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 700, backgroundColor: '#e2e8f0', padding: '3px 8px', borderRadius: 4, color: '#334155' }}>ID: {job.id.substring(0,8).toUpperCase()}</span>
-                <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>Loop: <strong style={{ color: '#0f172a' }}>{job.loop_profile}</strong></span>
+    <div style={{ textAlign: 'left' }}>
+      {mode === 'retailer' ? (
+        <div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, background: '#f8fafc', padding: 6, borderRadius: 12, marginBottom: 24 }}>
+            <button onClick={() => setRetailerTab('book')} style={{ fontWeight: 800, padding: 8 }}>📝 Book</button>
+            <button onClick={() => setRetailerTab('track')} style={{ fontWeight: 800, padding: 8 }}>📡 Track</button>
+            <button onClick={() => setRetailerTab('ledger')} style={{ fontWeight: 800, padding: 8 }}>💰 Ledger</button>
+          </div>
+          {retailerTab === 'book' && (
+             <form onSubmit={handleSubmit} style={{display:'flex', flexDirection:'column', gap:10}}>
+                <input placeholder="Pickup" onChange={e => setJobData({...jobData, pickup_address: e.target.value})} required/>
+                <input placeholder="Drops" onChange={e => setJobData({...jobData, drop_addresses: e.target.value})} required/>
+                <button type="submit" className="btn-green">Launch Route Array →</button>
+             </form>
+          )}
+          {retailerTab === 'track' && activeJobs.filter(j => j.retailer_id === retailerId).map(j => (
+            <div key={j.id} style={{padding:16, border:'1px solid #eee', marginBottom:8}}>{j.pickup_address} - {j.status}</div>
+          ))}
+          {retailerTab === 'ledger' && (
+            <div style={{ padding: 24, background: 'white', borderRadius: 16, border: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>Agency Settlement Ledger</h3>
+                  <p style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>
+                    Cumulative Commission: 
+                    <span style={{ fontWeight: 800, color: '#16a34a', marginLeft: 8 }}>
+                      £{activeJobs.filter(j => j.status === 'Completed').length * 57}
+                    </span>
+                  </p>
+                </div>
+                <button onClick={exportLedgerToCSV} style={{ padding: '8px 16px', fontSize: 12, fontWeight: 700, borderRadius: 8, border: '1px solid #111', background: 'white', cursor: 'pointer' }}>⬇ Export CSV</button>
               </div>
-              <h3 style={{ margin: '6px 0', fontSize: 16, fontWeight: 700, color: '#0f172a' }}>Origin: {job.pickup_address}</h3>
-              <p style={{ margin: 0, fontSize: 13, color: '#64748b', fontWeight: 500 }}>Equipment Rig Specs: <strong style={{ color: '#475569' }}>{job.vehicle_setup}</strong></p>
-            </div>
-            <span style={{ padding: '6px 14px', borderRadius: 30, fontSize: 12, fontWeight: 700, letterSpacing: '0.02em', textTransform: 'uppercase', backgroundColor: job.status === 'Completed' ? '#dcfce7' : job.status === 'In Transit' ? '#fef9c3' : '#f1f5f9', color: job.status === 'Completed' ? '#166534' : job.status === 'In Transit' ? '#854d0e' : '#475569', border: `1px solid ${job.status === 'Completed' ? '#bbf7d0' : job.status === 'In Transit' ? '#fef08a' : '#e2e8f0'}` }}>
-              {job.status}
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            {job.status === 'Unassigned' && (
-              <button onClick={() => updateJobStatus(job.id, 'Dispatched')} style={{ backgroundColor: '#0f172a', color: '#ffffff', border: 'none', padding: '8px 16px', borderRadius: 6, fontWeight: 600, cursor: 'pointer', fontSize: 13, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>Assign & Dispatch Unit</button>
-            )}
-            {job.status === 'Dispatched' && (
-              <button onClick={() => updateJobStatus(job.id, 'In Transit')} style={{ backgroundColor: '#2563eb', color: '#ffffff', border: 'none', padding: '8px 16px', borderRadius: 6, fontWeight: 600, cursor: 'pointer', fontSize: 13, boxShadow: '0 2px 4px rgba(37,99,235,0.1)' }}>Confirm Origin Intake Arrival</button>
-            )}
-            <button onClick={() => setActiveGateJobId(activeGateJobId === job.id ? null : job.id)} style={{ backgroundColor: '#ffffff', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: 6, fontWeight: 600, cursor: 'pointer', fontSize: 13, color: '#334155', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
-              {activeGateJobId === job.id ? "Collapse Destination Matrix" : "Access Node Terminal Gate"}
-            </button>
-          </div>
-
-          {activeGateJobId === job.id && (
-            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 20, marginTop: 20 }}>
-              <h4 style={{ margin: '0 0 16px 0', fontSize: 14, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Route Node Consignments Array</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {job.drops?.map((drop: any, index: number) => (
-                  <div key={index} style={{ border: '1px solid #e2e8f0', padding: 16, borderRadius: 8, backgroundColor: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+                {activeJobs.filter(j => j.status === 'Completed').map(job => (
+                  <div key={job.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: '#f8fafc', borderRadius: 12 }}>
                     <div>
-                      <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#0f172a' }}>Drop Reference #{index + 1}</p>
-                      <p style={{ margin: '4px 0 0 0', fontSize: 13, color: '#475569' }}>{drop.address}</p>
-                      {drop.status === 'Completed' && (
-                        <p style={{ margin: '6px 0 0 0', fontSize: 12, color: '#16a34a', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-                          <span>✓ Verified Delivery Token Handover:</span> <strong style={{ color: '#15803d' }}>{drop.signed_by}</strong>
-                        </p>
-                      )}
+                      <div style={{ fontWeight: 700, fontSize: 14 }}>{job.pickup_address}</div>
+                      <div style={{ fontSize: 11, color: '#64748b' }}>{new Date(job.created_at).toLocaleDateString()}</div>
                     </div>
-                    
-                    {drop.status !== 'Completed' ? (
-                      <button onClick={() => { setActiveDropIndex(index); clearCanvas(); }} style={{ backgroundColor: '#16a34a', color: '#ffffff', border: 'none', padding: '8px 16px', borderRadius: 6, cursor: 'pointer', fontWeight: 600, fontSize: 13, boxShadow: '0 2px 4px rgba(22,163,74,0.1)' }}>
-                        Launch POD Terminal
-                      </button>
-                    ) : (
-                      <span style={{ fontSize: 12, backgroundColor: '#dcfce7', color: '#15803d', padding: '4px 12px', borderRadius: 20, fontWeight: 700, border: '1px solid #bbf7d0' }}>Settled Node</span>
-                    )}
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: 800, color: '#16a34a' }}>+£57.00</div>
+                      <div style={{ fontSize: 10, textTransform: 'uppercase', fontWeight: 700, color: '#94a3b8' }}>Comm. Earned</div>
+                    </div>
                   </div>
                 ))}
               </div>
-
-              {activeDropIndex !== null && (
-                <div style={{ border: '2px solid #2563eb', borderRadius: 10, padding: 24, marginTop: 20, backgroundColor: '#f8fafc' }}>
-                  <h5 style={{ margin: '0 0 16px 0', fontSize: 14, fontWeight: 700, color: '#1e3a8a', textTransform: 'uppercase' }}>Secure Proof-Of-Delivery Interface: Drop #{activeDropIndex + 1}</h5>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      <label style={{ fontSize: 12, fontWeight: 700, color: '#475569' }}>Signee Authorization Printed Legal Name</label>
-                      <input type="text" value={customerSignee} onChange={e => setCustomerSignee(e.target.value)} placeholder="e.g., S. Smith" style={{ padding: 12, borderRadius: 8, border: '1px solid #cbd5e1', backgroundColor: '#ffffff', fontSize: 14, outline: 'none' }} />
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                      <label style={{ fontSize: 12, fontWeight: 700, color: '#475569' }}>Electronic Signature Capture Matrix</label>
-                      <div style={{ backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: 8, padding: 4, display: 'inline-block', maxWidth: '100%' }}>
-                        <canvas 
-                          ref={canvasRef}
-                          width={450} 
-                          height={160} 
-                          onMouseDown={startDrawing}
-                          onMouseMove={draw}
-                          onMouseUp={() => setIsDrawing(false)}
-                          onMouseLeave={() => setIsDrawing(false)}
-                          style={{ display: 'block', maxWidth: '100%', backgroundColor: '#ffffff', cursor: 'crosshair' }} 
-                        />
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                      <button onClick={() => commitDropCompletion(job)} style={{ backgroundColor: '#16a34a', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: 6, fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Incorporate Verification Token</button>
-                      <button onClick={clearCanvas} style={{ backgroundColor: '#ffffff', border: '1px solid #cbd5e1', padding: '10px 20px', borderRadius: 6, fontWeight: 600, cursor: 'pointer', fontSize: 13, color: '#475569' }}>Clear Grid</button>
-                      <button onClick={() => setActiveDropIndex(null)} style={{ backgroundColor: '#ef4444', color: '#ffffff', border: 'none', padding: '10px 20px', borderRadius: 6, fontWeight: 600, cursor: 'pointer', fontSize: 13 }}>Abort Verification</button>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>
-      ))}
-    </div>
-  );
-}
-
-/* ==========================================================================
-   3. FINANCIAL AUDIT LEDGER COMPONENT
-   ========================================================================== */
-function LedgerView({ activeJobs }: { activeJobs: any[] }) {
-  const completedJobs = activeJobs.filter(j => j.status === 'Completed');
-
-  const exportLedgerToCSV = () => { 
-    if (completedJobs.length === 0) {
-      alert("No cleared transaction nodes available for extraction compilation.");
-      return;
-    }
-    let csvContent = "data:text/csv;charset=utf-8,Manifest ID,Origin Base,Total Drop Nodes,Timestamp Settled\n";
-    completedJobs.forEach(j => {
-      csvContent += `${j.id},"${j.pickup_address}",${j.drops?.length || 0},${j.created_at}\n`;
-    });
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `ben_logistics_ledger_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }; 
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', padding: 24, borderRadius: 12, border: '1px solid #e2e8f0', flexWrap: 'wrap', gap: 16 }}>
-        <div>
-          <p style={{ margin: 0, fontSize: 13, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Settled Operational Accounts</p>
-          <h4 style={{ margin: '4px 0 0 0', fontSize: 28, fontWeight: 800, color: '#0f172a' }}>{completedJobs.length} <span style={{ fontWeight: 400, color: '#64748b', fontSize: 18 }}>Immutable Invoices Logged</span></h4>
+      ) : mode === 'driver' && !complianceAccepted ? (
+        <div style={{ padding: 32, border: '2px solid #ef4444', borderRadius: 20, background: '#FEF2F2' }}>
+          <h3 style={{ color: '#B91C1C', marginTop: 0, fontSize: 20 }}>⚠️ Independent Contractor Agreement</h3>
+          <div style={{ fontSize: 13, color: '#444', lineHeight: 1.6, marginBottom: 20, textAlign: 'left' }}>
+            <p>By proceeding, you confirm the following:</p>
+            <ul style={{ paddingLeft: 20 }}>
+              <li>You are a self-employed business entity.</li>
+              <li>You are responsible for your own tax and National Insurance contributions.</li>
+              <li>You provide your own insurance and vehicle assets.</li>
+              <li>This platform acts as an agent; you are not an employee of Ben Logistics.</li>
+            </ul>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontWeight: 700 }}>
+              <input type="checkbox" onChange={(e) => setComplianceAccepted(e.target.checked)} style={{ width: 18, height: 18 }} />
+              I have read and agree to the Independent Contractor terms.
+            </label>
+          </div>
+          <button 
+            disabled={!complianceAccepted} 
+            onClick={() => setComplianceAccepted(true)} 
+            className="btn-green" 
+            style={{ 
+              background: complianceAccepted ? '#B91C1C' : '#D1D5DB', 
+              width: '100%', 
+              padding: 16, 
+              border: 'none', 
+              borderRadius: 12, 
+              color: 'white',
+              cursor: complianceAccepted ? 'pointer' : 'not-allowed'
+            }}
+          >
+            Initialize Secure Driver Portal
+          </button>
         </div>
-        <button onClick={exportLedgerToCSV} style={{ padding: '12px 24px', backgroundColor: '#0f172a', color: '#ffffff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 13, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-          Compile Ledger Audit Extract (.CSV)
-        </button>
-      </div>
-
-      <div style={{ border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 14, backgroundColor: '#ffffff' }}>
-            <thead style={{ backgroundColor: '#f1f5f9', fontWeight: 600, color: '#475569', borderBottom: '1px solid #e2e8f0' }}>
-              <tr>
-                <th style={{ padding: '14px 20px', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Manifest Reference Token</th>
-                <th style={{ padding: '14px 20px', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Origin Hub</th>
-                <th style={{ padding: '14px 20px', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fulfillment Consignments</th>
-                <th style={{ padding: '14px 20px', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>System Lifecycle State</th>
-              </tr>
-            </thead>
-            <tbody>
-              {activeJobs.length === 0 ? (
-                <tr>
-                  <td colSpan={4} style={{ padding: '32px 20px', textAlign: 'center', color: '#64748b', fontStyle: 'italic' }}>No pipeline metrics stored.</td>
-                </tr>
-              ) : (
-                activeJobs.map(job => (
-                  <tr key={job.id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'backgroundColor 0.2s' }}>
-                    <td style={{ padding: '16px 20px', fontFamily: 'monospace', fontSize: 13, fontWeight: 700, color: '#2563eb' }}>{job.id.substring(0,12).toUpperCase()}...</td>
-                    <td style={{ padding: '16px 20px', fontWeight: 600, color: '#334155' }}>{job.pickup_address || "Ben Central Depot Base"}</td>
-                    <td style={{ padding: '16px 20px', color: '#475569', fontWeight: 500 }}>{job.drops?.length || 0} Complete Drop Nodes</td>
-                    <td style={{ padding: '16px 20px' }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: job.status === 'Completed' ? '#16a34a' : '#64748b', backgroundColor: job.status === 'Completed' ? '#dcfce7' : '#f1f5f9', padding: '4px 10px', borderRadius: 12 }}>
-                        {job.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      ) : (
+        <div style={{ padding: 20 }}>
+          {activeDriverJob ? (
+  <div style={{ background: '#111827', color: 'white', padding: 20, borderRadius: 16 }}>
+    <h3>📍 Active Loop: {activeDriverJob.pickup_address}</h3>
+    <p>Status: {activeDriverJob.status}</p>
+    {parseDrops(activeDriverJob).map((d: string, i: number) => (
+      <div key={i} style={{ marginBottom: 10 }}>• {d}</div>
+    ))}
+    
+    <div style={{ marginTop: 20, borderTop: '1px solid #374151', paddingTop: 20 }}>
+      <label style={{ display: 'block', marginBottom: 10, cursor: 'pointer', background: '#3b82f6', padding: '12px', borderRadius: 8, textAlign: 'center', fontWeight: 700 }}>
+        Upload Proof of Delivery
+        <input 
+          type="file" 
+          accept="image/*" 
+          capture="environment" 
+          style={{ display: 'none' }} 
+          onChange={(e) => {
+            if (e.target.files && e.target.files[0]) {
+              uploadPoD(activeDriverJob.id, e.target.files[0]);
+            }
+          }}
+        />
+      </label>
     </div>
-  );
+  </div>
+) : (
+ 
+            <div>
+              <h3>Open Freight Board</h3>
+              {activeJobs.filter(j => j.status === 'Unassigned').map(j => (
+                <button 
+                  key={j.id} 
+                  onClick={() => supabase.from('jobs').update({ status: 'Assigned' }).eq('id', j.id).then(fetchLogisticsData)} 
+                  className="btn-green" 
+                  style={{ width: '100%', marginBottom: 10, padding: 12 }}
+                >
+                  Claim {j.pickup_address}
+                </button>
+              ))}
+            </div>
+          )}
+          <div style={{ marginTop: 40, padding: 20, borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
+            <p style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Ben Logistics Agency Node • Independent Contractor Status Active
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
