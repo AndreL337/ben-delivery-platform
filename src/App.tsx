@@ -394,7 +394,7 @@ function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer
   }
 
   const uploadPoD = async (jobId: string, file: File) => {
-    const { data: uploadData, error } = await supabase.storage
+    const { data: uploadData } = await supabase.storage
       .from('pod-images')
       .upload(`${jobId}/${Date.now()}.jpg`, file);
     
