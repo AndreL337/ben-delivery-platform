@@ -27,7 +27,7 @@ export default function App() {
   const [authError, setAuthError] = useState('')
   const [roleMode, setRoleMode] = useState<'retailer' | 'driver'>('retailer')
 
-  // Waitlist States (Restored and Expanded)
+  // Waitlist States
   const [driverName, setDriverName] = useState('')
   const [driverPhone, setDriverPhone] = useState('')
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false)
@@ -46,7 +46,6 @@ export default function App() {
   const currentTier = PRICING_MATRIX[vehicleSetup][loopProfile];
 
   useEffect(() => {
-    // Check role on initial load
     supabase.auth.getSession().then(({ data: { session } }) => { 
       setSession(session);
       if (session?.user?.user_metadata?.role) {
@@ -54,7 +53,6 @@ export default function App() {
       }
     });
 
-    // Check role any time the auth state changes (like when provisioning)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { 
       setSession(session);
       if (session?.user?.user_metadata?.role) {
@@ -68,7 +66,6 @@ export default function App() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // 🚀 FAST-TRACK DEBUG OVERRIDE: Log in instantly without real credentials
     if (authEmail.trim().toLowerCase() === 'driver') {
       setRoleMode('driver');
       setSession({ user: { id: 'debug-driver-id' } });
@@ -87,17 +84,10 @@ export default function App() {
       const { data, error } = await supabase.auth.signInWithPassword({ email: logEmail, password: authPassword })
       if (error) throw error
 
-      // Extract the assigned role from the Supabase auth user metadata profile
       const userRole = data.user?.user_metadata?.role; 
-      
-      if (userRole === 'driver') {
-        setRoleMode('driver');
-      } else if (userRole === 'retailer') {
-        setRoleMode('retailer');
-      } else {
-        // Fallback safety gate
-        setRoleMode('driver'); 
-      }
+      if (userRole === 'driver') setRoleMode('driver');
+      else if (userRole === 'retailer') setRoleMode('retailer');
+      else setRoleMode('driver'); 
     } catch (err: any) { 
       setAuthError(err.message || 'Invalid login credentials.') 
     }
@@ -125,7 +115,6 @@ export default function App() {
       if (error) throw error
       setWaitlistSubmitted(true)
       
-      // Reset form
       setDriverName(''); setDriverPhone(''); setEmail(''); setRole('Driver'); 
       setMake(''); setModel(''); setYear(''); setIsInsured(false);
     } catch (err: any) { 
@@ -135,32 +124,36 @@ export default function App() {
   }
 
   return (
-    <div className="landing-container">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-emerald-500/30">
       
-      {/* 1. FLOATING PILL NAVBAR */}
-      <div className="navbar-pill">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ background: '#76bd43', color: 'white', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 14 }}>B</div>
-          <span style={{ fontWeight: 800, fontSize: 20, letterSpacing: '-0.5px' }}>Ben</span>
-        </div>
-        
-        <div className="nav-links">
-          <a href="#services">Services</a>
-          <a href="#cases">Case Studies</a>
-          <a href="#about">About</a>
-          <a href="#contact">Contact</a>
+      {/* 1. PREMIUM HEADER / TOP BAR - LIGHT MODE */}
+      <header className="w-full bg-white/90 border-b border-slate-200 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex flex-row items-center justify-between shadow-sm">
+        <div className="flex items-center space-x-3">
+          <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
+          <div className="flex flex-col">
+            <span className="font-extrabold text-lg tracking-wider text-slate-900 leading-none">
+              BEN<span className="text-emerald-600 font-medium">LOGISTICS</span>
+            </span>
+            <span className="text-[10px] text-slate-500 tracking-widest uppercase font-bold mt-1">
+              Milton Keynes Hub
+            </span>
+          </div>
         </div>
 
-        <div>
+        <div className="flex items-center space-x-4">
           {!session ? (
-            <button onClick={() => setShowLogin(!showLogin)} className="btn-green">
-              {showLogin ? '← Fleet Page' : 'Operator Portal'}
+            <button 
+              onClick={() => setShowLogin(!showLogin)} 
+              className="bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-bold py-2 px-4 rounded-lg transition-all shadow-sm"
+            >
+              {showLogin ? '← Back to Fleet Page' : 'Operator Portal Login'}
             </button>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, background: '#111827', color: 'white', padding: '6px 12px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Verified {roleMode}
-              </span>
+            <div className="flex items-center space-x-4">
+              <div className="text-right hidden sm:block">
+                <p className="text-xs text-slate-500">Verified {roleMode}</p>
+                <p className="text-sm font-bold text-emerald-600">Live & Connected</p>
+              </div>
               <button 
                 onClick={() => { 
                   supabase.auth.signOut(); 
@@ -168,184 +161,223 @@ export default function App() {
                   setRoleMode('retailer'); 
                   setShowLogin(false);
                 }} 
-                className="btn-green" 
-                style={{ background: '#E74C3C', padding: '8px 16px' }}
+                className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold py-2 px-4 rounded-lg transition-all"
               >
                 Disconnect
               </button>
             </div>
           )}
         </div>
-      </div>
+      </header>
 
-      {/* 2. DYNAMIC WORKSPACE GATEWAY */}
-      {!session ? (
-        showLogin ? (
-          /* CONSOLE LOGIN VIEW */
-          <div style={{ maxWidth: 500, margin: '0 auto' }}>
-            <form onSubmit={handleLogin} className="form-panel" style={{ textAlign: 'left', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <h2 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0 }}>Operator Sign In</h2>
-              {authError && <p style={{ color: 'red', margin: 0 }}>⚠️ {authError}</p>}
-              
-              <p style={{ fontSize: 11, color: '#666', margin: '-8px 0 8px 0' }}>💡 Pro Tip: Type <strong>driver</strong> or <strong>retailer</strong> in the email field to bypass.</p>
-
-              <input type="text" placeholder="Email Address (or type 'driver')" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} required />
-              <input type="password" placeholder="Security Password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required />
-              <button type="submit" disabled={authLoading} className="btn-green" style={{ width: '100%', padding: 16, fontSize: 16 }}>
-                {authLoading ? 'Verifying...' : 'Authenticate Operator →'}
-              </button>
-
-              <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0' }}>
-                <div style={{ flex: 1, height: 1, background: '#cbd5e1' }}></div>
-                <span style={{ padding: '0 12px', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Sandbox Environment Provisioners</span>
-                <div style={{ flex: 1, height: 1, background: '#cbd5e1' }}></div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <button type="button" className="btn-white" style={{ fontSize: 11, padding: '10px 4px', border: '1px solid #cbd5e1', borderRadius: 12, background: 'white' }}
-                  onClick={async () => {
-                    setAuthLoading(true);
-                    const email = `driver_${Math.floor(Math.random() * 10000)}@benlogistics.co.uk`;
-                    const { error } = await supabase.auth.signUp({ email, password: 'Password123!', options: { data: { role: 'driver' } } });
-                    if (error) alert(`Provisioning failed: ${error.message}`);
-                    else alert(`Driver Created Successfully!\nEmail: ${email}\nPassword: Password123!`);
-                    setAuthLoading(false);
-                  }}>🛠️ Provision Test Driver</button>
-
-                <button type="button" className="btn-white" style={{ fontSize: 11, padding: '10px 4px', border: '1px solid #cbd5e1', borderRadius: 12, background: 'white' }}
-                  onClick={async () => {
-                    setAuthLoading(true);
-                    const email = `retailer_${Math.floor(Math.random() * 10000)}@benlogistics.co.uk`;
-                    const { error } = await supabase.auth.signUp({ email, password: 'Password123!', options: { data: { role: 'retailer' } } });
-                    if (error) alert(`Provisioning failed: ${error.message}`);
-                    else alert(`Retailer Created Successfully!\nEmail: ${email}\nPassword: Password123!`);
-                    setAuthLoading(false);
-                  }}>🏬 Provision Test Retailer</button>
-              </div>
-            </form>
-          </div>
-        ) : (
-          /* LANDING PAGE VISUALS */
-          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: 48, textAlign: 'left', alignItems: 'start' }}>
-            
-            <div>
-              <span style={{ background: 'white', padding: '6px 16px', borderRadius: 50, fontSize: 12, fontWeight: 700, color: '#444', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-                Live Run Matrix Engine
-              </span>
-              <h2 style={{ fontSize: '3rem', fontWeight: 800, letterSpacing: '-1.5px', color: '#111', marginTop: 24, marginBottom: 0, lineHeight: 1.1 }}>
-                Transparent Flat-Rate Daily Operations
-              </h2>
-              <p style={{ fontSize: '1rem', color: '#555', lineHeight: 1.5, marginTop: 12, marginBottom: 24, fontWeight: 500 }}>
-                Completely eliminate volumetric spreadsheet drag. Adjust the operational parameters below to see the exact ledger allocations across the 2-man crew roster.
-              </p>
-
-              <div className="form-panel" style={{ display: 'flex', flexDirection: 'column', gap: 16, background: 'rgba(255,255,255,0.6)', padding: 20, borderRadius: 16, border: '1px solid rgba(0,0,0,0.05)', marginBottom: 24 }}>
-                <div>
-                  <label style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#666', letterSpacing: '1px', display: 'block', marginBottom: 6 }}>Vehicle Assets Operational Setup</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#e2e8f0', padding: 3, borderRadius: 30 }}>
-                    <button type="button" onClick={() => setVehicleSetup('clientVehicle')} style={{ padding: '8px 12px', border: 'none', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 700, background: vehicleSetup === 'clientVehicle' ? '#111' : 'transparent', color: vehicleSetup === 'clientVehicle' ? 'white' : '#555' }}>Client Vehicle</button>
-                    <button type="button" onClick={() => setVehicleSetup('independent')} style={{ padding: '8px 12px', border: 'none', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 700, background: vehicleSetup === 'independent' ? '#111' : 'transparent', color: vehicleSetup === 'independent' ? 'white' : '#555' }}>Independent Van</button>
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#666', letterSpacing: '1px', display: 'block', marginBottom: 6 }}>Route Manifest Classification</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#e2e8f0', padding: 3, borderRadius: 30 }}>
-                    <button type="button" onClick={() => setLoopProfile('roc')} style={{ padding: '8px 12px', border: 'none', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 700, background: loopProfile === 'roc' ? '#76bd43' : 'transparent', color: loopProfile === 'roc' ? 'white' : '#555' }}>Standard ROC</button>
-                    <button type="button" onClick={() => setLoopProfile('assembly')} style={{ padding: '8px 12px', border: 'none', borderRadius: 20, cursor: 'pointer', fontSize: 12, fontWeight: 700, background: loopProfile === 'assembly' ? '#76bd43' : 'transparent', color: loopProfile === 'assembly' ? 'white' : '#555' }}>Delivery & Assembly</button>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', padding: '12px 16px', borderRadius: 12, border: '1px solid #e2e8f0' }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', color: '#666' }}>Target Route Capacity</span>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: '#111', background: '#FAFCEF', border: '1px solid #E8F5C8', padding: '4px 10px', borderRadius: 6 }}>{currentTier.targetVolume}</span>
-                </div>
-
-                <div style={{ background: 'white', padding: 16, borderRadius: 12, border: '1px solid #eee', display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, borderBottom: '1px solid #f5f5f5', paddingBottom: 6 }}>
-                    <span style={{ color: '#666', fontWeight: 500 }}>Flat Route Booking Fee</span>
-                    <span style={{ fontWeight: 800 }}>£{currentTier.grossFee.toFixed(2)}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: '#888', borderBottom: '1px solid #f5f5f5', paddingBottom: 6 }}>
-                    <span>Ben Network Infrastructure Fee (15%)</span>
-                    <span>- £{currentTier.platformFee.toFixed(2)}</span>
+      {/* 2. MAIN HUB CONTENT CONTAINER */}
+      <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-12 flex flex-col space-y-10">
+        
+        {!session ? (
+          showLogin ? (
+            /* CONSOLE LOGIN VIEW */
+            <div className="max-w-md mx-auto w-full">
+              <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-xl shadow-slate-200/50">
+                <form onSubmit={handleLogin} className="flex flex-col space-y-5">
+                  <div>
+                    <h2 className="text-2xl font-extrabold text-slate-900">Operator Sign In</h2>
+                    <p className="text-xs text-slate-500 mt-1">💡 Pro Tip: Type <strong>driver</strong> or <strong>retailer</strong> in the email field to bypass.</p>
                   </div>
                   
-                  <div style={{ background: '#FAFCEF', border: '1px solid #E8F5C8', padding: '14px 16px', borderRadius: 12, marginTop: 4, textAlign: 'left' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <span style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', color: '#4D7C0F', display: 'block' }}>Net Dispatched Labour Pool</span>
-                        <p style={{ color: '#555', fontSize: 11, margin: '2px 0 0 0', lineHeight: 1.3 }}>Total day rate allocated straight to the cab. Crew maintains full control to split payouts manually or apply standard 60/40 distributions before route dispatch.</p>
+                  {authError && <p className="text-red-700 text-sm bg-red-50 p-3 rounded-lg border border-red-200">⚠️ {authError}</p>}
+                  
+                  <input 
+                    type="text" 
+                    placeholder="Email Address (or bypass keyword)" 
+                    value={authEmail} 
+                    onChange={(e) => setAuthEmail(e.target.value)} 
+                    className="bg-white border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-slate-900 rounded-lg py-3 px-4 outline-none transition-all"
+                    required 
+                  />
+                  <input 
+                    type="password" 
+                    placeholder="Security Password" 
+                    value={authPassword} 
+                    onChange={(e) => setAuthPassword(e.target.value)} 
+                    className="bg-white border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-slate-900 rounded-lg py-3 px-4 outline-none transition-all"
+                    required 
+                  />
+                  
+                  <button type="submit" disabled={authLoading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition-all shadow-md shadow-emerald-600/20">
+                    {authLoading ? 'Verifying...' : 'Authenticate Operator →'}
+                  </button>
+
+                  <div className="flex items-center py-2">
+                    <div className="flex-1 height-px bg-slate-200"></div>
+                    <span className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sandbox Provisioners</span>
+                    <div className="flex-1 height-px bg-slate-200"></div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <button type="button" className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs py-2 px-3 rounded-lg transition-all font-semibold"
+                      onClick={async () => {
+                        setAuthLoading(true);
+                        const email = `driver_${Math.floor(Math.random() * 10000)}@benlogistics.co.uk`;
+                        const { error } = await supabase.auth.signUp({ email, password: 'Password123!', options: { data: { role: 'driver' } } });
+                        if (error) alert(`Provisioning failed: ${error.message}`);
+                        else alert(`Driver Created Successfully!\nEmail: ${email}\nPassword: Password123!`);
+                        setAuthLoading(false);
+                      }}>🛠️ Test Driver</button>
+
+                    <button type="button" className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs py-2 px-3 rounded-lg transition-all font-semibold"
+                      onClick={async () => {
+                        setAuthLoading(true);
+                        const email = `retailer_${Math.floor(Math.random() * 10000)}@benlogistics.co.uk`;
+                        const { error } = await supabase.auth.signUp({ email, password: 'Password123!', options: { data: { role: 'retailer' } } });
+                        if (error) alert(`Provisioning failed: ${error.message}`);
+                        else alert(`Retailer Created Successfully!\nEmail: ${email}\nPassword: Password123!`);
+                        setAuthLoading(false);
+                      }}>🏬 Test Retailer</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          ) : (
+            /* LANDING PAGE VISUALS & SPLIT VIEW */
+            <>
+              {/* Hero Section */}
+              <div className="space-y-4 max-w-2xl">
+                <span className="text-xs font-bold text-emerald-700 uppercase tracking-widest bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-full">
+                  Live Run Matrix Engine
+                </span>
+                <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl leading-tight">
+                  Transparent Flat-Rate Daily Operations.
+                </h1>
+                <p className="text-slate-600 text-lg">
+                  Completely eliminate volumetric spreadsheet drag. Adjust the operational parameters below to see the exact ledger allocations across the 2-man crew roster.
+                </p>
+              </div>
+
+              {/* Two Column Layout for Calculator & Waitlist */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                
+                {/* LEFT: Matrix Calculator */}
+                <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm flex flex-col space-y-6">
+                  <div>
+                    <label className="text-xs font-bold uppercase text-slate-500 tracking-wider block mb-2">Vehicle Assets Operational Setup</label>
+                    <div className="grid grid-cols-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                      <button onClick={() => setVehicleSetup('clientVehicle')} className={`py-2 px-3 rounded-lg text-sm font-bold transition-all ${vehicleSetup === 'clientVehicle' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>Client Vehicle</button>
+                      <button onClick={() => setVehicleSetup('independent')} className={`py-2 px-3 rounded-lg text-sm font-bold transition-all ${vehicleSetup === 'independent' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>Independent Van</button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold uppercase text-slate-500 tracking-wider block mb-2">Route Manifest Classification</label>
+                    <div className="grid grid-cols-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                      <button onClick={() => setLoopProfile('roc')} className={`py-2 px-3 rounded-lg text-sm font-bold transition-all ${loopProfile === 'roc' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>Standard ROC</button>
+                      <button onClick={() => setLoopProfile('assembly')} className={`py-2 px-3 rounded-lg text-sm font-bold transition-all ${loopProfile === 'assembly' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>Delivery & Assembly</button>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <span className="text-xs font-bold uppercase text-slate-600">Target Route Capacity</span>
+                    <span className="text-sm font-extrabold text-emerald-700 bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-md">{currentTier.targetVolume}</span>
+                  </div>
+
+                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3">
+                    <div className="flex justify-between text-sm border-b border-slate-100 pb-2 text-slate-700">
+                      <span className="font-semibold">Flat Route Booking Fee</span>
+                      <span className="font-extrabold text-slate-900">£{currentTier.grossFee.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-slate-500 border-b border-slate-100 pb-2">
+                      <span>Ben Network Infrastructure Fee (15%)</span>
+                      <span>- £{currentTier.platformFee.toFixed(2)}</span>
+                    </div>
+                    
+                    <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl mt-2 text-left">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <span className="text-xs font-bold uppercase text-emerald-800 block">Net Dispatched Labour Pool</span>
+                          <p className="text-slate-600 text-[10px] mt-1 leading-relaxed max-w-[200px]">Total day rate allocated straight to the cab. Crew maintains full control to split payouts manually.</p>
+                        </div>
+                        <span className="text-3xl font-extrabold text-emerald-600">£{currentTier.netPool.toFixed(2)}</span>
                       </div>
-                      <span style={{ color: '#76bd43', fontSize: '1.8rem', fontWeight: 900, paddingLeft: 12 }}>£{currentTier.netPool.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            <div className="form-panel" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {waitlistSubmitted ? (
-              <div style={{ textAlign: 'center', padding: '40px 0', background: 'white', borderRadius: 16, border: '1px solid #eee' }}>
-                <span style={{ fontSize: 48 }}>✅</span>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 800, marginTop: 16 }}>Entry Logged. Welcome to Ben.</h3>
-                <p style={{ color: '#555', fontSize: 14, padding: '0 20px', lineHeight: 1.6 }}>
-                  We’ve received your professional credentials. You'll receive a confirmation email shortly. 
-                  We are currently onboarding MK crews—keep your phone handy for a verification text.
+                {/* RIGHT: Waitlist Registration Form */}
+                <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
+                  {waitlistSubmitted ? (
+                    <div className="text-center py-10 space-y-4">
+                      <span className="text-5xl">✅</span>
+                      <h3 className="text-2xl font-extrabold text-slate-900">Entry Logged.</h3>
+                      <p className="text-slate-600 text-sm leading-relaxed px-4">
+                        We’ve received your professional credentials. You'll receive a confirmation email shortly. Keep your phone handy for a verification text.
+                      </p>
+                      <button onClick={() => setWaitlistSubmitted(false)} className="text-emerald-600 text-sm font-bold hover:underline mt-4">
+                        Submit another crew member
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleWaitlistSubmit} className="flex flex-col space-y-4">
+                      <div className="border-b border-slate-100 pb-4 mb-2">
+                        <h3 className="text-xl font-extrabold text-slate-900">Join the MK Network</h3>
+                        <p className="text-slate-500 text-sm mt-1">Register your profile to access the regional array.</p>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="text" placeholder="Full Name" value={driverName} onChange={(e) => setDriverName(e.target.value)} required className="bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-900 rounded-lg py-2.5 px-4 outline-none transition-all placeholder:text-slate-400" />
+                        <input type="tel" placeholder="Mobile Number" value={driverPhone} onChange={(e) => setDriverPhone(e.target.value)} required className="bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-900 rounded-lg py-2.5 px-4 outline-none transition-all placeholder:text-slate-400" />
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-900 rounded-lg py-2.5 px-4 outline-none transition-all placeholder:text-slate-400" />
+                        <select value={role} onChange={(e) => setRole(e.target.value)} className="bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-900 rounded-lg py-2.5 px-4 outline-none transition-all appearance-none">
+                          <option value="Driver">Professional Driver</option>
+                          <option value="Porter">Delivery Porter / Mate</option>
+                        </select>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-3">
+                        <input type="text" placeholder="Make" value={make} onChange={(e) => setMake(e.target.value)} className="col-span-1 bg-white border border-slate-300 focus:border-emerald-500 text-slate-900 rounded-lg py-2.5 px-3 outline-none text-sm placeholder:text-slate-400" />
+                        <input type="text" placeholder="Model" value={model} onChange={(e) => setModel(e.target.value)} className="col-span-1 bg-white border border-slate-300 focus:border-emerald-500 text-slate-900 rounded-lg py-2.5 px-3 outline-none text-sm placeholder:text-slate-400" />
+                        <input type="number" placeholder="Year" value={year} onChange={(e) => setYear(e.target.value)} className="col-span-1 bg-white border border-slate-300 focus:border-emerald-500 text-slate-900 rounded-lg py-2.5 px-3 outline-none text-sm placeholder:text-slate-400" />
+                      </div>
+
+                      <label className="flex items-center gap-3 text-xs text-slate-600 cursor-pointer bg-slate-50 p-3 rounded-lg border border-slate-200 font-medium">
+                        <input type="checkbox" checked={isInsured} onChange={(e) => setIsInsured(e.target.checked)} required className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500/20 bg-white" />
+                        I confirm I hold valid Goods in Transit insurance.
+                      </label>
+
+                      <button type="submit" disabled={waitlistLoading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-lg transition-all shadow-md shadow-emerald-600/20 mt-2">
+                        {waitlistLoading ? 'Securing Allocation...' : 'Secure Route Allocation Spot →'}
+                      </button>
+                    </form>
+                  )}
+                </div>
+              </div>
+            </>
+          )
+        ) : (
+          /* SECURE BACKEND LOGISTICS DASHBOARD */
+          <div className="max-w-2xl mx-auto w-full">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-lg">
+              <div className="border-b border-slate-200 pb-4 mb-6">
+                <h2 className="text-2xl font-extrabold text-slate-900 capitalize">
+                  {roleMode} Workspace
+                </h2>
+                <p className="text-slate-500 text-sm mt-1">
+                  Secure encrypted connection to the Ben Milton Keynes delivery hub node.
                 </p>
-                <button onClick={() => setWaitlistSubmitted(false)} style={{ marginTop: 20, background: 'none', border: 'none', color: '#666', textDecoration: 'underline', cursor: 'pointer' }}>
-                  Submit another crew
-                </button>
               </div>
-            ) : (
-                <form onSubmit={handleWaitlistSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div>
-                    <h3 style={{ fontSize: '1.6rem', fontWeight: 800, margin: '0 0 4px 0' }}>Join the MK Network</h3>
-                    <p style={{ color: '#555', fontSize: 13, margin: 0 }}>Register your crew profile to access the Milton Keynes network array.</p>
-                  </div>
-                  
-                  <input type="text" placeholder="Full Name / Fleet Lead" value={driverName} onChange={(e) => setDriverName(e.target.value)} required />
-                  <input type="tel" placeholder="Mobile Contact Number" value={driverPhone} onChange={(e) => setDriverPhone(e.target.value)} required />
-                  <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                  
-                  <select value={role} onChange={(e) => setRole(e.target.value)} style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid #ccc', background: 'white' }}>
-                    <option value="Driver">Professional Driver</option>
-                    <option value="Porter">Delivery Porter / Mate</option>
-                  </select>
-
-                  <input type="text" placeholder="Vehicle Make" value={make} onChange={(e) => setMake(e.target.value)} />
-                  <input type="text" placeholder="Vehicle Model" value={model} onChange={(e) => setModel(e.target.value)} />
-                  <input type="number" placeholder="Vehicle Year" value={year} onChange={(e) => setYear(e.target.value)} />
-
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#555', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={isInsured} onChange={(e) => setIsInsured(e.target.checked)} required />
-                    I confirm I hold valid Goods in Transit insurance.
-                  </label>
-
-                  <button type="submit" disabled={waitlistLoading} className="btn-green" style={{ width: '100%', padding: 16, fontSize: 15, background: '#111' }}>
-                    {waitlistLoading ? 'Securing Allocation...' : 'Secure Route Allocation Spot →'}
-                  </button>
-                </form>
-              )}
+              
+              <BookJobForm retailerId={session.user.id} mode={roleMode} />
             </div>
           </div>
-        )
-      ) : (
-        /* SECURE BACKEND LOGISTICS DASHBOARD (ROLE EXTRACTED & LOCKED) */
-        <div className="form-panel" style={{ maxWidth: 600, margin: '0 auto', width: '100%' }}>
-          <div style={{ marginBottom: 16, borderBottom: '1px solid #e2e8f0', paddingBottom: 12 }}>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, textTransform: 'capitalize' }}>
-              {roleMode} Workspace
-            </h2>
-            <p style={{ color: '#666', fontSize: 11, margin: '2px 0 0 0' }}>
-              Secure encrypted connection to the Ben Milton Keynes delivery hub node.
-            </p>
-          </div>
-          
-          {/* Renders ONLY the user's specific workflow based on their extracted role */}
-          <BookJobForm retailerId={session.user.id} mode={roleMode} />
-        </div>
-      )}
+        )}
+
+      </main>
+
+      {/* FOOTER */}
+      <footer className="w-full py-6 border-t border-slate-200 text-center text-xs font-medium text-slate-500 bg-white mt-auto">
+        &copy; 2026 Ben Logistics Hubs. All rights reserved.
+      </footer>
     </div>
   )
 }
@@ -355,11 +387,6 @@ function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer
   const [activeJobs, setActiveJobs] = useState<any[]>([])
   const [complianceAccepted, setComplianceAccepted] = useState(false)
   const [retailerTab, setRetailerTab] = useState<'book' | 'track' | 'ledger'>('book')
-  const [activeGateJobId, setActiveGateJobId] = useState<string | null>(null)
-  const [activeDropIndex, setActiveDropIndex] = useState<number | null>(null)
-  const [customerSignee, setCustomerSignee] = useState('')
-  const [dropImage, setDropImage] = useState<string | null>(null)
-  const [isDrawing, setIsDrawing] = useState(false)
 
   const fetchLogisticsData = async () => {
     const { data: jobs } = await supabase.from('jobs').select('*').order('created_at', { ascending: false })
@@ -367,13 +394,11 @@ function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer
   }
 
   const uploadPoD = async (jobId: string, file: File) => {
-    // 1. Upload file to Supabase Storage
     const { data: uploadData, error } = await supabase.storage
       .from('pod-images')
       .upload(`${jobId}/${Date.now()}.jpg`, file);
     
     if (uploadData) {
-      // 2. Update job status to Completed
       await supabase.from('jobs').update({ status: 'Completed' }).eq('id', jobId);
       fetchLogisticsData();
     }
@@ -414,48 +439,58 @@ function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer
   const activeDriverJob = activeJobs.find(job => job.status === 'Assigned' || job.status === 'In Progress');
 
   return (
-    <div style={{ textAlign: 'left' }}>
+    <div className="w-full">
       {mode === 'retailer' ? (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, background: '#f8fafc', padding: 6, borderRadius: 12, marginBottom: 24 }}>
-            <button onClick={() => setRetailerTab('book')} style={{ fontWeight: 800, padding: 8 }}>📝 Book</button>
-            <button onClick={() => setRetailerTab('track')} style={{ fontWeight: 800, padding: 8 }}>📡 Track</button>
-            <button onClick={() => setRetailerTab('ledger')} style={{ fontWeight: 800, padding: 8 }}>💰 Ledger</button>
+          <div className="grid grid-cols-3 gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200 mb-6">
+            <button onClick={() => setRetailerTab('book')} className={`py-2 text-sm font-bold rounded-lg transition-all ${retailerTab === 'book' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>📝 Book</button>
+            <button onClick={() => setRetailerTab('track')} className={`py-2 text-sm font-bold rounded-lg transition-all ${retailerTab === 'track' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>📡 Track</button>
+            <button onClick={() => setRetailerTab('ledger')} className={`py-2 text-sm font-bold rounded-lg transition-all ${retailerTab === 'ledger' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>💰 Ledger</button>
           </div>
+          
           {retailerTab === 'book' && (
-             <form onSubmit={handleSubmit} style={{display:'flex', flexDirection:'column', gap:10}}>
-                <input placeholder="Pickup" onChange={e => setJobData({...jobData, pickup_address: e.target.value})} required/>
-                <input placeholder="Drops" onChange={e => setJobData({...jobData, drop_addresses: e.target.value})} required/>
-                <button type="submit" className="btn-green">Launch Route Array →</button>
+             <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
+                <input placeholder="Pickup Address" onChange={e => setJobData({...jobData, pickup_address: e.target.value})} required className="bg-white border border-slate-300 focus:border-emerald-500 text-slate-900 rounded-lg py-3 px-4 outline-none placeholder:text-slate-400" />
+                <input placeholder="Drop Addresses (comma separated)" onChange={e => setJobData({...jobData, drop_addresses: e.target.value})} required className="bg-white border border-slate-300 focus:border-emerald-500 text-slate-900 rounded-lg py-3 px-4 outline-none placeholder:text-slate-400" />
+                <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-lg transition-all shadow-md mt-2">Launch Route Array →</button>
              </form>
           )}
-          {retailerTab === 'track' && activeJobs.filter(j => j.retailer_id === retailerId).map(j => (
-            <div key={j.id} style={{padding:16, border:'1px solid #eee', marginBottom:8}}>{j.pickup_address} - {j.status}</div>
-          ))}
+          
+          {retailerTab === 'track' && (
+            <div className="space-y-3">
+              {activeJobs.filter(j => j.retailer_id === retailerId).map(j => (
+                <div key={j.id} className="p-4 bg-white border border-slate-200 rounded-xl flex justify-between items-center shadow-sm">
+                  <span className="text-slate-900 font-bold">{j.pickup_address}</span>
+                  <span className="text-xs px-2 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded-md font-bold">{j.status}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          
           {retailerTab === 'ledger' && (
-            <div style={{ padding: 24, background: 'white', borderRadius: 16, border: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+              <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
                 <div>
-                  <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>Agency Settlement Ledger</h3>
-                  <p style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>
+                  <h3 className="text-lg font-extrabold text-slate-900">Agency Settlement</h3>
+                  <p className="text-xs text-slate-500 mt-1">
                     Cumulative Commission: 
-                    <span style={{ fontWeight: 800, color: '#16a34a', marginLeft: 8 }}>
+                    <span className="font-bold text-emerald-600 ml-2">
                       £{activeJobs.filter(j => j.status === 'Completed').length * 57}
                     </span>
                   </p>
                 </div>
-                <button onClick={exportLedgerToCSV} style={{ padding: '8px 16px', fontSize: 12, fontWeight: 700, borderRadius: 8, border: '1px solid #111', background: 'white', cursor: 'pointer' }}>⬇ Export CSV</button>
+                <button onClick={exportLedgerToCSV} className="text-xs font-bold px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-lg text-slate-700 transition-all">⬇ Export CSV</button>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div className="flex flex-col space-y-3">
                 {activeJobs.filter(j => j.status === 'Completed').map(job => (
-                  <div key={job.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: '#f8fafc', borderRadius: 12 }}>
+                  <div key={job.id} className="flex justify-between items-center p-3 bg-slate-50 border border-slate-100 rounded-lg">
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: 14 }}>{job.pickup_address}</div>
-                      <div style={{ fontSize: 11, color: '#64748b' }}>{new Date(job.created_at).toLocaleDateString()}</div>
+                      <div className="font-bold text-sm text-slate-900">{job.pickup_address}</div>
+                      <div className="text-[10px] text-slate-500 font-medium">{new Date(job.created_at).toLocaleDateString()}</div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontWeight: 800, color: '#16a34a' }}>+£57.00</div>
-                      <div style={{ fontSize: 10, textTransform: 'uppercase', fontWeight: 700, color: '#94a3b8' }}>Comm. Earned</div>
+                    <div className="text-right">
+                      <div className="font-extrabold text-emerald-600">+£57.00</div>
+                      <div className="text-[9px] uppercase font-bold text-slate-400">Comm. Earned</div>
                     </div>
                   </div>
                 ))}
@@ -464,84 +499,87 @@ function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer
           )}
         </div>
       ) : mode === 'driver' && !complianceAccepted ? (
-        <div style={{ padding: 32, border: '2px solid #ef4444', borderRadius: 20, background: '#FEF2F2' }}>
-          <h3 style={{ color: '#B91C1C', marginTop: 0, fontSize: 20 }}>⚠️ Independent Contractor Agreement</h3>
-          <div style={{ fontSize: 13, color: '#444', lineHeight: 1.6, marginBottom: 20, textAlign: 'left' }}>
-            <p>By proceeding, you confirm the following:</p>
-            <ul style={{ paddingLeft: 20 }}>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <h3 className="text-red-700 text-lg font-bold mb-4 flex items-center">⚠️ Independent Contractor Agreement</h3>
+          <div className="text-sm text-slate-700 space-y-3 mb-6">
+            <p className="font-medium">By proceeding, you confirm the following:</p>
+            <ul className="list-disc pl-5 space-y-1 text-slate-600">
               <li>You are a self-employed business entity.</li>
-              <li>You are responsible for your own tax and National Insurance contributions.</li>
+              <li>You are responsible for your own tax and NI contributions.</li>
               <li>You provide your own insurance and vehicle assets.</li>
               <li>This platform acts as an agent; you are not an employee of Ben Logistics.</li>
             </ul>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', fontWeight: 700 }}>
-              <input type="checkbox" onChange={(e) => setComplianceAccepted(e.target.checked)} style={{ width: 18, height: 18 }} />
-              I have read and agree to the Independent Contractor terms.
+            <label className="flex items-center gap-3 mt-4 cursor-pointer p-3 bg-white rounded-lg border border-red-100 shadow-sm">
+              <input type="checkbox" onChange={(e) => setComplianceAccepted(e.target.checked)} className="w-5 h-5 rounded border-slate-300 bg-white text-emerald-600 focus:ring-0" />
+              <span className="font-bold text-slate-900">I agree to the terms.</span>
             </label>
           </div>
           <button 
             disabled={!complianceAccepted} 
             onClick={() => setComplianceAccepted(true)} 
-            className="btn-green" 
-            style={{ 
-              background: complianceAccepted ? '#B91C1C' : '#D1D5DB', 
-              width: '100%', 
-              padding: 16, 
-              border: 'none', 
-              borderRadius: 12, 
-              color: 'white',
-              cursor: complianceAccepted ? 'pointer' : 'not-allowed'
-            }}
+            className={`w-full py-3.5 rounded-lg font-bold transition-all ${complianceAccepted ? 'bg-red-600 hover:bg-red-700 text-white shadow-md shadow-red-600/20' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
           >
             Initialize Secure Driver Portal
           </button>
         </div>
       ) : (
-        <div style={{ padding: 20 }}>
+        <div className="w-full">
           {activeDriverJob ? (
-  <div style={{ background: '#111827', color: 'white', padding: 20, borderRadius: 16 }}>
-    <h3>📍 Active Loop: {activeDriverJob.pickup_address}</h3>
-    <p>Status: {activeDriverJob.status}</p>
-    {parseDrops(activeDriverJob).map((d: string, i: number) => (
-      <div key={i} style={{ marginBottom: 10 }}>• {d}</div>
-    ))}
-    
-    <div style={{ marginTop: 20, borderTop: '1px solid #374151', paddingTop: 20 }}>
-      <label style={{ display: 'block', marginBottom: 10, cursor: 'pointer', background: '#3b82f6', padding: '12px', borderRadius: 8, textAlign: 'center', fontWeight: 700 }}>
-        Upload Proof of Delivery
-        <input 
-          type="file" 
-          accept="image/*" 
-          capture="environment" 
-          style={{ display: 'none' }} 
-          onChange={(e) => {
-            if (e.target.files && e.target.files[0]) {
-              uploadPoD(activeDriverJob.id, e.target.files[0]);
-            }
-          }}
-        />
-      </label>
-    </div>
-  </div>
-) : (
- 
+            <div className="bg-white border border-emerald-200 p-6 rounded-xl relative overflow-hidden shadow-md">
+              <div className="absolute top-0 right-0 w-2 h-full bg-emerald-500"></div>
+              <h3 className="text-lg font-extrabold text-slate-900 mb-1">📍 Active Loop: {activeDriverJob.pickup_address}</h3>
+              <p className="text-xs font-bold text-emerald-700 mb-4 bg-emerald-50 inline-block px-2 py-1 rounded border border-emerald-100">Status: {activeDriverJob.status}</p>
+              
+              <div className="space-y-2 mt-2">
+                {parseDrops(activeDriverJob).map((d: string, i: number) => (
+                  <div key={i} className="text-sm text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center font-medium">
+                    <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 text-xs flex items-center justify-center mr-3 font-bold">{i+1}</span>
+                    {d}
+                  </div>
+                ))}
+              </div>
+              
+              <div className="mt-6 pt-6 border-t border-slate-100">
+                <label className="block cursor-pointer bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg text-center font-bold transition-all shadow-md shadow-blue-600/20">
+                  📷 Upload Proof of Delivery
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    capture="environment" 
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        uploadPoD(activeDriverJob.id, e.target.files[0]);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+            </div>
+          ) : (
             <div>
-              <h3>Open Freight Board</h3>
-              {activeJobs.filter(j => j.status === 'Unassigned').map(j => (
-                <button 
-                  key={j.id} 
-                  onClick={() => supabase.from('jobs').update({ status: 'Assigned' }).eq('id', j.id).then(fetchLogisticsData)} 
-                  className="btn-green" 
-                  style={{ width: '100%', marginBottom: 10, padding: 12 }}
-                >
-                  Claim {j.pickup_address}
-                </button>
-              ))}
+              <h3 className="text-lg font-extrabold text-slate-900 mb-4 border-b border-slate-200 pb-2">Open Freight Board</h3>
+              <div className="space-y-3">
+                {activeJobs.filter(j => j.status === 'Unassigned').map(j => (
+                  <div key={j.id} className="bg-white border border-slate-200 p-4 rounded-xl flex justify-between items-center shadow-sm">
+                    <span className="font-bold text-slate-800">{j.pickup_address}</span>
+                    <button 
+                      onClick={() => supabase.from('jobs').update({ status: 'Assigned' }).eq('id', j.id).then(fetchLogisticsData)} 
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all shadow-sm"
+                    >
+                      Claim Route
+                    </button>
+                  </div>
+                ))}
+                {activeJobs.filter(j => j.status === 'Unassigned').length === 0 && (
+                  <p className="text-sm text-slate-500 text-center py-6 font-medium bg-slate-50 rounded-xl border border-slate-200">No unassigned routes currently available.</p>
+                )}
+              </div>
             </div>
           )}
-          <div style={{ marginTop: 40, padding: 20, borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
-            <p style={{ fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Ben Logistics Agency Node • Independent Contractor Status Active
+          <div className="mt-8 pt-4 border-t border-slate-200 text-center">
+            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">
+              Ben Logistics Node • Independent Status Active
             </p>
           </div>
         </div>
@@ -549,4 +587,3 @@ function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer
     </div>
   )
 }
-
