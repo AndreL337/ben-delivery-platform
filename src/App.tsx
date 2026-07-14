@@ -584,6 +584,6 @@ function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer
           </div>
         </div>
       )}
-    </div>
+    </div>  
   )
 }
