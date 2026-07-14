@@ -100,7 +100,7 @@ export default function App() {
     try {
       const regionalTerritoryTag = `Milton Keynes (${role})`;
 
-      const { error } = await supabase.from('driver_waitlist').insert([{ 
+      const { error } = await supabase.from('drivers_waitlist').insert([{ 
         full_name: driverName.trim(), 
         phone_number: driverPhone.trim(),
         email: email.trim(),
