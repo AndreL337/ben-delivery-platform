@@ -26,6 +26,8 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
   const [roleMode, setRoleMode] = useState<'retailer' | 'driver'>('retailer')
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login')
+  const [signupRole, setSignupRole] = useState<'driver' | 'retailer'>('driver')
 
   // Waitlist States
   const [driverName, setDriverName] = useState('')
@@ -66,20 +68,31 @@ export default function App() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (authEmail.trim().toLowerCase() === 'driver') {
-      setRoleMode('driver');
-      setSession({ user: { id: 'debug-driver-id' } });
-      return;
-    }
-    if (authEmail.trim().toLowerCase() === 'retailer') {
-      setRoleMode('retailer');
-      setSession({ user: { id: 'debug-retailer-id' } });
-      return;
-    }
-
     let logEmail = authEmail.trim();
     setAuthLoading(true)
     setAuthError('')
+
+    if (authMode === 'signup') {
+      if (authPassword.length < 8) {
+        setAuthError('Password must be at least 8 characters.');
+        setAuthLoading(false);
+        return;
+      }
+      try {
+        const { error } = await supabase.auth.signUp({
+          email: logEmail,
+          password: authPassword,
+          options: { data: { role: signupRole } }
+        });
+        if (error) throw error;
+        setRoleMode(signupRole);
+      } catch (err: any) {
+        setAuthError(err.message || 'Could not create account.');
+      }
+      setAuthLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email: logEmail, password: authPassword })
       if (error) throw error
@@ -187,8 +200,10 @@ export default function App() {
               <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-xl shadow-slate-200/50">
                 <form onSubmit={handleLogin} className="flex flex-col space-y-5">
                   <div>
-                    <h2 className="text-2xl font-extrabold text-slate-900">Operator Sign In</h2>
-                    <p className="text-xs text-slate-500 mt-1">💡 Pro Tip: Type <strong>driver</strong> or <strong>retailer</strong> in the email field to bypass.</p>
+                    <h2 className="text-2xl font-extrabold text-slate-900">{authMode === 'signup' ? 'Create Your Account' : 'Operator Sign In'}</h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {authMode === 'signup' ? 'Set up secure access to the Ben network.' : 'Sign in to your driver or retailer account.'}
+                    </p>
                   </div>
                   
                   {authError && <p className="text-red-700 text-sm bg-red-50 p-3 rounded-lg border border-red-200">⚠️ {authError}</p>}
@@ -210,37 +225,26 @@ export default function App() {
                     required 
                   />
                   
+                  {authMode === 'signup' && (
+                    <div>
+                      <label className="text-xs font-bold uppercase text-slate-500 tracking-wider block mb-2">I am a</label>
+                      <div className="grid grid-cols-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                        <button type="button" onClick={() => setSignupRole('driver')} className={`py-2 px-3 rounded-lg text-sm font-bold transition-all ${signupRole === 'driver' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>Driver / Porter</button>
+                        <button type="button" onClick={() => setSignupRole('retailer')} className={`py-2 px-3 rounded-lg text-sm font-bold transition-all ${signupRole === 'retailer' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}>Retailer</button>
+                      </div>
+                    </div>
+                  )}
+
                   <button type="submit" disabled={authLoading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition-all shadow-md shadow-emerald-600/20">
-                    {authLoading ? 'Verifying...' : 'Authenticate Operator →'}
+                    {authLoading ? 'Verifying...' : authMode === 'signup' ? 'Create Account →' : 'Authenticate Operator →'}
                   </button>
 
-                  <div className="flex items-center py-2">
-                    <div className="flex-1 height-px bg-slate-200"></div>
-                    <span className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sandbox Provisioners</span>
-                    <div className="flex-1 height-px bg-slate-200"></div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <button type="button" className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs py-2 px-3 rounded-lg transition-all font-semibold"
-                      onClick={async () => {
-                        setAuthLoading(true);
-                        const email = `driver_${Math.floor(Math.random() * 10000)}@benlogistics.co.uk`;
-                        const { error } = await supabase.auth.signUp({ email, password: 'Password123!', options: { data: { role: 'driver' } } });
-                        if (error) alert(`Provisioning failed: ${error.message}`);
-                        else alert(`Driver Created Successfully!\nEmail: ${email}\nPassword: Password123!`);
-                        setAuthLoading(false);
-                      }}>🛠️ Test Driver</button>
-
-                    <button type="button" className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs py-2 px-3 rounded-lg transition-all font-semibold"
-                      onClick={async () => {
-                        setAuthLoading(true);
-                        const email = `retailer_${Math.floor(Math.random() * 10000)}@benlogistics.co.uk`;
-                        const { error } = await supabase.auth.signUp({ email, password: 'Password123!', options: { data: { role: 'retailer' } } });
-                        if (error) alert(`Provisioning failed: ${error.message}`);
-                        else alert(`Retailer Created Successfully!\nEmail: ${email}\nPassword: Password123!`);
-                        setAuthLoading(false);
-                      }}>🏬 Test Retailer</button>
-                  </div>
+                  <p className="text-center text-xs text-slate-500">
+                    {authMode === 'signup' ? 'Already have an account?' : "Don't have an account yet?"}{' '}
+                    <button type="button" onClick={() => { setAuthMode(authMode === 'signup' ? 'login' : 'signup'); setAuthError(''); }} className="text-emerald-600 font-bold hover:underline">
+                      {authMode === 'signup' ? 'Sign in' : 'Create one'}
+                    </button>
+                  </p>
                 </form>
               </div>
             </div>
@@ -389,11 +393,168 @@ export default function App() {
   )
 }
 
+function RatingStars({ value, onChange }: { value: number, onChange?: (n: number) => void }) {
+  return (
+    <div className="flex space-x-1">
+      {[1, 2, 3, 4, 5].map(n => (
+        <button
+          key={n}
+          type="button"
+          disabled={!onChange}
+          onClick={() => onChange && onChange(n)}
+          className={`text-2xl leading-none ${n <= value ? 'text-amber-400' : 'text-slate-200'} ${onChange ? 'hover:text-amber-400 cursor-pointer' : ''}`}
+        >★</button>
+      ))}
+    </div>
+  );
+}
+
+function RateJobModal({ job, userId, role, onClose }: { job: any, userId: string, role: 'retailer' | 'driver', onClose: () => void }) {
+  const [stars, setStars] = useState(0);
+  const [comment, setComment] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const submit = async () => {
+    if (stars === 0) { setError('Please select a star rating.'); return; }
+    setSubmitting(true);
+    const { error } = await supabase.from('ratings').insert([{
+      job_id: job.id, rater_id: userId, rater_role: role, stars, comment: comment.trim() || null
+    }]);
+    setSubmitting(false);
+    if (error) { setError(error.message); return; }
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl space-y-4">
+        <h3 className="text-lg font-extrabold text-slate-900">Rate this job</h3>
+        <p className="text-sm text-slate-500">{job.pickup_address}</p>
+        <RatingStars value={stars} onChange={setStars} />
+        <textarea
+          placeholder="Optional comment"
+          value={comment}
+          onChange={e => setComment(e.target.value)}
+          className="w-full bg-white border border-slate-300 rounded-lg py-2 px-3 text-sm outline-none focus:border-emerald-500"
+          rows={3}
+        />
+        {error && <p className="text-red-600 text-xs">{error}</p>}
+        <div className="flex space-x-3">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-slate-300 text-slate-600 font-bold text-sm">Skip</button>
+          <button onClick={submit} disabled={submitting} className="flex-1 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm">
+            {submitting ? 'Saving...' : 'Submit Rating'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DisputePanel({ job, userId, role, onClose }: { job: any, userId: string, role: 'retailer' | 'driver', onClose: () => void }) {
+  const [dispute, setDispute] = useState<any>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [category, setCategory] = useState('other');
+  const [description, setDescription] = useState('');
+  const [reply, setReply] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => {
+    const { data: existing } = await supabase.from('disputes').select('*').eq('job_id', job.id).order('created_at', { ascending: false }).limit(1);
+    if (existing && existing.length > 0) {
+      setDispute(existing[0]);
+      const { data: msgs } = await supabase.from('dispute_messages').select('*').eq('dispute_id', existing[0].id).order('created_at', { ascending: true });
+      setMessages(msgs || []);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const raiseDispute = async () => {
+    if (!description.trim()) return;
+    const { data, error } = await supabase.from('disputes').insert([{
+      job_id: job.id, raised_by: userId, raised_by_role: role, category, description: description.trim(), status: 'awaiting_response'
+    }]).select();
+    if (!error && data) { setDispute(data[0]); setDescription(''); load(); }
+  };
+
+  const sendReply = async () => {
+    if (!reply.trim() || !dispute) return;
+    await supabase.from('dispute_messages').insert([{ dispute_id: dispute.id, sender_id: userId, sender_role: role, message: reply.trim() }]);
+    setReply('');
+    load();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl space-y-4 max-h-[80vh] overflow-y-auto">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-extrabold text-slate-900">Report an issue</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-sm font-bold">✕</button>
+        </div>
+        <p className="text-sm text-slate-500">{job.pickup_address}</p>
+
+        {loading ? (
+          <p className="text-sm text-slate-400">Loading...</p>
+        ) : !dispute ? (
+          <div className="space-y-3">
+            <p className="text-xs text-slate-500">The other party will be able to respond before anything happens to either account — nothing is decided on one report alone.</p>
+            <select value={category} onChange={e => setCategory(e.target.value)} className="w-full bg-white border border-slate-300 rounded-lg py-2 px-3 text-sm outline-none">
+              <option value="late">Late arrival</option>
+              <option value="damage">Damage</option>
+              <option value="no_show">No show</option>
+              <option value="payment">Payment issue</option>
+              <option value="behaviour">Behaviour / conduct</option>
+              <option value="other">Other</option>
+            </select>
+            <textarea
+              placeholder="Describe what happened"
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              className="w-full bg-white border border-slate-300 rounded-lg py-2 px-3 text-sm outline-none focus:border-emerald-500"
+              rows={4}
+            />
+            <button onClick={raiseDispute} className="w-full py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-sm">Submit Report</button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase text-slate-500">{dispute.category.replace('_', ' ')}</span>
+              <span className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-md font-bold capitalize">{dispute.status.replace('_', ' ')}</span>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm text-slate-700">{dispute.description}</div>
+            <div className="space-y-2">
+              {messages.map(m => (
+                <div key={m.id} className={`p-3 rounded-lg text-sm ${m.sender_id === userId ? 'bg-emerald-50 border border-emerald-100 ml-6' : 'bg-slate-50 border border-slate-200 mr-6'}`}>
+                  <div className="text-[10px] font-bold uppercase text-slate-400 mb-1">{m.sender_role}</div>
+                  {m.message}
+                </div>
+              ))}
+            </div>
+            <div className="flex space-x-2 pt-2">
+              <input
+                placeholder="Add your response..."
+                value={reply}
+                onChange={e => setReply(e.target.value)}
+                className="flex-1 bg-white border border-slate-300 rounded-lg py-2 px-3 text-sm outline-none focus:border-emerald-500"
+              />
+              <button onClick={sendReply} className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-bold">Send</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer' | 'driver' }) {
   const [jobData, setJobData] = useState({ vehicle_setup: 'clientVehicle', loop_profile: 'assembly', pickup_address: '', drop_addresses: '' })
   const [activeJobs, setActiveJobs] = useState<any[]>([])
   const [complianceAccepted, setComplianceAccepted] = useState(false)
   const [retailerTab, setRetailerTab] = useState<'book' | 'track' | 'ledger'>('book')
+  const [ratingJob, setRatingJob] = useState<any>(null)
+  const [disputeJob, setDisputeJob] = useState<any>(null)
 
   const fetchLogisticsData = async () => {
     const { data: jobs } = await supabase.from('jobs').select('*').order('created_at', { ascending: false })
@@ -407,6 +568,8 @@ function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer
     
     if (uploadData) {
       await supabase.from('jobs').update({ status: 'Completed' }).eq('id', jobId);
+      const { data: updatedJobs } = await supabase.from('jobs').select('*').eq('id', jobId);
+      if (updatedJobs && updatedJobs[0]) setRatingJob(updatedJobs[0]);
       fetchLogisticsData();
     }
   };
@@ -422,7 +585,7 @@ function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer
     const headers = ["Date", "Pickup Address", "Gross Fare (£)", "Agency Commission (£)"];
     const csvRows = completedJobs.map(job => {
       const date = new Date(job.created_at).toLocaleDateString();
-      return [date, `"${job.pickup_address}"`, 380, 57].join(",");
+      return [date, `"${job.pickup_address}"`, job.gross_fee ?? 380, job.platform_fee ?? 57].join(",");
     });
     const csvString = [headers.join(","), ...csvRows].join("\n");
     const blob = new Blob([csvString], { type: 'text/csv' });
@@ -435,9 +598,20 @@ function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { data } = await supabase.from('jobs').insert([{ retailer_id: retailerId, pickup_address: jobData.pickup_address, drop_addresses: jobData.drop_addresses, status: 'Unassigned' }]).select();
+    const tier = PRICING_MATRIX[jobData.vehicle_setup as 'independent' | 'clientVehicle'][jobData.loop_profile as 'roc' | 'assembly'];
+    const { data } = await supabase.from('jobs').insert([{
+      retailer_id: retailerId,
+      pickup_address: jobData.pickup_address,
+      drop_addresses: jobData.drop_addresses,
+      status: 'Unassigned',
+      vehicle_setup: jobData.vehicle_setup,
+      loop_profile: jobData.loop_profile,
+      gross_fee: tier.grossFee,
+      platform_fee: tier.platformFee,
+      net_pool: tier.netPool
+    }]).select();
     if (data) {
-      await supabase.from('payouts').insert([{ job_id: data[0].id, total_charged_to_retailer: 380, payout_status: 'Pending' }]);
+      await supabase.from('payouts').insert([{ job_id: data[0].id, total_charged_to_retailer: tier.grossFee, driver_payout: tier.netPool, payout_status: 'Pending' }]);
       fetchLogisticsData();
     }
   }
@@ -482,7 +656,7 @@ function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer
                   <p className="text-xs text-slate-500 mt-1">
                     Cumulative Commission: 
                     <span className="font-bold text-emerald-600 ml-2">
-                      £{activeJobs.filter(j => j.status === 'Completed').length * 57}
+                      £{activeJobs.filter(j => j.status === 'Completed').reduce((sum, j) => sum + (j.platform_fee ?? 57), 0)}
                     </span>
                   </p>
                 </div>
@@ -494,9 +668,13 @@ function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer
                     <div>
                       <div className="font-bold text-sm text-slate-900">{job.pickup_address}</div>
                       <div className="text-[10px] text-slate-500 font-medium">{new Date(job.created_at).toLocaleDateString()}</div>
+                      <div className="flex space-x-3 mt-1.5">
+                        <button onClick={() => setRatingJob(job)} className="text-[10px] font-bold text-emerald-600 hover:underline">★ Rate</button>
+                        <button onClick={() => setDisputeJob(job)} className="text-[10px] font-bold text-red-500 hover:underline">⚠ Report Issue</button>
+                      </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-extrabold text-emerald-600">+£57.00</div>
+                      <div className="font-extrabold text-emerald-600">+£{(job.platform_fee ?? 57).toFixed(2)}</div>
                       <div className="text-[9px] uppercase font-bold text-slate-400">Comm. Earned</div>
                     </div>
                   </div>
@@ -546,6 +724,10 @@ function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer
                 ))}
               </div>
               
+              <div className="mt-4">
+                <button onClick={() => setDisputeJob(activeDriverJob)} className="text-xs font-bold text-red-500 hover:underline">⚠ Report an issue with this job</button>
+              </div>
+
               <div className="mt-6 pt-6 border-t border-slate-100">
                 <label className="block cursor-pointer bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg text-center font-bold transition-all shadow-md shadow-blue-600/20">
                   📷 Upload Proof of Delivery
@@ -569,7 +751,10 @@ function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer
               <div className="space-y-3">
                 {activeJobs.filter(j => j.status === 'Unassigned').map(j => (
                   <div key={j.id} className="bg-white border border-slate-200 p-4 rounded-xl flex justify-between items-center shadow-sm">
-                    <span className="font-bold text-slate-800">{j.pickup_address}</span>
+                    <div>
+                      <span className="font-bold text-slate-800 block">{j.pickup_address}</span>
+                      <span className="text-xs font-bold text-emerald-700">You earn: £{(j.net_pool ?? 323).toFixed(2)}</span>
+                    </div>
                     <button 
                       onClick={() => supabase.from('jobs').update({ status: 'Assigned' }).eq('id', j.id).then(fetchLogisticsData)} 
                       className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all shadow-sm"
@@ -590,6 +775,13 @@ function BookJobForm({ retailerId, mode }: { retailerId: string, mode: 'retailer
             </p>
           </div>
         </div>
+      )}
+
+      {ratingJob && (
+        <RateJobModal job={ratingJob} userId={retailerId} role={mode} onClose={() => setRatingJob(null)} />
+      )}
+      {disputeJob && (
+        <DisputePanel job={disputeJob} userId={retailerId} role={mode} onClose={() => setDisputeJob(null)} />
       )}
     </div>  
   )
