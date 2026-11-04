@@ -24,16 +24,24 @@ const DEMO_TRACK_JOB: JobRecord = {
 export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | null }) {
   const [jobs, setJobs] = useState<JobRecord[]>([DEMO_TRACK_JOB])
   const [activeJob, setActiveJob] = useState<JobRecord>(DEMO_TRACK_JOB)
-  const [selectedStopIndex, setSelectedStopIndex] = useState<number>(2) // Default to Stop #3 (Next up)
+  const [selectedStopIndex, setSelectedStopIndex] = useState<number>(0)
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        // 1. If a specific UUID is passed via ?track=<job_id>, try the sanitized public RPC first (works for unauthenticated consumers)
-        if (selectedJobId && /^[0-9a-fA-F-]{36}$/.test(selectedJobId)) {
-          const { data: rpcData } = await supabase.rpc('get_public_job_tracking', {
-            p_job_id: selectedJobId
+        // 1. If a specific job ID (integer or UUID) is passed via ?track=<job_id>, call the sanitized public RPC
+        const targetLookupId = selectedJobId ? String(selectedJobId).trim() : null
+        if (targetLookupId && !targetLookupId.startsWith('mk-')) {
+          const { data: rpcData, error: rpcError } = await supabase.rpc('get_public_job_tracking', {
+            p_job_id: targetLookupId
           })
+          if (rpcError) {
+            console.error('[ConsumerTrackView RPC Error]', {
+              message: rpcError.message,
+              details: rpcError.details,
+              hint: rpcError.hint
+            })
+          }
           if (rpcData && Array.isArray(rpcData) && rpcData.length > 0) {
             setJobs(rpcData as JobRecord[])
             setActiveJob(rpcData[0] as JobRecord)
@@ -41,22 +49,29 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
           }
         }
 
-        // 2. Otherwise query visible jobs (for authenticated Retailer/Crew) or fallback to demo telemetry
-        const { data } = await supabase
+        // 2. Otherwise query visible jobs (for authenticated Retailer/Crew)
+        const { data, error } = await supabase
           .from('jobs')
           .select('*')
-          .order('created_at', { ascending: false })
+          .order('id', { ascending: false })
           .limit(10)
+        if (error) {
+          console.warn('[ConsumerTrackView Jobs Query Notice]', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint
+          })
+        }
         if (data && data.length > 0) {
           const all = data as JobRecord[]
           setJobs(all)
-          const matched = selectedJobId
-            ? all.find((j) => j.id === selectedJobId) || all[0]
+          const matched = targetLookupId
+            ? all.find((j) => String(j.id) === targetLookupId) || all[0]
             : all[0]
           setActiveJob(matched)
         }
-      } catch {
-        // Resilient fallback to DEMO_TRACK_JOB
+      } catch (err: any) {
+        console.error('[ConsumerTrackView Unexpected Error]', err)
       }
     }
     fetchJobs()
@@ -84,7 +99,7 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
 
   const currentStage = isRouteCompleted || isStopCompleted
     ? 5
-    : activeJob.status === 'Unassigned' || activeJob.status === 'open'
+    : activeJob.status === 'Unassigned' || activeJob.status === 'open' || activeJob.status === 'draft'
     ? 1
     : stopsAway === 0
     ? 4
@@ -104,14 +119,13 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
 
   return (
     <div className="max-w-3xl mx-auto w-full space-y-6">
-      {/* DELIVEROO-STYLE LIVE CONSUMER TRACKING HEADER */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-lg space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-5">
           <div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
               <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-700">
-                Deliveroo-Grade Live Customer Portal • Zero Showroom Calls
+                Deliveroo-Grade Live Customer Portal • Route #{String(activeJob.id)}
               </span>
             </div>
             <h2 className="text-2xl font-extrabold text-slate-900 mt-1">
@@ -124,9 +138,9 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
 
           {jobs.length > 1 && (
             <select
-              value={activeJob.id}
+              value={String(activeJob.id)}
               onChange={(e) => {
-                const found = jobs.find((j) => j.id === e.target.value)
+                const found = jobs.find((j) => String(j.id) === e.target.value)
                 if (found) {
                   setActiveJob(found)
                   setSelectedStopIndex(0)
@@ -135,8 +149,8 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
               className="bg-slate-50 border border-slate-300 rounded-lg py-2 px-3 text-xs font-bold text-slate-800 outline-none"
             >
               {jobs.map((j) => (
-                <option key={j.id} value={j.id}>
-                  Route: {j.pickup_address.slice(0, 28)}... ({j.status})
+                <option key={String(j.id)} value={String(j.id)}>
+                  Route #{String(j.id)}: {j.pickup_address.slice(0, 24)} ({j.status})
                 </option>
               ))}
             </select>
@@ -258,6 +272,12 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
             })}
           </div>
         </div>
+
+        {activeJob.exception_notes && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-900 font-semibold">
+            ⚠️ Active Route Exception Logged: {activeJob.exception_notes}
+          </div>
+        )}
 
         {/* CREW & VEHICLE CREDENTIALS BAR */}
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">

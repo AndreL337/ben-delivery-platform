@@ -106,17 +106,32 @@ export const DEFAULT_AGENT_EVENTS: AgentEventItem[] = [
 ]
 
 // Helper to parse multi-drop manifest safely without breaking single UK addresses containing commas
-export function parseManifestDrops(raw: string): string[] {
-  if (!raw || !raw.trim()) return []
+export function parseManifestDrops(raw: any): string[] {
+  if (!raw) return []
+  if (Array.isArray(raw)) {
+    return raw.map((s) => String(s).trim()).filter(Boolean)
+  }
+  const str = String(raw).trim()
+  if (!str) return []
+  if (str.startsWith('[') && str.endsWith(']')) {
+    try {
+      const parsed = JSON.parse(str)
+      if (Array.isArray(parsed)) {
+        return parsed.map((s) => String(s).trim()).filter(Boolean)
+      }
+    } catch {
+      // Fall through to delimiter parsing
+    }
+  }
   // If user entered newline-separated or semicolon-separated drops, split on those first
-  if (raw.includes('\n') || raw.includes(';')) {
-    return raw
+  if (str.includes('\n') || str.includes(';')) {
+    return str
       .split(/[\n;]+/)
       .map((s) => s.trim())
       .filter(Boolean)
   }
   // Fallback for legacy comma-separated single-line strings
-  return raw
+  return str
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean)
