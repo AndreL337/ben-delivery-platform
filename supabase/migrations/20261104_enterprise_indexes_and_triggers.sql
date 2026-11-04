@@ -2,10 +2,67 @@
 -- BEN LOGISTICS (MILTON KEYNES 2-MAN BULKY PLATFORM)
 -- Enterprise B-Tree Indexes, Server-Side 2026 Pricing Trigger & Stop Tracking
 -- Migration: 20261104_enterprise_indexes_and_triggers.sql
--- (Hardened with explicit ::text casts to prevent 42883 text = uuid errors)
+-- (Guaranteed idempotent: adds any missing columns first, then creates indexes & triggers)
 -- =============================================================================
 
 BEGIN;
+
+-- -----------------------------------------------------------------------------
+-- 0. DEFENSIVE COLUMN CREATION
+-- Ensure `status` or other columns exist before creating indexes or triggers
+-- -----------------------------------------------------------------------------
+
+ALTER TABLE public.jobs
+  ADD COLUMN IF NOT EXISTS retailer_id UUID,
+  ADD COLUMN IF NOT EXISTS driver_id UUID,
+  ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Unassigned',
+  ADD COLUMN IF NOT EXISTS requires_tail_lift BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS requires_assembly BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS has_third_floor_no_lift BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS heavy_access_surcharge NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+  ADD COLUMN IF NOT EXISTS pre_load_inspected BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS completed_drops_json JSONB DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS exception_notes TEXT,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+
+ALTER TABLE public.payouts
+  ADD COLUMN IF NOT EXISTS job_id UUID,
+  ADD COLUMN IF NOT EXISTS driver_id UUID,
+  ADD COLUMN IF NOT EXISTS amount_pence INTEGER NOT NULL DEFAULT 38500,
+  ADD COLUMN IF NOT EXISTS platform_fee_pence INTEGER NOT NULL DEFAULT 5500,
+  ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending',
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+
+CREATE TABLE IF NOT EXISTS public.contractor_agreements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID,
+  agreement_version TEXT NOT NULL DEFAULT 'v1.0-pilot-outside-ir35',
+  signed_at TIMESTAMPTZ DEFAULT NOW(),
+  lead_driver_name TEXT,
+  has_right_of_substitution BOOLEAN DEFAULT TRUE,
+  confirms_git_and_pl BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS public.compliance_documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  driver_id UUID,
+  doc_type TEXT,
+  file_url TEXT,
+  expiry_date DATE,
+  verified BOOLEAN DEFAULT FALSE,
+  status TEXT DEFAULT 'Pending Verification',
+  uploaded_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.agent_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  agent_name TEXT,
+  event_type TEXT,
+  summary TEXT,
+  payload_meta TEXT,
+  status TEXT DEFAULT 'pending',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
 
 -- -----------------------------------------------------------------------------
 -- 1. HIGH-PERFORMANCE B-TREE INDEXES FOR RLS & REALTIME QUERIES
@@ -25,18 +82,7 @@ CREATE INDEX IF NOT EXISTS idx_compliance_documents_driver_id ON public.complian
 CREATE INDEX IF NOT EXISTS idx_agent_events_status_created ON public.agent_events(status, created_at DESC);
 
 -- -----------------------------------------------------------------------------
--- 2. EXTENDED ENTERPRISE COLUMNS ON `public.jobs`
--- -----------------------------------------------------------------------------
-
-ALTER TABLE public.jobs
-  ADD COLUMN IF NOT EXISTS has_third_floor_no_lift BOOLEAN NOT NULL DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS heavy_access_surcharge NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
-  ADD COLUMN IF NOT EXISTS pre_load_inspected BOOLEAN NOT NULL DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS completed_drops_json JSONB DEFAULT '[]'::jsonb,
-  ADD COLUMN IF NOT EXISTS exception_notes TEXT;
-
--- -----------------------------------------------------------------------------
--- 3. SERVER-SIDE 2026 PRICING MATRIX TRIGGER (ANTI-TAMPERING GUARDRAIL)
+-- 2. SERVER-SIDE 2026 PRICING MATRIX TRIGGER (ANTI-TAMPERING GUARDRAIL)
 -- -----------------------------------------------------------------------------
 
 CREATE OR REPLACE FUNCTION public.enforce_ben_2026_pricing()
@@ -97,7 +143,7 @@ CREATE TRIGGER trg_enforce_ben_2026_pricing
   EXECUTE FUNCTION public.enforce_ben_2026_pricing();
 
 -- -----------------------------------------------------------------------------
--- 4. SANITIZED PUBLIC CONSUMER TRACKING RPC (`?track=<job_id>`)
+-- 3. SANITIZED PUBLIC CONSUMER TRACKING RPC (`?track=<job_id>`)
 -- Uses TEXT parameter and ::text casts so it works whether `jobs.id` is TEXT,
 -- BIGINT, or UUID without throwing 42883 type mismatch errors.
 -- -----------------------------------------------------------------------------
