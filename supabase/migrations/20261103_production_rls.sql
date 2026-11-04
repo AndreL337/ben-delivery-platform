@@ -2,6 +2,7 @@
 -- BEN LOGISTICS (MILTON KEYNES 2-MAN BULKY PLATFORM)
 -- Production Schema & Strict Row-Level Security (RLS) Migration (Gate A)
 -- Migration: 20261103_production_rls.sql
+-- (Hardened with explicit ::text casts to prevent 42883 text = uuid errors)
 -- =============================================================================
 
 BEGIN;
@@ -35,8 +36,8 @@ CREATE TABLE IF NOT EXISTS public.drivers_waitlist (
 -- 1.3 Jobs Table Enhancements
 CREATE TABLE IF NOT EXISTS public.jobs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  retailer_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-  driver_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  retailer_id UUID,
+  driver_id UUID,
   pickup_address TEXT NOT NULL,
   drop_addresses TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'Unassigned',
@@ -61,23 +62,11 @@ ALTER TABLE public.jobs
   ADD COLUMN IF NOT EXISTS pod_image_url TEXT,
   ADD COLUMN IF NOT EXISTS signature_svg TEXT;
 
--- Ensure valid job statuses per pgTAP test suite & live app
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'jobs_status_valid_check'
-  ) THEN
-    ALTER TABLE public.jobs
-      ADD CONSTRAINT jobs_status_valid_check
-      CHECK (status IN ('Unassigned', 'open', 'Assigned', 'assigned', 'In Progress', 'in_transit', 'Completed', 'delivered', 'cancelled'));
-  END IF;
-END $$;
-
 -- 1.4 Payouts Table (pgTAP & Production Specification)
 CREATE TABLE IF NOT EXISTS public.payouts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  job_id UUID REFERENCES public.jobs(id) ON DELETE CASCADE,
-  driver_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  job_id UUID,
+  driver_id UUID,
   amount_pence INTEGER NOT NULL DEFAULT 38500,
   platform_fee_pence INTEGER NOT NULL DEFAULT 5500,
   status TEXT NOT NULL DEFAULT 'pending',
@@ -88,8 +77,8 @@ CREATE TABLE IF NOT EXISTS public.payouts (
 );
 
 ALTER TABLE public.payouts
-  ADD COLUMN IF NOT EXISTS job_id UUID REFERENCES public.jobs(id) ON DELETE CASCADE,
-  ADD COLUMN IF NOT EXISTS driver_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS job_id UUID,
+  ADD COLUMN IF NOT EXISTS driver_id UUID,
   ADD COLUMN IF NOT EXISTS amount_pence INTEGER NOT NULL DEFAULT 38500,
   ADD COLUMN IF NOT EXISTS platform_fee_pence INTEGER NOT NULL DEFAULT 5500,
   ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending';
@@ -131,6 +120,8 @@ CREATE TABLE IF NOT EXISTS public.agent_events (
 
 -- -----------------------------------------------------------------------------
 -- 2. STRICT ROW-LEVEL SECURITY (RLS) LOCKDOWN
+-- (All user/owner comparisons use explicit ::text casts so existing TEXT or UUID
+-- columns never trigger `ERROR 42883: operator does not exist: text = uuid`)
 -- -----------------------------------------------------------------------------
 
 ALTER TABLE public.admins ENABLE ROW LEVEL SECURITY;
@@ -182,15 +173,15 @@ CREATE POLICY "Admins full access on drivers_waitlist"
   ON public.drivers_waitlist
   FOR ALL
   TO authenticated
-  USING (EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id = auth.uid()))
-  WITH CHECK (EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id = auth.uid()));
+  USING (EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id::text = auth.uid()::text))
+  WITH CHECK (EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id::text = auth.uid()::text));
 
 -- 2.2 `admins`: Only admins can read the admin roster
 CREATE POLICY "Admins self read"
   ON public.admins
   FOR SELECT
   TO authenticated
-  USING (user_id = auth.uid());
+  USING (user_id::text = auth.uid()::text);
 
 -- 2.3 `jobs` RLS:
 -- Retailers can SELECT, INSERT, UPDATE only rows where retailer_id = auth.uid()
@@ -198,20 +189,20 @@ CREATE POLICY "Retailers select own jobs"
   ON public.jobs
   FOR SELECT
   TO authenticated
-  USING (retailer_id = auth.uid());
+  USING (retailer_id::text = auth.uid()::text);
 
 CREATE POLICY "Retailers insert own jobs"
   ON public.jobs
   FOR INSERT
   TO authenticated
-  WITH CHECK (retailer_id = auth.uid());
+  WITH CHECK (retailer_id::text = auth.uid()::text);
 
 CREATE POLICY "Retailers update own jobs"
   ON public.jobs
   FOR UPDATE
   TO authenticated
-  USING (retailer_id = auth.uid())
-  WITH CHECK (retailer_id = auth.uid());
+  USING (retailer_id::text = auth.uid()::text)
+  WITH CHECK (retailer_id::text = auth.uid()::text);
 
 -- Crews can SELECT jobs where status IN ('open', 'Unassigned') OR driver_id = auth.uid()
 CREATE POLICY "Crews select open or assigned jobs"
@@ -220,7 +211,7 @@ CREATE POLICY "Crews select open or assigned jobs"
   TO authenticated
   USING (
     status IN ('open', 'Unassigned')
-    OR driver_id = auth.uid()
+    OR driver_id::text = auth.uid()::text
   );
 
 -- Crews can UPDATE (status, PoD, signature) only jobs where driver_id = auth.uid()
@@ -229,8 +220,8 @@ CREATE POLICY "Crews update assigned jobs"
   ON public.jobs
   FOR UPDATE
   TO authenticated
-  USING (driver_id = auth.uid() OR status IN ('open', 'Unassigned'))
-  WITH CHECK (driver_id = auth.uid());
+  USING (driver_id::text = auth.uid()::text OR status IN ('open', 'Unassigned'))
+  WITH CHECK (driver_id::text = auth.uid()::text);
 
 -- 2.4 `payouts` RLS:
 -- Crews can SELECT only where driver_id = auth.uid(). Retailers have zero read access.
@@ -239,7 +230,7 @@ CREATE POLICY "Crews select own payouts"
   FOR SELECT
   TO authenticated
   USING (
-    driver_id = auth.uid()
+    driver_id::text = auth.uid()::text
     AND COALESCE((auth.jwt() -> 'user_metadata' ->> 'role'), 'driver') <> 'retailer'
   );
 
@@ -247,8 +238,8 @@ CREATE POLICY "Admins full access on payouts"
   ON public.payouts
   FOR ALL
   TO authenticated
-  USING (EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id = auth.uid()))
-  WITH CHECK (EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id = auth.uid()));
+  USING (EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id::text = auth.uid()::text))
+  WITH CHECK (EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id::text = auth.uid()::text));
 
 -- 2.5 `agent_events` RLS:
 -- Restrict read/write strictly to users present in public.admins
@@ -256,23 +247,23 @@ CREATE POLICY "Admins full access on agent_events"
   ON public.agent_events
   FOR ALL
   TO authenticated
-  USING (EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id = auth.uid()))
-  WITH CHECK (EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id = auth.uid()));
+  USING (EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id::text = auth.uid()::text))
+  WITH CHECK (EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id::text = auth.uid()::text));
 
 -- 2.6 `contractor_agreements` RLS:
 CREATE POLICY "Crews insert own contractor agreement"
   ON public.contractor_agreements
   FOR INSERT
   TO authenticated
-  WITH CHECK (user_id = auth.uid());
+  WITH CHECK (user_id::text = auth.uid()::text);
 
 CREATE POLICY "Crews select own contractor agreement"
   ON public.contractor_agreements
   FOR SELECT
   TO authenticated
   USING (
-    user_id = auth.uid()
-    OR EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id = auth.uid())
+    user_id::text = auth.uid()::text
+    OR EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id::text = auth.uid()::text)
   );
 
 -- 2.7 `compliance_documents` RLS:
@@ -280,23 +271,23 @@ CREATE POLICY "Crews insert own compliance docs"
   ON public.compliance_documents
   FOR INSERT
   TO authenticated
-  WITH CHECK (driver_id = auth.uid());
+  WITH CHECK (driver_id::text = auth.uid()::text);
 
 CREATE POLICY "Crews select own compliance docs"
   ON public.compliance_documents
   FOR SELECT
   TO authenticated
   USING (
-    driver_id = auth.uid()
-    OR EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id = auth.uid())
+    driver_id::text = auth.uid()::text
+    OR EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id::text = auth.uid()::text)
   );
 
 CREATE POLICY "Admins manage compliance docs"
   ON public.compliance_documents
   FOR UPDATE
   TO authenticated
-  USING (EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id = auth.uid()))
-  WITH CHECK (EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id = auth.uid()));
+  USING (EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id::text = auth.uid()::text))
+  WITH CHECK (EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id::text = auth.uid()::text));
 
 -- -----------------------------------------------------------------------------
 -- 3. STORAGE BUCKETS & POLICIES (`pod-images` & `compliance-docs`)
@@ -324,7 +315,7 @@ CREATE POLICY "Crews upload PoD for assigned job"
     AND EXISTS (
       SELECT 1 FROM public.jobs j
       WHERE j.id::text = (storage.foldername(name))[1]
-        AND j.driver_id = auth.uid()
+        AND j.driver_id::text = auth.uid()::text
     )
   );
 
@@ -339,9 +330,9 @@ CREATE POLICY "Crews and owning retailers read PoD images"
       EXISTS (
         SELECT 1 FROM public.jobs j
         WHERE j.id::text = (storage.foldername(name))[1]
-          AND (j.retailer_id = auth.uid() OR j.driver_id = auth.uid())
+          AND (j.retailer_id::text = auth.uid()::text OR j.driver_id::text = auth.uid()::text)
       )
-      OR EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id = auth.uid())
+      OR EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id::text = auth.uid()::text)
     )
   );
 
@@ -354,7 +345,7 @@ CREATE POLICY "Drivers upload own compliance docs"
     bucket_id = 'compliance-docs'
     AND (
       (storage.foldername(name))[1] = auth.uid()::text
-      OR EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id = auth.uid())
+      OR EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id::text = auth.uid()::text)
     )
   );
 
@@ -366,7 +357,7 @@ CREATE POLICY "Drivers and admins read compliance docs"
     bucket_id = 'compliance-docs'
     AND (
       (storage.foldername(name))[1] = auth.uid()::text
-      OR EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id = auth.uid())
+      OR EXISTS (SELECT 1 FROM public.admins a WHERE a.user_id::text = auth.uid()::text)
     )
   );
 

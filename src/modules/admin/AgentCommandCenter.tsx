@@ -23,8 +23,8 @@ alter table public.agent_events enable row level security;
 create policy "Admins full access on agent_events"
   on public.agent_events for all
   to authenticated
-  using (exists (select 1 from public.admins a where a.user_id = auth.uid()))
-  with check (exists (select 1 from public.admins a where a.user_id = auth.uid()));`
+  using (exists (select 1 from public.admins a where a.user_id::text = auth.uid()::text))
+  with check (exists (select 1 from public.admins a where a.user_id::text = auth.uid()::text));`
 
 export function AgentCommandCenter() {
   const [events, setEvents] = useState<AgentEventItem[]>(DEFAULT_AGENT_EVENTS)

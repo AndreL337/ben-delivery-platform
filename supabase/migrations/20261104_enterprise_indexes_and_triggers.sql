@@ -2,6 +2,7 @@
 -- BEN LOGISTICS (MILTON KEYNES 2-MAN BULKY PLATFORM)
 -- Enterprise B-Tree Indexes, Server-Side 2026 Pricing Trigger & Stop Tracking
 -- Migration: 20261104_enterprise_indexes_and_triggers.sql
+-- (Hardened with explicit ::text casts to prevent 42883 text = uuid errors)
 -- =============================================================================
 
 BEGIN;
@@ -97,13 +98,16 @@ CREATE TRIGGER trg_enforce_ben_2026_pricing
 
 -- -----------------------------------------------------------------------------
 -- 4. SANITIZED PUBLIC CONSUMER TRACKING RPC (`?track=<job_id>`)
--- Allows unauthenticated end-customers with a valid job UUID to view live ETA
--- without exposing full `public.jobs` rows to `anon` SELECT.
+-- Uses TEXT parameter and ::text casts so it works whether `jobs.id` is TEXT,
+-- BIGINT, or UUID without throwing 42883 type mismatch errors.
 -- -----------------------------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION public.get_public_job_tracking(p_job_id UUID)
+DROP FUNCTION IF EXISTS public.get_public_job_tracking(UUID);
+DROP FUNCTION IF EXISTS public.get_public_job_tracking(TEXT);
+
+CREATE OR REPLACE FUNCTION public.get_public_job_tracking(p_job_id TEXT)
 RETURNS TABLE (
-  id UUID,
+  id TEXT,
   pickup_address TEXT,
   drop_addresses TEXT,
   status TEXT,
@@ -119,7 +123,7 @@ SECURITY DEFINER
 STABLE
 AS $$
   SELECT
-    j.id,
+    j.id::text AS id,
     j.pickup_address,
     j.drop_addresses,
     j.status,
@@ -130,10 +134,10 @@ AS $$
     j.exception_notes,
     j.created_at
   FROM public.jobs j
-  WHERE j.id = p_job_id
+  WHERE j.id::text = p_job_id::text
   LIMIT 1;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.get_public_job_tracking(UUID) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_public_job_tracking(TEXT) TO anon, authenticated;
 
 COMMIT;
