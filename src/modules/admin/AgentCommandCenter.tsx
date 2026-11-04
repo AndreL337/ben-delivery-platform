@@ -167,43 +167,123 @@ export function AgentCommandCenter() {
   const agentBadgeStyle = (agentName: AgentEventItem['agent_name']) => {
     switch (agentName) {
       case 'Supply & Compliance Agent':
-        return 'bg-blue-50 text-blue-700 border-blue-200'
+        return 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/40'
       case 'Demand SDR Agent':
-        return 'bg-purple-50 text-purple-700 border-purple-200'
+        return 'bg-[#00F5D4]/15 text-[#00F5D4] border-[#00F5D4]/40'
       case 'Dispatch Guardrail Agent':
-        return 'bg-amber-50 text-amber-800 border-amber-200'
+        return 'bg-amber-500/15 text-amber-300 border-amber-400/40'
       case 'PoD & Settlement Agent':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        return 'bg-[#10B981]/20 text-emerald-300 border-[#10B981]/50'
     }
   }
 
+  const approvedCount = events.filter((e) => e.status === 'approved').length
+  const pendingCount = events.filter((e) => e.status === 'pending').length
+
   return (
-    <div className="space-y-6">
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
+    <div
+      className="rounded-3xl p-6 md:p-8 text-slate-100 shadow-2xl border"
+      style={{
+        background: 'radial-gradient(ellipse at top, #0F172A 0%, #090D16 100%)',
+        borderColor: 'rgba(255, 255, 255, 0.1)'
+      }}
+    >
+      {/* EXECUTIVE FLIGHT DECK TELEMETRY STRIP */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div
+          className="rounded-2xl p-4 border"
+          style={{
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(16px)',
+            borderColor: 'rgba(0, 245, 212, 0.25)'
+          }}
+        >
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#00F5D4] block">
+            Active MK9 Route Telemetry
+          </span>
+          <div className="text-2xl font-extrabold text-white mt-1 tabular-nums flex items-baseline gap-2">
+            <span>99.4% SLA</span>
+            <span className="text-xs font-bold text-[#00F5D4]">● Live Mesh</span>
+          </div>
+          <span className="text-[11px] text-slate-400 block mt-0.5">
+            35-Mile MK9 Guardrail & Shift Cap Active
+          </span>
+        </div>
+
+        <div
+          className="rounded-2xl p-4 border"
+          style={{
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(16px)',
+            borderColor: 'rgba(16, 185, 129, 0.28)'
+          }}
+        >
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#10B981] block">
+            Escrow & Gate A6 Clearance
+          </span>
+          <div className="text-2xl font-extrabold text-white mt-1 tabular-nums flex items-baseline gap-2">
+            <span>87.5% Pool</span>
+            <span className="text-xs font-bold text-[#10B981]">✓ Outside IR35</span>
+          </div>
+          <span className="text-[11px] text-slate-400 block mt-0.5">
+            48-Hr Post-PoD Dispute Shield Armed
+          </span>
+        </div>
+
+        <div
+          className="rounded-2xl p-4 border"
+          style={{
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(16px)',
+            borderColor: 'rgba(255, 255, 255, 0.1)'
+          }}
+        >
+          <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block">
+            Human-in-the-Loop Queue
+          </span>
+          <div className="text-2xl font-extrabold text-white mt-1 tabular-nums flex items-baseline gap-2">
+            <span>{pendingCount} Pending</span>
+            <span className="text-xs font-bold text-[#10B981]">{approvedCount} Executed</span>
+          </div>
+          <span className="text-[11px] text-slate-400 block mt-0.5">
+            Atomic Supabase Side-Effects Ready
+          </span>
+        </div>
+      </div>
+
+      {/* MAIN COMMAND DECK HEADER */}
+      <div
+        className="rounded-2xl p-6 border"
+        style={{
+          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(16px)',
+          borderColor: 'rgba(255, 255, 255, 0.1)'
+        }}
+      >
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                Autonomous Operations Mesh
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full bg-[#00F5D4]/15 text-[#00F5D4] border border-[#00F5D4]/40">
+                ● Flight Deck HUD • Autonomous Operations Mesh
               </span>
               <span
-                className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
+                className={`text-[11px] font-bold px-3 py-1 rounded-full border ${
                   supabaseConnected
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                    ? 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/40'
+                    : 'bg-amber-500/15 text-amber-300 border-amber-400/40'
                 }`}
               >
-                {supabaseConnected ? '● Supabase Live' : '● Local Fallback Active'}
+                {supabaseConnected ? '● Supabase Live' : '● Resilient Local Mesh Active'}
               </span>
             </div>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 mt-2">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white mt-2.5 tracking-tight">
               🤖 Ben Agent Command Center
             </h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Human-in-the-loop approval console executing atomic DB actions for compliance verification, 35-mile / 3rd-floor guardrails, and 48-hr escrow release.
+            <p className="text-sm text-slate-300 mt-1 max-w-2xl">
+              Executive glassmorphism flight deck for Gate A6 compliance clearance, 35-mile / 3rd-floor fair-use guardrails, and 48-hour escrow release.
             </p>
             {syncNotice && (
-              <p className="text-xs text-slate-500 mt-2 font-medium">{syncNotice}</p>
+              <p className="text-xs text-[#00F5D4] mt-2 font-medium">{syncNotice}</p>
             )}
           </div>
 
@@ -211,21 +291,21 @@ export function AgentCommandCenter() {
             <button
               type="button"
               onClick={loadAgentEvents}
-              className="text-xs font-bold px-3.5 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition-all"
+              className="min-h-[44px] text-xs font-extrabold px-4 py-2 rounded-xl border border-white/15 bg-slate-900/90 hover:bg-slate-800 text-slate-100 transition-all"
             >
               {loadingEvents ? 'Refreshing...' : '↻ Sync Queue'}
             </button>
             <button
               type="button"
               onClick={seedDefaultEventsToSupabase}
-              className="text-xs font-bold px-3.5 py-2 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 transition-all"
+              className="min-h-[44px] text-xs font-extrabold px-4 py-2 rounded-xl border border-[#00F5D4]/40 bg-[#00F5D4]/10 hover:bg-[#00F5D4]/20 text-[#00F5D4] transition-all"
             >
-              ⚡ Push Seed Events to Supabase
+              ⚡ Push Seed Events
             </button>
             <button
               type="button"
               onClick={() => setShowSql(!showSql)}
-              className="text-xs font-bold px-3.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white transition-all"
+              className="min-h-[44px] text-xs font-extrabold px-4 py-2 rounded-xl bg-[#10B981] hover:bg-emerald-400 text-slate-950 transition-all shadow-lg shadow-emerald-500/20"
             >
               {showSql ? 'Hide SQL Setup' : '🗄 `agent_events` SQL Setup'}
             </button>
@@ -233,12 +313,12 @@ export function AgentCommandCenter() {
         </div>
 
         {actionToast && (
-          <div className="mt-4 bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold p-3.5 rounded-xl flex items-center justify-between">
+          <div className="mt-4 bg-[#10B981]/15 border border-[#10B981]/40 text-emerald-200 text-xs font-bold p-4 rounded-xl flex items-center justify-between">
             <span>{actionToast}</span>
             <button
               type="button"
               onClick={() => setActionToast('')}
-              className="text-emerald-700 hover:text-emerald-950 ml-3"
+              className="text-emerald-300 hover:text-white ml-3"
             >
               ✕
             </button>
@@ -246,7 +326,7 @@ export function AgentCommandCenter() {
         )}
 
         {showSql && (
-          <div className="mt-6 bg-slate-900 text-slate-100 rounded-xl p-5 border border-slate-800">
+          <div className="mt-6 bg-slate-950/90 text-slate-100 rounded-xl p-5 border border-white/10">
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h4 className="text-sm font-bold text-white">
@@ -259,12 +339,12 @@ export function AgentCommandCenter() {
               <button
                 type="button"
                 onClick={copySqlToClipboard}
-                className="text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-all"
+                className="text-xs font-extrabold px-3 py-1.5 rounded-lg bg-[#00F5D4] hover:bg-teal-300 text-slate-950 transition-all"
               >
                 {copiedSql ? '✓ Copied SQL!' : '📋 Copy SQL'}
               </button>
             </div>
-            <pre className="text-xs font-mono text-emerald-300 overflow-x-auto bg-slate-950/60 p-4 rounded-lg border border-slate-800 leading-relaxed">
+            <pre className="text-xs font-mono text-[#00F5D4] overflow-x-auto bg-black/50 p-4 rounded-lg border border-white/10 leading-relaxed">
               {AGENT_SQL_SNIPPET}
             </pre>
           </div>
@@ -274,7 +354,15 @@ export function AgentCommandCenter() {
           {events.map((ev) => (
             <div
               key={ev.id}
-              className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between space-y-4"
+              className="rounded-2xl p-5 flex flex-col justify-between space-y-4 transition-all border"
+              style={{
+                backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                backdropFilter: 'blur(16px)',
+                borderColor:
+                  ev.status === 'approved'
+                    ? 'rgba(16, 185, 129, 0.45)'
+                    : 'rgba(255, 255, 255, 0.1)'
+              }}
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
@@ -286,12 +374,12 @@ export function AgentCommandCenter() {
                     {ev.agent_name}
                   </span>
                   <span
-                    className={`text-[11px] font-bold uppercase px-2.5 py-0.5 rounded-full ${
+                    className={`text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${
                       ev.status === 'approved'
-                        ? 'bg-emerald-100 text-emerald-800'
+                        ? 'bg-[#10B981]/20 text-[#10B981] border-[#10B981]/40'
                         : ev.status === 'rejected'
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-amber-100 text-amber-800'
+                        ? 'bg-red-500/20 text-red-300 border-red-500/40'
+                        : 'bg-[#00F5D4]/15 text-[#00F5D4] border-[#00F5D4]/30'
                     }`}
                   >
                     {ev.status}
@@ -299,34 +387,34 @@ export function AgentCommandCenter() {
                 </div>
 
                 <div>
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  <div className="text-[11px] font-extrabold uppercase tracking-wider text-[#00F5D4] tabular-nums">
                     {ev.event_type} •{' '}
                     {new Date(ev.created_at).toLocaleTimeString([], {
                       hour: '2-digit',
                       minute: '2-digit'
                     })}
                   </div>
-                  <p className="text-sm font-semibold text-slate-900 mt-1 leading-relaxed">
+                  <p className="text-sm font-semibold text-slate-100 mt-1.5 leading-relaxed">
                     {ev.summary}
                   </p>
                 </div>
 
                 {ev.payload_meta && (
-                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs text-slate-600 font-medium">
+                  <div className="bg-slate-950/80 border border-white/10 rounded-xl p-3 text-xs text-slate-300 font-mono">
                     {ev.payload_meta}
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
+              <div className="flex items-center gap-3 pt-3 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => handleDecision(ev.id, 'approved')}
                   disabled={ev.status === 'approved'}
-                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+                  className={`min-h-[48px] flex-1 py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all ${
                     ev.status === 'approved'
-                      ? 'bg-emerald-100 text-emerald-700 cursor-default'
-                      : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+                      ? 'bg-[#10B981]/25 text-[#10B981] border border-[#10B981]/40 cursor-default'
+                      : 'bg-[#10B981] hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20'
                   }`}
                 >
                   {ev.status === 'approved' ? '✓ Approved & Executed' : 'Approve & Execute'}
@@ -335,10 +423,10 @@ export function AgentCommandCenter() {
                   type="button"
                   onClick={() => handleDecision(ev.id, 'rejected')}
                   disabled={ev.status === 'rejected'}
-                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all ${
+                  className={`min-h-[48px] flex-1 py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all ${
                     ev.status === 'rejected'
-                      ? 'bg-red-100 text-red-700 cursor-default'
-                      : 'bg-white hover:bg-red-50 text-red-600 border border-red-200'
+                      ? 'bg-red-500/20 text-red-300 border border-red-500/30 cursor-default'
+                      : 'bg-slate-900 hover:bg-red-950/60 text-red-300 border border-red-500/30'
                   }`}
                 >
                   {ev.status === 'rejected' ? '✕ Rejected' : 'Reject'}

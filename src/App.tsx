@@ -37,6 +37,7 @@ export default function App() {
   const [loopProfile, setLoopProfile] = useState<LoopProfile>('roc')
 
   const currentTier = PRICING_MATRIX[vehicleSetup][loopProfile]
+  const isFlightDeckMode = activeNav === 'agents' && !showLogin
 
   useEffect(() => {
     // Support direct consumer deep-link: ?track=<job_id>
@@ -172,19 +173,70 @@ export default function App() {
   const effectiveUserId = session?.user?.id || '00000000-0000-0000-0000-000000000001'
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-emerald-500/30">
-      {/* 1. PREMIUM HEADER / TOP BAR + ROLE SWITCHER */}
-      <header className="w-full bg-white/95 border-b border-slate-200 backdrop-blur-md sticky top-0 z-50 px-6 py-3.5 shadow-sm">
+    <div
+      className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${
+        isFlightDeckMode
+          ? 'text-slate-100 selection:bg-[#00F5D4]/30'
+          : 'bg-[#F8FAFC] text-[#0F172A] selection:bg-emerald-500/30'
+      }`}
+      style={
+        isFlightDeckMode
+          ? { background: 'radial-gradient(ellipse at top, #0F172A 0%, #090D16 100%)' }
+          : undefined
+      }
+    >
+      {/* 1. ROLE-SPLIT DYNAMIC HEADER / TOP BAR */}
+      <header
+        className={`w-full sticky top-0 z-50 px-6 py-3.5 transition-all ${
+          isFlightDeckMode
+            ? 'border-b text-white shadow-2xl'
+            : 'bg-[#FFFFFF]/95 border-b border-[#E2E8F0] backdrop-blur-md shadow-sm'
+        }`}
+        style={
+          isFlightDeckMode
+            ? {
+                backgroundColor: 'rgba(15, 23, 42, 0.78)',
+                backdropFilter: 'blur(16px)',
+                borderColor: 'rgba(255, 255, 255, 0.1)'
+              }
+            : undefined
+        }
+      >
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></div>
+              <div
+                className={`w-3 h-3 rounded-full ${
+                  isFlightDeckMode
+                    ? 'bg-[#00F5D4] shadow-[0_0_10px_#00F5D4]'
+                    : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]'
+                }`}
+              />
               <div className="flex flex-col">
-                <span className="font-extrabold text-lg tracking-wider text-slate-900 leading-none">
-                  BEN<span className="text-emerald-600 font-medium">LOGISTICS</span>
+                <span
+                  className={`font-extrabold text-lg tracking-wider leading-none ${
+                    isFlightDeckMode ? 'text-white' : 'text-[#0F172A]'
+                  }`}
+                >
+                  BEN
+                  <span
+                    className={
+                      isFlightDeckMode
+                        ? 'text-[#00F5D4] font-medium'
+                        : 'text-emerald-600 font-medium'
+                    }
+                  >
+                    LOGISTICS
+                  </span>
                 </span>
-                <span className="text-[10px] text-slate-500 tracking-widest uppercase font-bold mt-1">
-                  Milton Keynes 2-Man Bulky Hub • 2026 Matrix
+                <span
+                  className={`text-[10px] tracking-widest uppercase font-extrabold mt-1 ${
+                    isFlightDeckMode ? 'text-slate-400' : 'text-slate-500'
+                  }`}
+                >
+                  {isFlightDeckMode
+                    ? 'Flight Deck HUD • Autonomous Escrow & Gate A6 Node'
+                    : 'Milton Keynes 2-Man Bulky Hub • Daylight High-Contrast'}
                 </span>
               </div>
             </div>
@@ -193,7 +245,7 @@ export default function App() {
               {!session ? (
                 <button
                   onClick={() => setShowLogin(!showLogin)}
-                  className="bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-bold py-1.5 px-3 rounded-lg transition-all shadow-sm"
+                  className="min-h-[44px] bg-white hover:bg-slate-50 border border-[#E2E8F0] text-[#0F172A] text-xs font-extrabold py-1.5 px-3 rounded-xl transition-all shadow-sm"
                 >
                   {showLogin ? '← Close Auth' : 'Operator Login'}
                 </button>
@@ -205,7 +257,7 @@ export default function App() {
                     setRoleMode('retailer')
                     setShowLogin(false)
                   }}
-                  className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold py-1.5 px-3 rounded-lg transition-all"
+                  className="min-h-[44px] bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-extrabold py-1.5 px-3 rounded-xl transition-all"
                 >
                   Disconnect
                 </button>
@@ -214,17 +266,25 @@ export default function App() {
           </div>
 
           {/* TOP NAVIGATION / ROLE SWITCHER */}
-          <nav className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+          <nav
+            className={`flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl border ${
+              isFlightDeckMode
+                ? 'bg-slate-950/80 border-white/10'
+                : 'bg-[#F8FAFC] border-[#E2E8F0]'
+            }`}
+          >
             <button
               type="button"
               onClick={() => {
                 setShowLogin(false)
                 setActiveNav('waitlist')
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`min-h-[42px] px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
                 activeNav === 'waitlist' && !showLogin
-                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-[#FFFFFF] text-[#0F172A] shadow-sm border border-[#E2E8F0]'
+                  : isFlightDeckMode
+                  ? 'text-slate-300 hover:text-white'
+                  : 'text-slate-600 hover:text-[#0F172A]'
               }`}
             >
               🚛 Public Waitlist
@@ -236,10 +296,12 @@ export default function App() {
                 setRoleMode('retailer')
                 setActiveNav('retailer')
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`min-h-[42px] px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
                 activeNav === 'retailer' && !showLogin
-                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-[#FFFFFF] text-[#0F172A] shadow-sm border border-[#E2E8F0]'
+                  : isFlightDeckMode
+                  ? 'text-slate-300 hover:text-white'
+                  : 'text-slate-600 hover:text-[#0F172A]'
               }`}
             >
               🏢 Retailer Portal
@@ -251,10 +313,12 @@ export default function App() {
                 setRoleMode('driver')
                 setActiveNav('driver')
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`min-h-[42px] px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
                 activeNav === 'driver' && !showLogin
-                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-[#FFFFFF] text-[#0F172A] shadow-sm border border-[#E2E8F0]'
+                  : isFlightDeckMode
+                  ? 'text-slate-300 hover:text-white'
+                  : 'text-slate-600 hover:text-[#0F172A]'
               }`}
             >
               👷 Crew Portal
@@ -265,10 +329,12 @@ export default function App() {
                 setShowLogin(false)
                 setActiveNav('tracking')
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`min-h-[42px] px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
                 activeNav === 'tracking' && !showLogin
-                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-[#FFFFFF] text-[#0F172A] shadow-sm border border-[#E2E8F0]'
+                  : isFlightDeckMode
+                  ? 'text-slate-300 hover:text-white'
+                  : 'text-slate-600 hover:text-[#0F172A]'
               }`}
             >
               📍 Live Customer Track
@@ -279,10 +345,10 @@ export default function App() {
                 setShowLogin(false)
                 setActiveNav('agents')
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`min-h-[42px] px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
                 activeNav === 'agents' && !showLogin
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-emerald-800 bg-emerald-50/70 hover:bg-emerald-100/80'
+                  ? 'bg-[#00F5D4] text-slate-950 shadow-[0_0_14px_rgba(0,245,212,0.4)]'
+                  : 'text-emerald-900 bg-emerald-100/80 hover:bg-emerald-200/80'
               }`}
             >
               🤖 Agent Command Center
@@ -294,15 +360,31 @@ export default function App() {
             {!session ? (
               <button
                 onClick={() => setShowLogin(!showLogin)}
-                className="bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-bold py-2 px-3.5 rounded-lg transition-all shadow-sm"
+                className={`min-h-[42px] text-xs font-extrabold py-2 px-4 rounded-xl transition-all shadow-sm border ${
+                  isFlightDeckMode
+                    ? 'bg-slate-900 hover:bg-slate-800 border-white/15 text-white'
+                    : 'bg-[#FFFFFF] hover:bg-[#F8FAFC] border-[#E2E8F0] text-[#0F172A]'
+                }`}
               >
                 {showLogin ? '← Back to Hub' : 'Operator Portal Login'}
               </button>
             ) : (
               <div className="flex items-center space-x-3">
                 <div className="text-right">
-                  <p className="text-[11px] text-slate-500">Verified {roleMode}</p>
-                  <p className="text-xs font-bold text-emerald-600">Live & Connected</p>
+                  <p
+                    className={`text-[11px] ${
+                      isFlightDeckMode ? 'text-slate-400' : 'text-slate-500'
+                    }`}
+                  >
+                    Verified {roleMode}
+                  </p>
+                  <p
+                    className={`text-xs font-extrabold ${
+                      isFlightDeckMode ? 'text-[#10B981]' : 'text-emerald-600'
+                    }`}
+                  >
+                    Live & Connected
+                  </p>
                 </div>
                 <button
                   onClick={() => {
@@ -311,7 +393,7 @@ export default function App() {
                     setRoleMode('retailer')
                     setShowLogin(false)
                   }}
-                  className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold py-2 px-3.5 rounded-lg transition-all"
+                  className="min-h-[42px] bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-extrabold py-2 px-3.5 rounded-xl transition-all"
                 >
                   Disconnect
                 </button>
@@ -326,10 +408,10 @@ export default function App() {
         {showLogin ? (
           /* CONSOLE LOGIN VIEW */
           <div className="max-w-md mx-auto w-full">
-            <div className="bg-white border border-slate-200 rounded-2xl p-8 shadow-xl shadow-slate-200/50">
+            <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-8 shadow-xl">
               <form onSubmit={handleLogin} className="flex flex-col space-y-5">
                 <div>
-                  <h2 className="text-2xl font-extrabold text-slate-900">
+                  <h2 className="text-2xl font-extrabold text-[#0F172A]">
                     {authMode === 'signup' ? 'Create Your Account' : 'Operator Sign In'}
                   </h2>
                   <p className="text-xs text-slate-500 mt-1">
@@ -350,7 +432,7 @@ export default function App() {
                   placeholder="Email Address"
                   value={authEmail}
                   onChange={(e) => setAuthEmail(e.target.value)}
-                  className="bg-white border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-slate-900 rounded-lg py-3 px-4 outline-none transition-all"
+                  className="min-h-[48px] bg-[#FFFFFF] border border-[#E2E8F0] focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-[#0F172A] rounded-xl py-3 px-4 outline-none transition-all"
                   required
                 />
                 <input
@@ -358,23 +440,23 @@ export default function App() {
                   placeholder="Security Password"
                   value={authPassword}
                   onChange={(e) => setAuthPassword(e.target.value)}
-                  className="bg-white border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-slate-900 rounded-lg py-3 px-4 outline-none transition-all"
+                  className="min-h-[48px] bg-[#FFFFFF] border border-[#E2E8F0] focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-[#0F172A] rounded-xl py-3 px-4 outline-none transition-all"
                   required
                 />
 
                 {authMode === 'signup' && (
                   <div>
-                    <label className="text-xs font-bold uppercase text-slate-500 tracking-wider block mb-2">
+                    <label className="text-xs font-extrabold uppercase text-slate-600 tracking-wider block mb-2">
                       I am a
                     </label>
-                    <div className="grid grid-cols-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                    <div className="grid grid-cols-2 bg-[#F8FAFC] p-1 rounded-xl border border-[#E2E8F0]">
                       <button
                         type="button"
                         onClick={() => setSignupRole('driver')}
-                        className={`py-2 px-3 rounded-lg text-sm font-bold transition-all ${
+                        className={`min-h-[48px] py-2 px-3 rounded-lg text-sm font-extrabold transition-all ${
                           signupRole === 'driver'
-                            ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                            : 'text-slate-500 hover:text-slate-700'
+                            ? 'bg-[#FFFFFF] text-[#0F172A] shadow-sm border border-[#E2E8F0]'
+                            : 'text-slate-600 hover:text-[#0F172A]'
                         }`}
                       >
                         Driver / Porter
@@ -382,10 +464,10 @@ export default function App() {
                       <button
                         type="button"
                         onClick={() => setSignupRole('retailer')}
-                        className={`py-2 px-3 rounded-lg text-sm font-bold transition-all ${
+                        className={`min-h-[48px] py-2 px-3 rounded-lg text-sm font-extrabold transition-all ${
                           signupRole === 'retailer'
-                            ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                            : 'text-slate-500 hover:text-slate-700'
+                            ? 'bg-[#FFFFFF] text-[#0F172A] shadow-sm border border-[#E2E8F0]'
+                            : 'text-slate-600 hover:text-[#0F172A]'
                         }`}
                       >
                         Retailer
@@ -397,7 +479,7 @@ export default function App() {
                 <button
                   type="submit"
                   disabled={authLoading}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg transition-all shadow-md shadow-emerald-600/20"
+                  className="min-h-[48px] w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 px-4 rounded-xl transition-all shadow-md shadow-emerald-600/20"
                 >
                   {authLoading
                     ? 'Verifying...'
@@ -406,7 +488,7 @@ export default function App() {
                     : 'Authenticate Operator →'}
                 </button>
 
-                <p className="text-center text-xs text-slate-500">
+                <p className="text-center text-xs text-slate-600">
                   {authMode === 'signup' ? 'Already have an account?' : "Don't have an account yet?"}{' '}
                   <button
                     type="button"
@@ -414,7 +496,7 @@ export default function App() {
                       setAuthMode(authMode === 'signup' ? 'login' : 'signup')
                       setAuthError('')
                     }}
-                    className="text-emerald-600 font-bold hover:underline"
+                    className="text-emerald-700 font-extrabold hover:underline"
                   >
                     {authMode === 'signup' ? 'Sign in' : 'Create one'}
                   </button>
@@ -427,36 +509,36 @@ export default function App() {
           <>
             <div className="space-y-4 max-w-3xl">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-bold text-emerald-700 uppercase tracking-widest bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-full">
+                <span className="text-xs font-extrabold text-emerald-800 uppercase tracking-widest bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-full tabular-nums">
                   2026 Milton Keynes 2-Man Bulky Network • 87.5% Crew Net Pool
                 </span>
-                <span className="text-xs font-bold text-blue-800 uppercase tracking-widest bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
+                <span className="text-xs font-extrabold text-blue-900 uppercase tracking-widest bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
                   🛡 Showroom Pilot: Pay on Success (First 3 Routes / 14 Days)
                 </span>
               </div>
-              <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl leading-tight">
+              <h1 className="text-4xl font-extrabold tracking-tight text-[#0F172A] sm:text-5xl leading-tight">
                 Enterprise 2-Man Dispatch. Transparent Flat-Rate Loops.
               </h1>
               <p className="text-slate-600 text-lg">
-                Aptean-grade route matching, photo PoD, and vetted 2-man crews for Milton Keynes showrooms — without 3PL lock-in. Select your operational setup below to inspect the 2026 pricing matrix.
+                Aptean-grade route matching, AI Condition Gate PoD, and vetted 2-man crews for Milton Keynes showrooms — without 3PL lock-in. Select your operational setup below to inspect the 2026 pricing matrix.
               </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
               {/* LEFT: 2026 Matrix Calculator */}
-              <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm flex flex-col space-y-6">
+              <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-6 md:p-8 shadow-sm flex flex-col space-y-6">
                 <div>
-                  <label className="text-xs font-bold uppercase text-slate-500 tracking-wider block mb-2">
+                  <label className="text-xs font-extrabold uppercase text-slate-600 tracking-wider block mb-2">
                     Vehicle Assets Operational Setup
                   </label>
-                  <div className="grid grid-cols-2 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                  <div className="grid grid-cols-2 bg-[#F8FAFC] p-1 rounded-xl border border-[#E2E8F0]">
                     <button
                       type="button"
                       onClick={() => setVehicleSetup('independent')}
-                      className={`py-2 px-3 rounded-lg text-sm font-bold transition-all ${
+                      className={`min-h-[48px] py-2 px-3 rounded-lg text-sm font-extrabold transition-all ${
                         vehicleSetup === 'independent'
-                          ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                          : 'text-slate-500 hover:text-slate-700'
+                          ? 'bg-[#FFFFFF] text-[#0F172A] shadow-sm border border-[#E2E8F0]'
+                          : 'text-slate-600 hover:text-[#0F172A]'
                       }`}
                     >
                       Independent 3.5t Van
@@ -464,10 +546,10 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setVehicleSetup('clientVehicle')}
-                      className={`py-2 px-3 rounded-lg text-sm font-bold transition-all ${
+                      className={`min-h-[48px] py-2 px-3 rounded-lg text-sm font-extrabold transition-all ${
                         vehicleSetup === 'clientVehicle'
-                          ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                          : 'text-slate-500 hover:text-slate-700'
+                          ? 'bg-[#FFFFFF] text-[#0F172A] shadow-sm border border-[#E2E8F0]'
+                          : 'text-slate-600 hover:text-[#0F172A]'
                       }`}
                     >
                       Client Vehicle (2-Man Pod)
@@ -476,17 +558,17 @@ export default function App() {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold uppercase text-slate-500 tracking-wider block mb-2">
+                  <label className="text-xs font-extrabold uppercase text-slate-600 tracking-wider block mb-2">
                     Route Manifest Classification
                   </label>
-                  <div className="grid grid-cols-3 bg-slate-100 p-1 rounded-xl border border-slate-200 gap-1">
+                  <div className="grid grid-cols-3 bg-[#F8FAFC] p-1 rounded-xl border border-[#E2E8F0] gap-1">
                     <button
                       type="button"
                       onClick={() => setLoopProfile('roc')}
-                      className={`py-2 px-2 rounded-lg text-xs font-bold transition-all ${
+                      className={`min-h-[48px] py-2 px-2 rounded-lg text-xs font-extrabold transition-all ${
                         loopProfile === 'roc'
-                          ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                          : 'text-slate-500 hover:text-slate-700'
+                          ? 'bg-[#FFFFFF] text-[#0F172A] shadow-sm border border-[#E2E8F0]'
+                          : 'text-slate-600 hover:text-[#0F172A]'
                       }`}
                     >
                       Standard ROC
@@ -494,10 +576,10 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setLoopProfile('assembly')}
-                      className={`py-2 px-2 rounded-lg text-xs font-bold transition-all ${
+                      className={`min-h-[48px] py-2 px-2 rounded-lg text-xs font-extrabold transition-all ${
                         loopProfile === 'assembly'
-                          ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                          : 'text-slate-500 hover:text-slate-700'
+                          ? 'bg-[#FFFFFF] text-[#0F172A] shadow-sm border border-[#E2E8F0]'
+                          : 'text-slate-600 hover:text-[#0F172A]'
                       }`}
                     >
                       Delivery & Assembly
@@ -505,10 +587,10 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => setLoopProfile('overflow')}
-                      className={`py-2 px-2 rounded-lg text-xs font-bold transition-all ${
+                      className={`min-h-[48px] py-2 px-2 rounded-lg text-xs font-extrabold transition-all ${
                         loopProfile === 'overflow'
-                          ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                          : 'text-slate-500 hover:text-slate-700'
+                          ? 'bg-[#FFFFFF] text-[#0F172A] shadow-sm border border-[#E2E8F0]'
+                          : 'text-slate-600 hover:text-[#0F172A]'
                       }`}
                     >
                       Overflow Mini-Loop
@@ -516,49 +598,51 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div className="flex justify-between items-center bg-[#F8FAFC] p-4 rounded-xl border border-[#E2E8F0]">
                   <div>
-                    <span className="text-xs font-bold uppercase text-slate-600 block">
+                    <span className="text-xs font-extrabold uppercase text-[#0F172A] block">
                       Fair-Use Route Capacity
                     </span>
-                    <span className="text-[11px] text-slate-500">{currentTier.shiftCap}</span>
+                    <span className="text-[11px] text-slate-600 tabular-nums">
+                      {currentTier.shiftCap}
+                    </span>
                   </div>
-                  <span className="text-sm font-extrabold text-emerald-700 bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-md">
+                  <span className="text-sm font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-md tabular-nums">
                     {currentTier.targetVolume}
                   </span>
                 </div>
 
-                <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3">
-                  <div className="flex justify-between text-sm border-b border-slate-100 pb-2 text-slate-700">
-                    <span className="font-semibold">2026 Flat Route Booking Fee</span>
-                    <span className="font-extrabold text-slate-900">
+                <div className="bg-[#FFFFFF] p-5 rounded-xl border border-[#E2E8F0] shadow-sm flex flex-col gap-3 tabular-nums">
+                  <div className="flex justify-between text-sm border-b border-[#E2E8F0] pb-2 text-slate-700">
+                    <span className="font-bold">2026 Flat Route Booking Fee</span>
+                    <span className="font-extrabold text-[#0F172A]">
                       £{currentTier.grossFee.toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-xs text-slate-500 border-b border-slate-100 pb-2">
+                  <div className="flex justify-between text-xs text-slate-600 border-b border-[#E2E8F0] pb-2">
                     <span>Ben Marketplace Fee (12.5%)</span>
                     <span>- £{currentTier.platformFee.toFixed(2)}</span>
                   </div>
 
-                  <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl mt-2 text-left">
+                  <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl mt-2 text-left">
                     <div className="flex justify-between items-center">
                       <div>
-                        <span className="text-xs font-bold uppercase text-emerald-800 block">
+                        <span className="text-xs font-extrabold uppercase text-emerald-900 block">
                           Net Dispatched Crew Pool (87.5%)
                         </span>
-                        <p className="text-slate-600 text-[10px] mt-1 leading-relaxed max-w-[220px]">
+                        <p className="text-slate-700 text-[10px] mt-1 leading-relaxed max-w-[220px]">
                           Paid after 48-hr PoD SLA. Includes up to 2nd-floor walk-up; 3rd floor+ no lift adds £25 (100% to crew).
                         </p>
                       </div>
-                      <span className="text-3xl font-extrabold text-emerald-600">
+                      <span className="text-3xl font-extrabold text-emerald-700 tabular-nums">
                         £{currentTier.netPool.toFixed(2)}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-600 space-y-1.5">
-                  <div className="font-bold text-slate-800 uppercase tracking-wider text-[11px]">
+                <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 text-xs text-slate-700 space-y-1.5">
+                  <div className="font-extrabold text-[#0F172A] uppercase tracking-wider text-[11px]">
                     🛡 MK9 Fair-Use Guardrails & "Pay on Success" Pilot
                   </div>
                   <p>• <strong>Pay on Success Pilot:</strong> First 3 routes per showroom (14-day MK window) billed <strong>only upon verified photo PoD</strong> (£0.00 if failed due to crew/platform fault).</p>
@@ -568,28 +652,28 @@ export default function App() {
               </div>
 
               {/* RIGHT: Waitlist Registration Form */}
-              <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-sm">
+              <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-6 md:p-8 shadow-sm">
                 {waitlistSubmitted ? (
                   <div className="text-center py-10 space-y-4">
                     <span className="text-5xl">✅</span>
-                    <h3 className="text-2xl font-extrabold text-slate-900">Entry Logged.</h3>
+                    <h3 className="text-2xl font-extrabold text-[#0F172A]">Entry Logged.</h3>
                     <p className="text-slate-600 text-sm leading-relaxed px-4">
                       We’ve received your professional credentials for the Milton Keynes 2-Man Bulky Network. Our Supply & Compliance Agent will verify your GIT & Public Liability certificates shortly.
                     </p>
                     <button
                       onClick={() => setWaitlistSubmitted(false)}
-                      className="text-emerald-600 text-sm font-bold hover:underline mt-4"
+                      className="min-h-[48px] text-emerald-700 text-sm font-extrabold hover:underline mt-4"
                     >
                       Submit another crew member
                     </button>
                   </div>
                 ) : (
                   <form onSubmit={handleWaitlistSubmit} className="flex flex-col space-y-4">
-                    <div className="border-b border-slate-100 pb-4 mb-2">
-                      <h3 className="text-xl font-extrabold text-slate-900">
+                    <div className="border-b border-[#E2E8F0] pb-4 mb-2">
+                      <h3 className="text-xl font-extrabold text-[#0F172A]">
                         Join the Tier-1 MK 2-Man Roster
                       </h3>
-                      <p className="text-slate-500 text-sm mt-1">
+                      <p className="text-slate-600 text-sm mt-1">
                         Register your 3.5t Luton Crew or Porter profile for Milton Keynes routes.
                       </p>
                     </div>
@@ -601,7 +685,7 @@ export default function App() {
                         value={driverName}
                         onChange={(e) => setDriverName(e.target.value)}
                         required
-                        className="bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-900 rounded-lg py-2.5 px-4 outline-none transition-all placeholder:text-slate-400"
+                        className="min-h-[48px] bg-[#FFFFFF] border border-[#E2E8F0] focus:border-emerald-600 text-[#0F172A] rounded-xl py-2.5 px-4 outline-none transition-all placeholder:text-slate-400"
                       />
                       <input
                         type="tel"
@@ -609,7 +693,7 @@ export default function App() {
                         value={driverPhone}
                         onChange={(e) => setDriverPhone(e.target.value)}
                         required
-                        className="bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-900 rounded-lg py-2.5 px-4 outline-none transition-all placeholder:text-slate-400"
+                        className="min-h-[48px] bg-[#FFFFFF] border border-[#E2E8F0] focus:border-emerald-600 text-[#0F172A] rounded-xl py-2.5 px-4 outline-none transition-all placeholder:text-slate-400"
                       />
                     </div>
 
@@ -620,12 +704,12 @@ export default function App() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-900 rounded-lg py-2.5 px-4 outline-none transition-all placeholder:text-slate-400"
+                        className="min-h-[48px] bg-[#FFFFFF] border border-[#E2E8F0] focus:border-emerald-600 text-[#0F172A] rounded-xl py-2.5 px-4 outline-none transition-all placeholder:text-slate-400"
                       />
                       <select
                         value={role}
                         onChange={(e) => setRole(e.target.value)}
-                        className="bg-white border border-slate-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-900 rounded-lg py-2.5 px-4 outline-none transition-all appearance-none"
+                        className="min-h-[48px] bg-[#FFFFFF] border border-[#E2E8F0] focus:border-emerald-600 text-[#0F172A] rounded-xl py-2.5 px-4 outline-none transition-all"
                       >
                         <option value="Driver">Lead Driver (3.5t Luton)</option>
                         <option value="Porter">Second Man / Delivery Porter</option>
@@ -638,25 +722,25 @@ export default function App() {
                         placeholder="Make"
                         value={make}
                         onChange={(e) => setMake(e.target.value)}
-                        className="col-span-1 bg-white border border-slate-300 focus:border-emerald-500 text-slate-900 rounded-lg py-2.5 px-3 outline-none text-sm placeholder:text-slate-400"
+                        className="min-h-[48px] col-span-1 bg-[#FFFFFF] border border-[#E2E8F0] focus:border-emerald-600 text-[#0F172A] rounded-xl py-2.5 px-3 outline-none text-sm placeholder:text-slate-400"
                       />
                       <input
                         type="text"
                         placeholder="Model"
                         value={model}
                         onChange={(e) => setModel(e.target.value)}
-                        className="col-span-1 bg-white border border-slate-300 focus:border-emerald-500 text-slate-900 rounded-lg py-2.5 px-3 outline-none text-sm placeholder:text-slate-400"
+                        className="min-h-[48px] col-span-1 bg-[#FFFFFF] border border-[#E2E8F0] focus:border-emerald-600 text-[#0F172A] rounded-xl py-2.5 px-3 outline-none text-sm placeholder:text-slate-400"
                       />
                       <input
                         type="number"
                         placeholder="Year"
                         value={year}
                         onChange={(e) => setYear(e.target.value)}
-                        className="col-span-1 bg-white border border-slate-300 focus:border-emerald-500 text-slate-900 rounded-lg py-2.5 px-3 outline-none text-sm placeholder:text-slate-400"
+                        className="min-h-[48px] col-span-1 bg-[#FFFFFF] border border-[#E2E8F0] focus:border-emerald-600 text-[#0F172A] rounded-xl py-2.5 px-3 outline-none text-sm placeholder:text-slate-400 tabular-nums"
                       />
                     </div>
 
-                    <label className="flex items-center gap-3 text-xs text-slate-600 cursor-pointer bg-slate-50 p-3 rounded-lg border border-slate-200 font-medium">
+                    <label className="flex items-center gap-3 text-xs text-slate-700 cursor-pointer bg-[#F8FAFC] p-3.5 rounded-xl border border-[#E2E8F0] font-bold">
                       <input
                         type="checkbox"
                         checked={isInsured}
@@ -670,7 +754,7 @@ export default function App() {
                     <button
                       type="submit"
                       disabled={waitlistLoading}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-lg transition-all shadow-md shadow-emerald-600/20 mt-2"
+                      className="min-h-[52px] w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 px-4 rounded-xl transition-all shadow-md shadow-emerald-600/20 mt-2"
                     >
                       {waitlistLoading ? 'Securing Allocation...' : 'Secure Route Allocation Spot →'}
                     </button>
@@ -683,24 +767,24 @@ export default function App() {
           /* TAB 4: DELIVEROO-GRADE LIVE CONSUMER TRACKING PORTAL */
           <ConsumerTrackView selectedJobId={trackedJobId} />
         ) : activeNav === 'agents' ? (
-          /* TAB 5: AGENT COMMAND CENTER */
+          /* TAB 5: AGENT COMMAND CENTER (DARK GLASSMORPHISM FLIGHT DECK) */
           <AgentCommandCenter />
         ) : (
-          /* TAB 2 & TAB 3: RETAILER PORTAL OR CREW PORTAL */
-          <div className="max-w-3xl mx-auto w-full">
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 shadow-lg">
-              <div className="border-b border-slate-200 pb-4 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          /* TAB 2 & TAB 3: RETAILER PORTAL OR CREW PORTAL (HIGH-CONTRAST DAYLIGHT UI) */
+          <div className="max-w-4xl mx-auto w-full">
+            <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-6 md:p-8 shadow-sm">
+              <div className="border-b border-[#E2E8F0] pb-4 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
-                  <h2 className="text-2xl font-extrabold text-slate-900">
+                  <h2 className="text-2xl font-extrabold text-[#0F172A]">
                     {activeNav === 'retailer' ? '🏢 Retailer Dispatch Portal' : '👷 2-Man Crew Portal'}
                   </h2>
-                  <p className="text-slate-500 text-sm mt-1">
+                  <p className="text-slate-600 text-sm mt-1">
                     {activeNav === 'retailer'
-                      ? 'Aptean-grade route matching, multi-stop manifest builder, and "Pay on Success" Pilot protection.'
-                      : 'Persisted Gate A6 compliance gateway, Uber-style Compliance Locker, 1-tap SatNav, and e-Signature PoD.'}
+                      ? 'Zero-typing AI manifest import, MK Grid shift capacity guardrail meter, and "Pay on Success" Pilot protection.'
+                      : 'High-contrast daylight crew workflow, Side-by-Side AI Damage Shield, 1-tap Google Maps SatNav, and e-Signature PoD.'}
                   </p>
                 </div>
-                <span className="text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 self-start sm:self-center">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 self-start sm:self-center">
                   MK9 Realtime Node
                 </span>
               </div>
@@ -719,7 +803,13 @@ export default function App() {
       </main>
 
       {/* FOOTER */}
-      <footer className="w-full py-6 border-t border-slate-200 text-center text-xs font-medium text-slate-500 bg-white mt-auto">
+      <footer
+        className={`w-full py-6 border-t text-center text-xs font-medium mt-auto ${
+          isFlightDeckMode
+            ? 'border-white/10 bg-[#090D16] text-slate-400'
+            : 'border-[#E2E8F0] bg-[#FFFFFF] text-slate-500'
+        }`}
+      >
         &copy; 2026 Ben Logistics Ltd (Milton Keynes Marketplace Node). Acting strictly as a technology marketplace agent connecting Retailers and Independent Contractor Crews.
       </footer>
     </div>
