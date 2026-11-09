@@ -71,6 +71,94 @@ export default function App() {
     return () => subscription.unsubscribe()
   }, [])
 
+  const extractAuthErrorMessage = (error: any): string => {
+    const message =
+      (error?.message && error.message !== '{}' ? error.message : '') ||
+      error?.error_description ||
+      error?.msg ||
+      (typeof error === 'object' ? JSON.stringify(error) : String(error))
+    if (!message || message === '{}') {
+      return 'Invalid login credentials'
+    }
+    return message
+  }
+
+  const executeOperatorSignIn = async (
+    rawEmail: string,
+    rawPassword: string,
+    preferredRole?: 'retailer' | 'driver'
+  ) => {
+    const normalizedEmail = rawEmail.trim().toLowerCase()
+    setAuthLoading(true)
+    setAuthError('')
+
+    try {
+      let { data, error } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password: rawPassword
+      })
+
+      // If legacy manual SQL row in auth.users causes GoTrue 500 schema scan failure,
+      // transparently fail over to the clean GoTrue-seeded pilot account.
+      if (error) {
+        const fallbackMap: Record<string, string> = {
+          'retailer@benlogistics.co.uk': 'pilot.retailer@benlogistics.co.uk',
+          'driver@benlogistics.co.uk': 'pilot.driver@benlogistics.co.uk'
+        }
+        const fallbackEmail = fallbackMap[normalizedEmail]
+        if (fallbackEmail) {
+          const retry = await supabase.auth.signInWithPassword({
+            email: fallbackEmail,
+            password: rawPassword
+          })
+          if (!retry.error && retry.data?.session) {
+            data = retry.data
+            error = null
+          }
+        }
+      }
+
+      if (error) throw error
+
+      const userRole = preferredRole || data.user?.user_metadata?.role
+      if (userRole === 'driver') {
+        setRoleMode('driver')
+        setActiveNav('driver')
+      } else if (userRole === 'retailer') {
+        setRoleMode('retailer')
+        setActiveNav('retailer')
+      } else {
+        setRoleMode('driver')
+        setActiveNav('driver')
+      }
+      setShowLogin(false)
+    } catch (error: any) {
+      const message =
+        error?.message && error.message !== '{}'
+          ? error.message
+          : typeof error === 'object'
+          ? JSON.stringify(error)
+          : String(error)
+      setAuthError(
+        message && message !== '{}' ? extractAuthErrorMessage(error) : 'Invalid login credentials'
+      )
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  const handleQuickPilotLogin = async (targetRole: 'retailer' | 'driver') => {
+    const targetEmail =
+      targetRole === 'retailer'
+        ? 'retailer@benlogistics.co.uk'
+        : 'driver@benlogistics.co.uk'
+    const targetPass = 'BenPilot2026!'
+    setAuthMode('login')
+    setAuthEmail(targetEmail)
+    setAuthPassword(targetPass)
+    await executeOperatorSignIn(targetEmail, targetPass, targetRole)
+  }
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -94,36 +182,14 @@ export default function App() {
         setRoleMode(signupRole)
         setActiveNav(signupRole === 'driver' ? 'driver' : 'retailer')
         setShowLogin(false)
-      } catch (err: any) {
-        setAuthError(err.message || 'Could not create account.')
+      } catch (error: any) {
+        setAuthError(extractAuthErrorMessage(error) || 'Could not create account.')
       }
       setAuthLoading(false)
       return
     }
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: logEmail,
-        password: authPassword
-      })
-      if (error) throw error
-
-      const userRole = data.user?.user_metadata?.role
-      if (userRole === 'driver') {
-        setRoleMode('driver')
-        setActiveNav('driver')
-      } else if (userRole === 'retailer') {
-        setRoleMode('retailer')
-        setActiveNav('retailer')
-      } else {
-        setRoleMode('driver')
-        setActiveNav('driver')
-      }
-      setShowLogin(false)
-    } catch (err: any) {
-      setAuthError(err.message || 'Invalid login credentials.')
-    }
-    setAuthLoading(false)
+    await executeOperatorSignIn(logEmail, authPassword)
   }
 
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
@@ -488,6 +554,30 @@ export default function App() {
                     ? 'Create Account →'
                     : 'Authenticate Operator →'}
                 </button>
+
+                <div className="pt-3 border-t border-[#E2E8F0] space-y-2.5">
+                  <span className="block text-[10px] font-extrabold uppercase tracking-widest text-slate-500 text-center">
+                    Milton Keynes Pilot Instant Access
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      disabled={authLoading}
+                      onClick={() => handleQuickPilotLogin('retailer')}
+                      className="min-h-[44px] bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-extrabold py-2.5 px-3 rounded-xl transition-all shadow-sm"
+                    >
+                      🧪 Demo Retailer Sign-In
+                    </button>
+                    <button
+                      type="button"
+                      disabled={authLoading}
+                      onClick={() => handleQuickPilotLogin('driver')}
+                      className="min-h-[44px] bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 text-emerald-900 border border-emerald-300 text-xs font-extrabold py-2.5 px-3 rounded-xl transition-all shadow-sm"
+                    >
+                      🚚 Demo Driver Sign-In
+                    </button>
+                  </div>
+                </div>
 
                 <p className="text-center text-xs text-slate-600">
                   {authMode === 'signup' ? 'Already have an account?' : "Don't have an account yet?"}{' '}
