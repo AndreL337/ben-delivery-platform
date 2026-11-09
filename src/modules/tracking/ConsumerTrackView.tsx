@@ -12,14 +12,21 @@ const DEMO_TRACK_JOB: JobRecord = {
   status: 'In Progress',
   vehicle_setup: 'independent',
   loop_profile: 'assembly',
-  gross_fee: 520,
-  platform_fee: 65,
-  net_pool: 455,
   requires_tail_lift: true,
   requires_assembly: true,
   pre_load_inspected: true,
   completed_drops_json: [0, 1],
   created_at: new Date(Date.now() - 1000 * 60 * 75).toISOString()
+}
+
+const PUBLIC_TRACKING_COLUMNS =
+  'id, pickup_address, drop_addresses, status, requires_tail_lift, requires_assembly, pre_load_inspected, completed_drops_json, exception_notes, created_at'
+
+function redactPeerStopAddress(addr: string, isCurrentRecipient: boolean): string {
+  if (isCurrentRecipient) return addr
+  const pcMatch = addr.toUpperCase().match(/\b([A-Z]{1,2}\d{1,2}[A-Z]?)\s*(\d[A-Z]{2})?\b/)
+  const outcode = pcMatch ? pcMatch[1] : 'MK Sector'
+  return `Protected Customer Stop (${outcode} Area)`
 }
 
 export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | null }) {
@@ -30,7 +37,7 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        // 1. If a specific job ID (integer or UUID) is passed via ?track=<job_id>, call the sanitized public RPC
+        // 1. If a specific job ID (integer or UUID) is passed via /track/:jobId or ?track=<job_id>, call the sanitized public RPC
         const targetLookupId = selectedJobId ? String(selectedJobId).trim() : null
         if (targetLookupId && !targetLookupId.startsWith('mk-')) {
           const { data: rpcData, error: rpcError } = await supabase.rpc('get_public_job_tracking', {
@@ -50,10 +57,10 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
           }
         }
 
-        // 2. Otherwise query visible jobs (for authenticated Retailer/Crew)
+        // 2. Otherwise query strictly non-financial public tracking columns
         const { data, error } = await supabase
           .from('jobs')
-          .select('*')
+          .select(PUBLIC_TRACKING_COLUMNS)
           .order('id', { ascending: false })
           .limit(10)
         if (error) {
@@ -78,7 +85,10 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
     fetchJobs()
   }, [selectedJobId])
 
-  const drops = parseManifestDrops(activeJob.drop_addresses)
+  const rawDrops = parseManifestDrops(activeJob.drop_addresses)
+  const drops = rawDrops.map((addr, idx) =>
+    redactPeerStopAddress(addr, idx === selectedStopIndex)
+  )
   const completedSet = new Set<number>(
     Array.isArray(activeJob.completed_drops_json)
       ? activeJob.completed_drops_json

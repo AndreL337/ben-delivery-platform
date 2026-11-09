@@ -290,7 +290,7 @@ export function calculateShiftAndGuardrails(
     const upper = addr.toUpperCase()
     const match = upper.match(/\b([A-Z]{1,2})(\d{1,2})[A-Z]?\b/)
     if (!match) {
-      inZoneMkDrops++
+      outOfZoneDrops.push(`Unverified Postcode (${addr.split(',')[0]})`)
       continue
     }
     const prefix = match[1]

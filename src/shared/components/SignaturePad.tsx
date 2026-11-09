@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef, useState, useEffect } from 'react'
 
 export function SignaturePad({
   onSaveSvg,
@@ -12,20 +12,29 @@ export function SignaturePad({
   const [paths, setPaths] = useState<string[]>([])
   const [currentPath, setCurrentPath] = useState<string>('')
 
+  useEffect(() => {
+    if (!savedSvg && paths.length > 0) {
+      const canvas = canvasRef.current
+      const ctx = canvas?.getContext('2d')
+      if (canvas && ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+      }
+      setPaths([])
+      setCurrentPath('')
+    }
+  }, [savedSvg])
+
   const getCoords = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current
     if (!canvas) return { x: 0, y: 0 }
     const rect = canvas.getBoundingClientRect()
-    if ('touches' in e) {
-      const t = e.touches[0]
-      return {
-        x: Math.round(t.clientX - rect.left),
-        y: Math.round(t.clientY - rect.top)
-      }
-    }
+    const scaleX = canvas.width / (rect.width || 360)
+    const scaleY = canvas.height / (rect.height || 110)
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY
     return {
-      x: Math.round(e.clientX - rect.left),
-      y: Math.round(e.clientY - rect.top)
+      x: Math.round((clientX - rect.left) * scaleX),
+      y: Math.round((clientY - rect.top) * scaleY)
     }
   }
 

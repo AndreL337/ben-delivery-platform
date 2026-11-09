@@ -40,9 +40,10 @@ export default function App() {
   const isFlightDeckMode = activeNav === 'agents' && !showLogin
 
   useEffect(() => {
-    // Support direct consumer deep-link: ?track=<job_id>
+    // Support direct consumer deep-links: /track/:jobId or ?track=<job_id>
     const params = new URLSearchParams(window.location.search)
-    const trackParam = params.get('track')
+    const pathMatch = window.location.pathname.match(/^\/track\/([^/?#]+)/i)
+    const trackParam = (pathMatch && decodeURIComponent(pathMatch[1])) || params.get('track')
     if (trackParam) {
       setTrackedJobId(trackParam)
       setActiveNav('tracking')
@@ -170,7 +171,7 @@ export default function App() {
     setWaitlistLoading(false)
   }
 
-  const effectiveUserId = session?.user?.id || '00000000-0000-0000-0000-000000000001'
+  const effectiveUserId = session?.user?.id || ''
 
   return (
     <div
@@ -792,6 +793,7 @@ export default function App() {
               <BookJobForm
                 retailerId={effectiveUserId}
                 mode={activeNav === 'driver' ? 'driver' : 'retailer'}
+                onRequireAuth={() => setShowLogin(true)}
                 onOpenConsumerTracker={(jobId) => {
                   setTrackedJobId(jobId)
                   setActiveNav('tracking')

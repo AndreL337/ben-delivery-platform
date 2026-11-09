@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { supabase } from '../../config/supabaseClient'
 import { PRICING_MATRIX, parseManifestDrops } from '../../config/pricingMatrix2026'
 import type {
@@ -11,6 +11,7 @@ import type {
 import { SignaturePad } from '../../shared/components/SignaturePad'
 import { RateJobModal, DisputePanel } from '../../shared/components/FeedbackModals'
 import { ComplianceUploadModal } from '../crew/ComplianceUploadModal'
+import { useDriverRoutingEngine, type RoutingMode } from '../crew/useDriverRoutingEngine'
 import { MKRouteVisualizer } from '../../shared/components/MKRouteVisualizer'
 import {
   SAMPLE_MK_MANIFESTS,
@@ -18,17 +19,26 @@ import {
   calculateShiftAndGuardrails
 } from '../../shared/utils/manifestAiParser'
 
-const GATE_A6_STORAGE_KEY = 'ben_mk_gate_a6_signed_v1'
+const getGateA6StorageKey = (uid: string) => `ben_mk_gate_a6_signed_v1_${uid || 'anon'}`
+
+const escapeCsvCell = (val: unknown): string => {
+  const raw = String(val ?? '').replace(/\r?\n/g, ' ').trim()
+  const safe = /^[=+\-@]/.test(raw) ? `'${raw}` : raw
+  return `"${safe.replace(/"/g, '""')}"`
+}
 
 export function BookJobForm({
   retailerId,
   mode,
+  onRequireAuth,
   onOpenConsumerTracker
 }: {
   retailerId: string
   mode: 'retailer' | 'driver'
+  onRequireAuth?: () => void
   onOpenConsumerTracker?: (jobId: string) => void
 }) {
+  const [activeUserId, setActiveUserId] = useState<string>(retailerId || '')
   const [jobData, setJobData] = useState<{
     vehicle_setup: VehicleSetup
     loop_profile: LoopProfile
@@ -60,15 +70,17 @@ export function BookJobForm({
   const [aiExtractionBanner, setAiExtractionBanner] = useState<string>('')
 
   const [complianceAccepted, setComplianceAccepted] = useState<boolean>(() => {
+    if (!retailerId) return false
     try {
-      return Boolean(localStorage.getItem(GATE_A6_STORAGE_KEY))
+      return Boolean(localStorage.getItem(getGateA6StorageKey(retailerId)))
     } catch {
       return false
     }
   })
   const [agreementSignedAt, setAgreementSignedAt] = useState<string | null>(() => {
+    if (!retailerId) return null
     try {
-      return localStorage.getItem(GATE_A6_STORAGE_KEY)
+      return localStorage.getItem(getGateA6StorageKey(retailerId))
     } catch {
       return null
     }
@@ -87,13 +99,14 @@ export function BookJobForm({
   const [policyNumber, setPolicyNumber] = useState('')
   const [certificateDetails, setCertificateDetails] = useState('')
   const [certificateFileName, setCertificateFileName] = useState('')
+  const [certificateFile, setCertificateFile] = useState<File | null>(null)
   const [signingAgreement, setSigningAgreement] = useState(false)
 
   // Crew Registered Vehicle Capability (Aptean Tail-Lift Guardrail)
   const [crewHasTailLiftLuton, setCrewHasTailLiftLuton] = useState<boolean>(true)
 
   // Active Crew Loop Execution & Task 4 AI Damage Shield States
-  const [preLoadInspected, setPreLoadInspected] = useState<boolean>(true)
+  const [preLoadInspected, setPreLoadInspected] = useState<boolean>(false)
   const [preLoadPhotoName, setPreLoadPhotoName] = useState<string>(
     'mk_depot_preload_strapping_verified.jpg'
   )
@@ -101,6 +114,9 @@ export function BookJobForm({
   const [signatureSvg, setSignatureSvg] = useState<string>('')
   const [podUploading, setPodUploading] = useState<boolean>(false)
   const [podMessage, setPodMessage] = useState<string>('')
+  const [blackbookDraftNote, setBlackbookDraftNote] = useState<string>('')
+  const [blackbookDraftType, setBlackbookDraftType] = useState<string>('tight_turning')
+  const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Uber-Style Compliance Locker States
   const [credentials, setCredentials] = useState<ComplianceCredentialItem[]>([
@@ -126,40 +142,46 @@ export function BookJobForm({
   const [activeUploadCredential, setActiveUploadCredential] =
     useState<ComplianceCredentialItem | null>(null)
 
-  // Ensure an authenticated session exists so strict RLS (`auth.uid()`) never rejects pilot actions
+  useEffect(() => {
+    setActiveUserId(retailerId || '')
+  }, [retailerId])
+
+  // Enforce real authenticated sessions via Supabase Auth
   const ensureAuthenticatedPilotSession = async (): Promise<string> => {
-    try {
-      const {
-        data: { session }
-      } = await supabase.auth.getSession()
-      if (session?.user?.id) {
-        return session.user.id
-      }
-      const { data: signInData, error: signInErr } = await supabase.auth.signInWithPassword({
-        email: 'diag_retailer_99@benlogistics.co.uk',
-        password: 'Password123!'
-      })
-      if (signInErr) {
-        console.warn('[Ben Auth Auto-Pilot Notice]', {
-          message: signInErr.message
-        })
-      }
-      if (signInData?.user?.id) {
-        return signInData.user.id
-      }
-    } catch (err: any) {
-      console.error('[Ben Auth Session Check Error]', err)
+    const {
+      data: { session },
+      error
+    } = await supabase.auth.getSession()
+    if (error || !session?.user?.id) {
+      throw new Error('Authentication required: Please sign in via Operator Portal Login.')
     }
-    return retailerId
+    if (session.user.id !== activeUserId) {
+      setActiveUserId(session.user.id)
+    }
+    return session.user.id
   }
 
   const fetchLogisticsData = async () => {
     try {
-      await ensureAuthenticatedPilotSession()
-      const { data: jobs, error } = await supabase
-        .from('jobs')
-        .select('*')
-        .order('id', { ascending: false })
+      const {
+        data: { session }
+      } = await supabase.auth.getSession()
+      const uid = session?.user?.id || retailerId
+      if (uid && uid !== activeUserId) {
+        setActiveUserId(uid)
+      }
+
+      let query = supabase.from('jobs').select('*').order('id', { ascending: false }).limit(50)
+      if (mode === 'retailer' && uid) {
+        query = supabase
+          .from('jobs')
+          .select('*')
+          .eq('retailer_id', uid)
+          .order('id', { ascending: false })
+          .limit(50)
+      }
+
+      const { data: jobs, error } = await query
 
       if (error) {
         console.error('[Ben Jobs Fetch Error]', {
@@ -179,11 +201,30 @@ export function BookJobForm({
   // Hydrate Gate A6 Agreement & Compliance Documents from Supabase on mount
   const hydrateCrewCompliance = async () => {
     try {
-      const activeUid = await ensureAuthenticatedPilotSession()
+      const {
+        data: { session }
+      } = await supabase.auth.getSession()
+      const activeUid = session?.user?.id || retailerId
+      if (!activeUid) {
+        setComplianceAccepted(false)
+        setAgreementSignedAt(null)
+        return
+      }
+
+      const storageKey = getGateA6StorageKey(activeUid)
+      const cachedSignedAt = (() => {
+        try {
+          return localStorage.getItem(storageKey)
+        } catch {
+          return null
+        }
+      })()
+
       const { data: agreements, error: agrErr } = await supabase
         .from('contractor_agreements')
         .select('*')
         .eq('user_id', activeUid)
+        .eq('agreement_version', 'v1.0-pilot-outside-ir35')
         .order('signed_at', { ascending: false })
         .limit(1)
 
@@ -199,10 +240,16 @@ export function BookJobForm({
         setComplianceAccepted(true)
         setAgreementSignedAt(agreements[0].signed_at)
         try {
-          localStorage.setItem(GATE_A6_STORAGE_KEY, agreements[0].signed_at)
+          localStorage.setItem(storageKey, agreements[0].signed_at)
         } catch {
           // ignore storage quota errors
         }
+      } else if (cachedSignedAt) {
+        setComplianceAccepted(true)
+        setAgreementSignedAt(cachedSignedAt)
+      } else {
+        setComplianceAccepted(false)
+        setAgreementSignedAt(null)
       }
 
       const { data: docs, error: docErr } = await supabase
@@ -249,15 +296,24 @@ export function BookJobForm({
         'postgres_changes',
         { event: '*', schema: 'public', table: 'jobs' },
         () => {
-          fetchLogisticsData()
+          // Debounce and guard realtime refreshes so mid-form typing or canvas drawing is not clobbered
+          if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current)
+          realtimeTimerRef.current = setTimeout(() => {
+            const activeTag = document.activeElement?.tagName
+            if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') {
+              return
+            }
+            fetchLogisticsData()
+          }, 1200)
         }
       )
       .subscribe()
 
     return () => {
+      if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current)
       supabase.removeChannel(channel)
     }
-  }, [retailerId])
+  }, [retailerId, mode])
 
   // Task 3: Handle AI Manifest Extraction (Text or File Drop/Upload)
   const applyExtractedManifest = async (
@@ -305,84 +361,105 @@ export function BookJobForm({
     reader.readAsDataURL(file)
   }
 
+  // Scope activeDriverJob strictly to the authenticated driver
+  const activeDriverJob = activeJobs.find(
+    (job) =>
+      Boolean(activeUserId) &&
+      String(job.driver_id) === String(activeUserId) &&
+      ['Assigned', 'assigned', 'In Progress', 'in_transit'].includes(job.status)
+  )
+
+  useEffect(() => {
+    if (Array.isArray(activeDriverJob?.completed_drops_json)) {
+      setCompletedDropIndices(activeDriverJob.completed_drops_json)
+    } else {
+      setCompletedDropIndices([])
+    }
+    if (typeof activeDriverJob?.pre_load_inspected === 'boolean') {
+      setPreLoadInspected(activeDriverJob.pre_load_inspected)
+    }
+  }, [activeDriverJob?.id])
+
+  // Instantiate Driver-First Routing Engine Hook
+  const {
+    routingMode,
+    setRoutingMode,
+    routeInverted,
+    setRouteInverted,
+    driverHomePostcode,
+    setDriverHomePostcode,
+    sequencedStops,
+    lifoLoadSheet,
+    syncingRoute,
+    persistRoutingPlan,
+    addBlackbookHazard
+  } = useDriverRoutingEngine(activeDriverJob)
+
   const uploadPoD = async (jobId: string, file: File) => {
     setPodUploading(true)
     setPodMessage('')
     const storagePath = `${jobId}/${Date.now()}.jpg`
 
     try {
+      // 1. Upload with upsert in case of retry after partial failure
       const { data: uploadData, error: storageErr } = await supabase.storage
         .from('pod-images')
-        .upload(storagePath, file)
+        .upload(storagePath, file, { upsert: true })
 
-      if (storageErr) {
-        console.error('[Ben PoD Storage Upload Error]', {
-          message: storageErr.message,
-          details: (storageErr as any).details,
-          hint: (storageErr as any).hint
-        })
+      if (storageErr || !uploadData) {
+        throw new Error(`Storage upload failed: ${storageErr?.message || 'No data'}`)
       }
 
-      const finalPodUrl = uploadData ? storagePath : `local-queued://${storagePath}`
+      // 2. Retry DB update up to 3 times with exponential backoff if 4G drops mid-request
+      let updateErr: any = null
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        const { error } = await supabase
+          .from('jobs')
+          .update({
+            status: 'Completed',
+            pod_image_url: storagePath,
+            signature_svg: signatureSvg || null,
+            completed_drops_json: parseManifestDrops(activeDriverJob?.drop_addresses).map(
+              (_, i) => i
+            )
+          })
+          .eq('id', jobId)
 
-      const { error: updateErr } = await supabase
-        .from('jobs')
-        .update({
-          status: 'Completed',
-          pod_image_url: finalPodUrl,
-          signature_svg: signatureSvg || null
-        })
-        .eq('id', jobId)
+        if (!error) {
+          updateErr = null
+          break
+        }
+        updateErr = error
+        await new Promise((r) => setTimeout(r, attempt * 1500))
+      }
 
       if (updateErr) {
-        console.error('[Ben PoD Job Update Error]', {
-          message: updateErr.message,
-          details: updateErr.details,
-          hint: updateErr.hint,
-          code: updateErr.code
-        })
+        throw new Error(`Database status sync failed after PoD upload: ${updateErr.message}`)
       }
 
-      if (storageErr && updateErr) {
-        setPodMessage(
-          '📶 Weak 4G signal detected — PoD photo & signature cached locally and route marked Completed!'
-        )
-      } else {
-        setPodMessage(
-          '🛡️ Ben Damage-Shield Certificate Issued: Pre-Load matched to Room-of-Choice PoD & e-Signature verified!'
-        )
-      }
-
-      setActiveJobs((prev) =>
-        prev.map((j) =>
-          String(j.id) === String(jobId)
-            ? {
-                ...j,
-                status: 'Completed',
-                pod_image_url: finalPodUrl,
-                signature_svg: signatureSvg || null
-              }
-            : j
-        )
-      )
-
-      const { data: updatedJobs } = await supabase.from('jobs').select('*').eq('id', jobId)
-      if (updatedJobs && updatedJobs[0]) setRatingJob(updatedJobs[0])
-      fetchLogisticsData()
-    } catch (err: any) {
-      console.error('[Ben PoD Unexpected Error]', err)
       setPodMessage(
-        '📶 Offline stairwell fallback triggered — PoD saved locally for background sync.'
+        '🛡️ Ben Damage-Shield Certificate Issued: Pre-Load matched to Room-of-Choice PoD & e-Signature verified!'
       )
-      setActiveJobs((prev) =>
-        prev.map((j) => (String(j.id) === String(jobId) ? { ...j, status: 'Completed' } : j))
+      setSignatureSvg('')
+      const { data: updatedJobs } = await supabase.from('jobs').select('*').eq('id', jobId)
+      if (updatedJobs?.[0]) setRatingJob(updatedJobs[0])
+      await fetchLogisticsData()
+    } catch (err: any) {
+      console.error('[Ben PoD Upload/Sync Failure]', err)
+      setPodMessage(
+        `⚠️ Signal interrupted (${err.message}). Do NOT close this tab — tap Capture again once 4G signal returns.`
       )
+    } finally {
+      setPodUploading(false)
     }
-    setPodUploading(false)
   }
 
+  const retailerOwnedJobs = activeJobs.filter(
+    (j) => !activeUserId || !j.retailer_id || String(j.retailer_id) === String(activeUserId)
+  )
+
   const exportLedgerToCSV = () => {
-    const completedJobs = activeJobs.filter(
+    const completedJobs = retailerOwnedJobs.filter(
       (j) => j.status === 'Completed' || j.status === 'delivered'
     )
     const headers = [
@@ -399,22 +476,24 @@ export function BookJobForm({
         ? new Date(job.created_at).toLocaleDateString()
         : new Date().toLocaleDateString()
       return [
-        date,
-        `"${job.pickup_address}"`,
-        job.gross_fee ?? 440,
-        job.platform_fee ?? 55,
-        job.net_pool ?? 385,
-        job.requires_tail_lift ? 'Yes' : 'No',
-        job.requires_assembly ? 'Yes' : 'No'
+        escapeCsvCell(date),
+        escapeCsvCell(job.pickup_address),
+        escapeCsvCell(job.gross_fee ?? 440),
+        escapeCsvCell(job.platform_fee ?? 55),
+        escapeCsvCell(job.net_pool ?? 385),
+        escapeCsvCell(job.requires_tail_lift ? 'Yes' : 'No'),
+        escapeCsvCell(job.requires_assembly ? 'Yes' : 'No')
       ].join(',')
     })
-    const csvString = [headers.join(','), ...csvRows].join('\n')
-    const blob = new Blob([csvString], { type: 'text/csv' })
+    const csvString = [headers.map(escapeCsvCell).join(','), ...csvRows].join('\n')
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
+    const isoDate = new Date().toISOString().split('T')[0]
     a.setAttribute('href', url)
-    a.setAttribute('download', `Ben_Agency_Ledger_${new Date().toLocaleDateString()}.csv`)
+    a.setAttribute('download', `Ben_Agency_Ledger_${isoDate}.csv`)
     a.click()
+    window.URL.revokeObjectURL(url)
   }
 
   const selectedTier = PRICING_MATRIX[jobData.vehicle_setup][jobData.loop_profile]
@@ -526,13 +605,13 @@ export function BookJobForm({
       })
       setBookingBanner({
         type: 'error',
-        text: `Unexpected error: ${err?.message || 'Could not dispatch route.'}`
+        text: err?.message || 'Could not dispatch route.'
       })
     }
     setSubmittingJob(false)
   }
 
-  // Gate A6: Sign Contractor Agreement and write permanent audit row
+  // Gate A6: Sign Contractor Agreement, upload certificate to Storage, and write permanent audit row
   const handleSignContractorAgreement = async () => {
     setSigningAgreement(true)
     const timestamp = new Date().toISOString()
@@ -549,34 +628,52 @@ export function BookJobForm({
         }
       ])
       if (error) {
-        console.error('[Ben Gate A6 Insert Error]', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        })
+        throw error
       }
-    } catch (err: any) {
-      console.error('[Ben Gate A6 Unexpected Error]', err)
-    }
 
-    try {
-      localStorage.setItem(GATE_A6_STORAGE_KEY, timestamp)
-    } catch {
-      // ignore storage errors
-    }
+      if (certificateFile) {
+        const certPath = `${activeUid}/goods_in_transit_${Date.now()}.pdf`
+        await supabase.storage
+          .from('compliance-docs')
+          .upload(certPath, certificateFile, { upsert: true })
+        await supabase.from('compliance_documents').insert([
+          {
+            driver_id: activeUid,
+            doc_type: 'goods_in_transit',
+            file_url: certPath,
+            expiry_date: '2027-11-01',
+            verified: false,
+            status: 'Pending Verification',
+            uploaded_at: timestamp
+          }
+        ])
+      }
 
-    if (policyNumber.trim() || certificateDetails.trim() || certificateFileName) {
-      setCredentials((prev) =>
-        prev.map((c) =>
-          c.docType === 'goods_in_transit' || c.docType === 'public_liability'
-            ? { ...c, status: 'Pending Review', uploadedAt: timestamp }
-            : c
+      try {
+        localStorage.setItem(getGateA6StorageKey(activeUid), timestamp)
+      } catch {
+        // ignore storage errors
+      }
+
+      if (policyNumber.trim() || certificateDetails.trim() || certificateFileName) {
+        setCredentials((prev) =>
+          prev.map((c) =>
+            c.docType === 'goods_in_transit' || c.docType === 'public_liability'
+              ? { ...c, status: 'Pending Review', uploadedAt: timestamp }
+              : c
+          )
         )
-      )
-    }
+      }
 
-    setAgreementSignedAt(timestamp)
-    setComplianceAccepted(true)
+      setAgreementSignedAt(timestamp)
+      setComplianceAccepted(true)
+    } catch (err: any) {
+      console.error('[Ben Gate A6 Error]', err)
+      setBookingBanner({
+        type: 'error',
+        text: err?.message || 'Please sign in via Operator Portal Login before signing Gate A6.'
+      })
+    }
     setSigningAgreement(false)
   }
 
@@ -600,18 +697,84 @@ export function BookJobForm({
     )
   }
 
-  const toggleStopCompleted = (idx: number) => {
-    setCompletedDropIndices((prev) =>
-      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
-    )
+  const toggleStopCompleted = async (idx: number) => {
+    if (!activeDriverJob) return
+    const nextIndices = completedDropIndices.includes(idx)
+      ? completedDropIndices.filter((i) => i !== idx)
+      : [...completedDropIndices, idx]
+
+    setCompletedDropIndices(nextIndices)
+    const nextStatus = nextIndices.length > 0 ? 'In Progress' : 'Assigned'
+
+    const { error } = await supabase
+      .from('jobs')
+      .update({
+        completed_drops_json: nextIndices,
+        status: nextStatus
+      })
+      .eq('id', activeDriverJob.id)
+
+    if (error) {
+      console.error('[Ben Stop Sync Error]', error)
+    }
   }
 
-  const activeDriverJob = activeJobs.find(
-    (job) =>
-      job.status === 'Assigned' ||
-      job.status === 'assigned' ||
-      job.status === 'In Progress' ||
-      job.status === 'in_transit'
+  const handleClaimRoute = async (jobId: string) => {
+    setBookingBanner(null)
+    try {
+      const activeUid = await ensureAuthenticatedPilotSession()
+
+      // 1. Attempt atomic server-side claim RPC first
+      const { data: rpcJob, error: rpcErr } = await supabase.rpc('claim_open_route', {
+        p_job_id: jobId
+      })
+
+      if (!rpcErr && rpcJob) {
+        await fetchLogisticsData()
+        return
+      }
+
+      // 2. Fallback to optimistic-concurrency update if RPC is not yet pushed to remote DB
+      const { data, error } = await supabase
+        .from('jobs')
+        .update({ status: 'Assigned', driver_id: activeUid })
+        .eq('id', jobId)
+        .in('status', ['Unassigned', 'open'])
+        .is('driver_id', null)
+        .select()
+
+      if (error || !data || data.length === 0) {
+        setBookingBanner({
+          type: 'error',
+          text:
+            rpcErr?.message ||
+            error?.message ||
+            '⚠️ Route already claimed by another crew or compliance gate not met.'
+        })
+        await fetchLogisticsData()
+        return
+      }
+
+      await supabase
+        .from('payouts')
+        .update({ driver_id: activeUid })
+        .eq('job_id', String(jobId))
+
+      await fetchLogisticsData()
+    } catch (err: any) {
+      setBookingBanner({
+        type: 'error',
+        text: err?.message || 'Authentication required to claim a route.'
+      })
+    }
+  }
+
+  const todayIso = new Date().toISOString().split('T')[0]
+  const isCrewComplianceVerified = credentials.every(
+    (c) =>
+      c.status === 'Verified' &&
+      Boolean(c.expiryDate) &&
+      String(c.expiryDate) >= todayIso
   )
 
   const allComplianceRequirementsMet =
@@ -636,6 +799,22 @@ export function BookJobForm({
 
   return (
     <div className="w-full text-[#0F172A]">
+      {!activeUserId && (
+        <div className="mb-5 p-4 rounded-xl border border-amber-300 bg-amber-50 text-amber-950 text-xs font-extrabold flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <span>
+            🔐 Operator Session Required: Sign in to your {mode === 'driver' ? '2-Man Crew' : 'Retailer Showroom'} account to dispatch or claim live Milton Keynes routes.
+          </span>
+          {onRequireAuth && (
+            <button
+              type="button"
+              onClick={onRequireAuth}
+              className="min-h-[38px] px-4 py-2 rounded-lg bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-extrabold shrink-0"
+            >
+              Sign In / Create Account →
+            </button>
+          )}
+        </div>
+      )}
       {bookingBanner && (
         <div
           className={`mb-5 p-4 rounded-xl border text-xs font-extrabold flex items-center justify-between ${
@@ -678,7 +857,7 @@ export function BookJobForm({
                   : 'text-slate-600 hover:text-[#0F172A]'
               }`}
             >
-              📡 Track ({activeJobs.length})
+              📡 Track ({retailerOwnedJobs.length})
             </button>
             <button
               type="button"
@@ -1169,7 +1348,7 @@ export function BookJobForm({
 
           {retailerTab === 'track' && (
             <div className="space-y-4">
-              {activeJobs.map((j) => {
+              {retailerOwnedJobs.map((j) => {
                 const stops = parseManifestDrops(j.drop_addresses)
                 return (
                   <div
@@ -1222,7 +1401,7 @@ export function BookJobForm({
                   </div>
                 )
               })}
-              {activeJobs.length === 0 && (
+              {retailerOwnedJobs.length === 0 && (
                 <p className="text-sm text-slate-500 text-center py-6 bg-[#F8FAFC] rounded-xl border border-[#E2E8F0]">
                   No routes dispatched yet. Use the Book Loop tab to launch a loop.
                 </p>
@@ -1241,7 +1420,7 @@ export function BookJobForm({
                     Cumulative Ben Commission:
                     <span className="font-extrabold text-emerald-700 ml-2">
                       £
-                      {activeJobs
+                      {retailerOwnedJobs
                         .filter((j) => j.status === 'Completed' || j.status === 'delivered')
                         .reduce((sum, j) => sum + Number(j.platform_fee ?? 55), 0)
                         .toFixed(2)}
@@ -1256,7 +1435,7 @@ export function BookJobForm({
                 </button>
               </div>
               <div className="flex flex-col space-y-3">
-                {activeJobs
+                {retailerOwnedJobs
                   .filter((j) => j.status === 'Completed' || j.status === 'delivered')
                   .map((job) => (
                     <div
@@ -1425,6 +1604,7 @@ export function BookJobForm({
                   className="hidden"
                   onChange={(e) => {
                     if (e.target.files && e.target.files[0]) {
+                      setCertificateFile(e.target.files[0])
                       setCertificateFileName(e.target.files[0].name)
                     }
                   }}
@@ -1564,16 +1744,126 @@ export function BookJobForm({
                 )}
               </div>
 
-              {/* TASK 2: INTERACTIVE ROUTE VIEWPORT IN CREW PORTAL */}
+              {/* PHASE 4: DRIVER-FIRST ROUTING ENGINE (3-MODE SEQUENCING + HOME POSTCODE + 1-TAP INVERT) */}
+              <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-4 space-y-3.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#0F172A] text-white">
+                        🧭 Driver-First Routing Engine
+                      </span>
+                      {syncingRoute && (
+                        <span className="text-[10px] font-bold text-emerald-700">
+                          ↻ Syncing LIFO Plan...
+                        </span>
+                      )}
+                      {preLoadInspected && (
+                        <span className="text-[10px] font-extrabold text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
+                          🔒 Locked by Pre-Load Gate
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1">
+                      Select drop sequencing mode before loading the van. Re-ordering automatically flips the Reverse-Load (LIFO) bay sheet below.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 bg-white border border-[#E2E8F0] rounded-xl px-2.5 py-1.5">
+                      <span className="text-[10px] font-extrabold uppercase text-slate-500">
+                        Home PC:
+                      </span>
+                      <input
+                        type="text"
+                        disabled={preLoadInspected}
+                        value={driverHomePostcode}
+                        onChange={(e) => {
+                          const nextPc = e.target.value.toUpperCase()
+                          setDriverHomePostcode(nextPc)
+                          persistRoutingPlan(routingMode, routeInverted, nextPc)
+                        }}
+                        className="w-16 text-xs font-extrabold text-[#0F172A] outline-none bg-transparent uppercase tabular-nums"
+                        placeholder="MK9"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      disabled={preLoadInspected}
+                      onClick={() => {
+                        const nextInv = !routeInverted
+                        setRouteInverted(nextInv)
+                        persistRoutingPlan(routingMode, nextInv, driverHomePostcode)
+                      }}
+                      className={`min-h-[40px] px-3 py-1.5 rounded-xl text-xs font-extrabold border transition-all ${
+                        preLoadInspected
+                          ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                          : routeInverted
+                          ? 'bg-emerald-600 text-white border-emerald-600'
+                          : 'bg-white text-[#0F172A] border-[#E2E8F0] hover:border-slate-400'
+                      }`}
+                    >
+                      ⇄ 1-Tap Invert Route {routeInverted ? '(Inverted)' : ''}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {(
+                    [
+                      {
+                        mode: 'clear_bulk_first' as RoutingMode,
+                        title: 'Mode A • Clear the Bulk First',
+                        desc: 'Drops largest m³ items first to free van floor space early'
+                      },
+                      {
+                        mode: 'out_and_back' as RoutingMode,
+                        title: 'Mode B • Out-and-Back',
+                        desc: `Starts furthest out, finishes near Home (${driverHomePostcode || 'MK9'})`
+                      },
+                      {
+                        mode: 'tightest_loop' as RoutingMode,
+                        title: 'Mode C • Tightest Loop',
+                        desc: 'Nearest-neighbor MK road-network progression'
+                      }
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.mode}
+                      type="button"
+                      disabled={preLoadInspected}
+                      onClick={() => {
+                        setRoutingMode(opt.mode)
+                        persistRoutingPlan(opt.mode, routeInverted, driverHomePostcode)
+                      }}
+                      className={`p-3 rounded-xl border text-left transition-all ${
+                        routingMode === opt.mode
+                          ? 'bg-white border-emerald-500 shadow-sm ring-1 ring-emerald-500/30'
+                          : 'bg-white/60 border-[#E2E8F0] hover:bg-white'
+                      } ${preLoadInspected ? 'opacity-65 cursor-not-allowed' : ''}`}
+                    >
+                      <div className="text-xs font-extrabold text-[#0F172A]">{opt.title}</div>
+                      <div className="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                        {opt.desc}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* TASK 2: INTERACTIVE ROUTE VIEWPORT IN CREW PORTAL (WIRED TO SEQUENCED STOPS) */}
               <MKRouteVisualizer
                 routeId={activeDriverJob.id}
                 pickupAddress={activeDriverJob.pickup_address}
-                drops={parseManifestDrops(activeDriverJob.drop_addresses)}
-                completedIndices={completedDropIndices}
+                drops={sequencedStops.map((s) => s.address)}
+                completedIndices={sequencedStops
+                  .map((s, seqIdx) =>
+                    completedDropIndices.includes(s.originalIndex) ? seqIdx : -1
+                  )
+                  .filter((idx) => idx !== -1)}
                 status={activeDriverJob.status}
               />
 
-              {/* TASK 4: SIDE-BY-SIDE AI CONDITION GATE (STEP A PRE-LOAD vs STEP B DOORSTEP POD) */}
+              {/* TASK 4: SIDE-BY-SIDE AI CONDITION GATE (STEP A PRE-LOAD + LIFO BAY SHEET vs STEP B DOORSTEP POD) */}
               <div className="bg-emerald-50/70 border border-emerald-300 rounded-2xl p-5 space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-200 pb-3">
                   <div>
@@ -1585,30 +1875,69 @@ export function BookJobForm({
                     </p>
                   </div>
                   <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-emerald-600 text-white self-start sm:self-center">
-                    {preLoadInspected ? '✓ Pre-Load Locked' : 'Action Required'}
+                    {preLoadInspected ? '✓ Pre-Load & LIFO Locked' : 'Action Required'}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* STEP A: DEPOT PRE-LOAD */}
+                  {/* STEP A: DEPOT PRE-LOAD + REVERSE-LOAD (LIFO) BAY SHEET */}
                   <div className="bg-[#FFFFFF] border border-emerald-200 rounded-xl p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-extrabold uppercase text-[#0F172A]">
-                        Step A • Depot Pre-Load Inspection
+                        Step A • Depot Pre-Load & Reverse-Load (LIFO) Sheet
                       </span>
                       <span className="text-[11px] font-extrabold text-emerald-700">
-                        {preLoadInspected ? '✓ Verified' : 'Pending'}
+                        {preLoadInspected ? '✓ Locked' : 'Pending Load'}
                       </span>
                     </div>
+
+                    {/* AUTOMATIC REVERSE-LOAD (LIFO) BAY CHECKLIST */}
+                    <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-3 space-y-2 max-h-48 overflow-y-auto">
+                      <div className="flex items-center justify-between text-[10px] font-extrabold uppercase text-slate-600">
+                        <span>LIFO Van Loading Order (Zone A → Zone D)</span>
+                        <span>{lifoLoadSheet.length} Drops</span>
+                      </div>
+                      {lifoLoadSheet.map((item) => (
+                        <div
+                          key={item.stopId}
+                          className="p-2 rounded-lg bg-white border border-slate-200 text-[11px] flex flex-col gap-0.5"
+                        >
+                          <div className="flex items-center justify-between font-extrabold text-[#0F172A]">
+                            <span>
+                              Load #{item.lifoLoadSequence} → Drop #{item.deliverySequence} (
+                              {item.postcode})
+                            </span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 tabular-nums">
+                              ~{item.estimatedCubeM3}m³
+                            </span>
+                          </div>
+                          <div className="text-[10px] font-bold text-emerald-700">
+                            {item.vanZone}
+                          </div>
+                          <div className="text-[10px] text-slate-500 truncate">{item.address}</div>
+                        </div>
+                      ))}
+                    </div>
+
                     <label className="flex items-start gap-2.5 cursor-pointer text-xs font-bold text-[#0F172A]">
                       <input
                         type="checkbox"
                         checked={preLoadInspected}
-                        onChange={(e) => setPreLoadInspected(e.target.checked)}
+                        onChange={async (e) => {
+                          const locked = e.target.checked
+                          setPreLoadInspected(locked)
+                          await supabase
+                            .from('jobs')
+                            .update({
+                              pre_load_inspected: locked,
+                              load_plan_locked_at: locked ? new Date().toISOString() : null
+                            })
+                            .eq('id', activeDriverJob.id)
+                        }}
                         className="w-4 h-4 mt-0.5 rounded border-emerald-400 text-emerald-600"
                       />
                       <span>
-                        Carton corners intact & 3.5t Luton ratchet strapping verified prior to departure.
+                        Lock Reverse-Load (LIFO) sequence: Carton corners intact & 3.5t Luton ratchet strapping verified prior to departure.
                       </span>
                     </label>
                     <label className="min-h-[48px] cursor-pointer bg-[#F8FAFC] hover:bg-slate-100 border border-[#E2E8F0] rounded-xl px-3 py-2 flex items-center justify-between text-xs font-extrabold text-[#0F172A]">
@@ -1665,66 +1994,127 @@ export function BookJobForm({
 
               <div className="space-y-2.5">
                 <div className="text-xs font-extrabold uppercase tracking-wider text-slate-600 tabular-nums">
-                  Route Manifest Stops ({completedDropIndices.length} /{' '}
-                  {parseManifestDrops(activeDriverJob.drop_addresses).length} Completed)
+                  Sequenced Route Manifest Stops ({completedDropIndices.length} /{' '}
+                  {sequencedStops.length} Completed)
                 </div>
-                {parseManifestDrops(activeDriverJob.drop_addresses).map((d: string, i: number) => {
-                  const isDone = completedDropIndices.includes(i)
-                  const encodedAddr = encodeURIComponent(d)
+                {sequencedStops.map((stop) => {
+                  const isDone = completedDropIndices.includes(stop.originalIndex)
+                  const encodedAddr = encodeURIComponent(stop.address)
                   return (
                     <div
-                      key={i}
-                      className={`text-sm p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all ${
+                      key={stop.stopId}
+                      className={`text-sm p-4 rounded-xl border flex flex-col gap-3 transition-all ${
                         isDone
                           ? 'bg-emerald-50/60 border-emerald-200 text-slate-500 line-through'
                           : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#0F172A]'
                       }`}
                     >
-                      <div className="flex items-center font-bold">
-                        <span
-                          className={`w-7 h-7 rounded-full text-xs flex items-center justify-center mr-3 font-extrabold shrink-0 tabular-nums ${
-                            isDone
-                              ? 'bg-emerald-600 text-white'
-                              : 'bg-slate-200 text-[#0F172A]'
-                          }`}
-                        >
-                          {isDone ? '✓' : i + 1}
-                        </span>
-                        <span>{d}</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-start font-bold">
+                          <span
+                            className={`w-7 h-7 rounded-full text-xs flex items-center justify-center mr-3 font-extrabold shrink-0 tabular-nums mt-0.5 ${
+                              isDone
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-slate-200 text-[#0F172A]'
+                            }`}
+                          >
+                            {isDone ? '✓' : stop.deliverySequence}
+                          </span>
+                          <div>
+                            <span className="block">{stop.address}</span>
+                            <span className="text-[11px] font-bold text-slate-500 block mt-0.5">
+                              {stop.vanZone} • ~{stop.estimatedCubeM3}m³ • {stop.distanceFromDepotKm} km from Depot
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2 shrink-0">
+                          <a
+                            href={`https://www.google.com/maps/dir/?api=1&destination=${encodedAddr}&travelmode=driving`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="min-h-[48px] text-xs font-extrabold px-3.5 py-2 rounded-xl bg-[#FFFFFF] hover:bg-slate-100 text-[#0F172A] border border-[#E2E8F0] flex items-center transition-all"
+                          >
+                            🗺 Google Maps
+                          </a>
+                          <a
+                            href={`https://waze.com/ul?q=${encodedAddr}&navigate=yes`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="min-h-[48px] text-xs font-extrabold px-3.5 py-2 rounded-xl bg-[#FFFFFF] hover:bg-slate-100 text-[#0F172A] border border-[#E2E8F0] flex items-center transition-all"
+                          >
+                            🚗 Waze
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => toggleStopCompleted(stop.originalIndex)}
+                            className={`min-h-[48px] text-xs font-extrabold px-4 py-2 rounded-xl transition-all ${
+                              isDone
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-[#0F172A] hover:bg-slate-800 text-white'
+                            }`}
+                          >
+                            {isDone ? '✓ Delivered' : 'Mark Stop Done'}
+                          </button>
+                        </div>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2 shrink-0">
-                        <a
-                          href={`https://www.google.com/maps/dir/?api=1&destination=${encodedAddr}&travelmode=driving`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="min-h-[48px] text-xs font-extrabold px-3.5 py-2 rounded-xl bg-[#FFFFFF] hover:bg-slate-100 text-[#0F172A] border border-[#E2E8F0] flex items-center transition-all"
-                        >
-                          🗺 Google Maps
-                        </a>
-                        <a
-                          href={`https://waze.com/ul?q=${encodedAddr}&navigate=yes`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="min-h-[48px] text-xs font-extrabold px-3.5 py-2 rounded-xl bg-[#FFFFFF] hover:bg-slate-100 text-[#0F172A] border border-[#E2E8F0] flex items-center transition-all"
-                        >
-                          🚗 Waze
-                        </a>
-                        <button
-                          type="button"
-                          onClick={() => toggleStopCompleted(i)}
-                          className={`min-h-[48px] text-xs font-extrabold px-4 py-2 rounded-xl transition-all ${
-                            isDone
-                              ? 'bg-emerald-600 text-white'
-                              : 'bg-[#0F172A] hover:bg-slate-800 text-white'
-                          }`}
-                        >
-                          {isDone ? '✓ Delivered' : 'Mark Stop Done'}
-                        </button>
-                      </div>
+                      {stop.blackbookAlerts.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-1 border-t border-slate-200/70">
+                          {stop.blackbookAlerts.map((alert) => (
+                            <span
+                              key={alert.id}
+                              className="text-[11px] font-extrabold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-950 border border-amber-300"
+                            >
+                              📓 Street-Sense ({alert.postcode_key} • {alert.hazard_type.replace('_', ' ')}): {alert.hazard_note}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )
                 })}
+
+                {/* STREET-SENSE CREW BLACK-BOOK QUICK LOGGER */}
+                <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-3.5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                  <select
+                    value={blackbookDraftType}
+                    onChange={(e) => setBlackbookDraftType(e.target.value)}
+                    className="min-h-[42px] bg-white border border-[#E2E8F0] rounded-lg px-2.5 text-xs font-extrabold text-[#0F172A] outline-none"
+                  >
+                    <option value="tight_turning">📓 Tight Turning / Cul-de-Sac</option>
+                    <option value="school_run">🏫 School Run Shield (08:15–09:15)</option>
+                    <option value="commercial_shutter">🏭 Commercial Shutter Cutoff</option>
+                    <option value="loading_bay_code">🔐 Loading Bay / Gate Code</option>
+                    <option value="low_bridge">⚠️ Low Bridge / Height Hazard</option>
+                    <option value="stairs_hazard">🪜 Narrow Stairwell / Access Note</option>
+                  </select>
+                  <input
+                    type="text"
+                    value={blackbookDraftNote}
+                    onChange={(e) => setBlackbookDraftNote(e.target.value)}
+                    placeholder={`Add Street-Sense hazard note for ${
+                      sequencedStops[0]?.postcode || 'MK9'
+                    }...`}
+                    className="min-h-[42px] flex-1 bg-white border border-[#E2E8F0] rounded-lg px-3 text-xs text-[#0F172A] outline-none"
+                  />
+                  <button
+                    type="button"
+                    disabled={!blackbookDraftNote.trim()}
+                    onClick={async () => {
+                      const targetPc = sequencedStops[0]?.postcode || 'MK9'
+                      await addBlackbookHazard(
+                        targetPc,
+                        blackbookDraftType,
+                        blackbookDraftNote
+                      )
+                      setBlackbookDraftNote('')
+                    }}
+                    className="min-h-[42px] px-3.5 py-2 rounded-lg bg-[#0F172A] hover:bg-slate-800 disabled:bg-slate-300 text-white text-xs font-extrabold shrink-0"
+                  >
+                    + Save to Black-Book
+                  </button>
+                </div>
               </div>
 
               <SignaturePad onSaveSvg={setSignatureSvg} savedSvg={signatureSvg} />
@@ -1747,9 +2137,16 @@ export function BookJobForm({
             </div>
           ) : (
             <div>
-              <h3 className="text-lg font-extrabold text-[#0F172A] mb-4 border-b border-[#E2E8F0] pb-2">
-                Open Freight Board (87.5% Net Crew Pool)
-              </h3>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 border-b border-[#E2E8F0] pb-2">
+                <h3 className="text-lg font-extrabold text-[#0F172A]">
+                  Open Freight Board (87.5% Net Crew Pool)
+                </h3>
+                {!isCrewComplianceVerified && (
+                  <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                    🔒 Upload & Verify All 3 Unexpired Policies Above to Claim Routes
+                  </span>
+                )}
+              </div>
               <div className="space-y-3">
                 {activeJobs
                   .filter(
@@ -1761,6 +2158,7 @@ export function BookJobForm({
                   .map((j) => {
                     const tailLiftRestricted =
                       Boolean(j.requires_tail_lift) && !crewHasTailLiftLuton
+                    const claimBlocked = tailLiftRestricted || !isCrewComplianceVerified
                     const stops = parseManifestDrops(j.drop_addresses)
                     return (
                       <div
@@ -1791,35 +2189,28 @@ export function BookJobForm({
 
                         <div className="flex flex-col items-start sm:items-end gap-1">
                           <button
-                            disabled={tailLiftRestricted}
-                            onClick={async () => {
-                              const activeUid = await ensureAuthenticatedPilotSession()
-                              const { error } = await supabase
-                                .from('jobs')
-                                .update({ status: 'Assigned', driver_id: activeUid })
-                                .eq('id', j.id)
-                              if (error) {
-                                console.error('[Ben Claim Route Error]', {
-                                  message: error.message,
-                                  details: error.details,
-                                  hint: error.hint
-                                })
-                              }
-                              fetchLogisticsData()
-                            }}
+                            disabled={claimBlocked}
+                            onClick={() => handleClaimRoute(String(j.id))}
                             className={`min-h-[48px] text-xs font-extrabold py-2.5 px-5 rounded-xl transition-all shadow-sm ${
-                              tailLiftRestricted
+                              claimBlocked
                                 ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
                                 : 'bg-emerald-600 hover:bg-emerald-700 text-white'
                             }`}
                           >
                             {tailLiftRestricted
                               ? '🔒 Requires 3.5t Tail-Lift Asset'
+                              : !isCrewComplianceVerified
+                              ? '🔒 Insurance Verification Required'
                               : 'Claim Route'}
                           </button>
                           {tailLiftRestricted && (
                             <span className="text-[10px] text-amber-800 font-bold">
                               Switch to a verified Tail-Lift Luton asset above to claim.
+                            </span>
+                          )}
+                          {!tailLiftRestricted && !isCrewComplianceVerified && (
+                            <span className="text-[10px] text-amber-800 font-bold">
+                              Requires Verified GIT, Public Liability & Hire/Reward (unexpired).
                             </span>
                           )}
                         </div>
@@ -1850,7 +2241,7 @@ export function BookJobForm({
       {activeUploadCredential && (
         <ComplianceUploadModal
           credential={activeUploadCredential}
-          userId={retailerId}
+          userId={activeUserId}
           onClose={() => setActiveUploadCredential(null)}
           onUploaded={handleCredentialUploaded}
         />
@@ -1859,7 +2250,7 @@ export function BookJobForm({
       {ratingJob && (
         <RateJobModal
           job={ratingJob}
-          userId={retailerId}
+          userId={activeUserId}
           role={mode}
           onClose={() => setRatingJob(null)}
         />
@@ -1867,7 +2258,7 @@ export function BookJobForm({
       {disputeJob && (
         <DisputePanel
           job={disputeJob}
-          userId={retailerId}
+          userId={activeUserId}
           role={mode}
           onClose={() => setDisputeJob(null)}
         />

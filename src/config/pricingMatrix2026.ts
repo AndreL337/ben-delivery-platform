@@ -130,9 +130,6 @@ export function parseManifestDrops(raw: any): string[] {
       .map((s) => s.trim())
       .filter(Boolean)
   }
-  // Fallback for legacy comma-separated single-line strings
-  return str
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
+  // Keep a single-line UK address (which naturally contains commas) intact as 1 drop
+  return [str]
 }
