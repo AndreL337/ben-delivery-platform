@@ -117,6 +117,15 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
     }
   }
 
+  // Lock background page scroll while full-screen In-Cab HUD is active
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prevOverflow
+    }
+  }, [])
+
   useEffect(() => {
     if (!isDraggingSlider) return
     const handleMouseMove = (e: MouseEvent) => updateSliderPosition(e.clientX)
@@ -130,10 +139,13 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
   }, [isDraggingSlider, slideCompleted, podUploading, podPhotoFile, currentStop])
 
   return (
-    <div className="relative w-full h-[100dvh] max-h-[100dvh] bg-[#090D16] rounded-3xl overflow-hidden flex flex-col justify-between select-none border border-slate-800 shadow-2xl">
+    <div
+      className="fixed inset-0 z-[100] w-screen h-[100dvh] max-h-[100dvh] bg-[#090D16] overflow-hidden flex flex-col justify-between select-none"
+      style={{ height: '100dvh' }}
+    >
       {/* 1. FULL-BLEED MAP / ROUTE CONTEXT CANVAS */}
       <div className="absolute inset-0 z-0 flex flex-col">
-        <div className="flex-1 w-full overflow-hidden opacity-95">
+        <div className="flex-1 w-full h-full overflow-hidden opacity-95">
           <MKRouteVisualizer
             routeId={job.id}
             pickupAddress={job.pickup_address}
@@ -145,6 +157,7 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
               .filter((idx) => idx !== -1)}
             selectedStopIndex={Math.max(0, currentStopNumber - 1)}
             status={job.status}
+            fullBleed={true}
           />
         </div>
         <div

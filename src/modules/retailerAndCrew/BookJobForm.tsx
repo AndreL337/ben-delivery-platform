@@ -107,7 +107,7 @@ export function BookJobForm({
 
   // Active Crew Loop Execution & Task 4 AI Damage Shield States
   const [preLoadInspected, setPreLoadInspected] = useState<boolean>(false)
-  const [inCabRouteStarted, setInCabRouteStarted] = useState<boolean>(false)
+  const [inCabRouteStarted, setInCabRouteStarted] = useState<boolean>(true)
   const [preLoadPhotoName, setPreLoadPhotoName] = useState<string>(
     'mk_depot_preload_strapping_verified.jpg'
   )
@@ -1829,15 +1829,24 @@ export function BookJobForm({
                       </div>
                     </div>
 
-                    {onOpenConsumerTracker && (
+                    <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
                       <button
                         type="button"
-                        onClick={() => onOpenConsumerTracker(String(activeDriverJob.id))}
-                        className="min-h-[48px] text-xs font-extrabold px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white self-start sm:self-center"
+                        onClick={() => setInCabRouteStarted(true)}
+                        className="min-h-[48px] text-xs font-extrabold px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm"
                       >
-                        📍 View Customer Tracker
+                        🚀 Full-Screen In-Cab HUD
                       </button>
-                    )}
+                      {onOpenConsumerTracker && (
+                        <button
+                          type="button"
+                          onClick={() => onOpenConsumerTracker(String(activeDriverJob.id))}
+                          className="min-h-[48px] text-xs font-extrabold px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white"
+                        >
+                          📍 View Customer Tracker
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* DRIVER-FIRST ROUTING ENGINE (3-MODE SEQUENCING + HOME POSTCODE + 1-TAP INVERT) */}

@@ -9,6 +9,7 @@ export interface MKRouteVisualizerProps {
   onSelectStop?: (index: number) => void
   status?: string
   compact?: boolean
+  fullBleed?: boolean
 }
 
 interface ProjectedPoint {
@@ -89,7 +90,8 @@ export const MKRouteVisualizer: React.FC<MKRouteVisualizerProps> = ({
   selectedStopIndex = 0,
   onSelectStop,
   status = 'In Progress',
-  compact = false
+  compact = false,
+  fullBleed = false
 }) => {
   const effectiveOrigin = pickupAddress?.trim() || 'Kiln Farm Depot, Milton Keynes MK11'
   const effectiveDrops =
@@ -116,37 +118,46 @@ export const MKRouteVisualizer: React.FC<MKRouteVisualizerProps> = ({
   const completedSet = new Set(completedIndices)
 
   return (
-    <div className="bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-md">
+    <div
+      className={
+        fullBleed
+          ? 'w-full h-full bg-[#090D16] overflow-hidden'
+          : 'bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-md'
+      }
+    >
       {/* TOP TELEMETRY BAR */}
-      <div className="px-4 py-3 bg-slate-900/95 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#00F5D4] shadow-[0_0_10px_#00F5D4] animate-pulse" />
-          <span className="text-[11px] font-extrabold uppercase tracking-widest text-slate-200">
-            MK Grid Spatial Telemetry {routeId ? `• Loop #${routeId}` : ''}
-          </span>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 tabular-nums">
-            {effectiveDrops.length} Stop{effectiveDrops.length === 1 ? '' : 's'} • {status}
-          </span>
-        </div>
+      {!fullBleed && (
+        <div className="px-4 py-3 bg-slate-900/95 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#00F5D4] shadow-[0_0_10px_#00F5D4] animate-pulse" />
+            <span className="text-[11px] font-extrabold uppercase tracking-widest text-slate-200">
+              MK Grid Spatial Telemetry {routeId ? `• Loop #${routeId}` : ''}
+            </span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 tabular-nums">
+              {effectiveDrops.length} Stop{effectiveDrops.length === 1 ? '' : 's'} • {status}
+            </span>
+          </div>
 
-        <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400">
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" /> Depot Origin
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-[#00F5D4] inline-block" /> Active Stop
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Completed
-          </span>
+          <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400">
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" /> Depot Origin
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-[#00F5D4] inline-block" /> Active Stop
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Completed
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* INTERACTIVE SVG MK GRID MAP */}
-      <div className="relative w-full bg-[#090D16] select-none">
+      <div className={`relative w-full ${fullBleed ? 'h-full' : ''} bg-[#090D16] select-none`}>
         <svg
           viewBox="0 0 600 300"
-          className={`w-full ${compact ? 'h-52' : 'h-64 sm:h-72'} block`}
+          preserveAspectRatio={fullBleed ? 'xMidYMid slice' : undefined}
+          className={`w-full ${fullBleed ? 'h-full' : compact ? 'h-52' : 'h-64 sm:h-72'} block`}
           role="img"
           aria-label="Milton Keynes Interactive Route Map"
         >
@@ -377,26 +388,28 @@ export const MKRouteVisualizer: React.FC<MKRouteVisualizerProps> = ({
       </div>
 
       {/* BOTTOM ACTION & TURN-BY-TURN HANDOFF BAR */}
-      <div className="p-3.5 bg-slate-900 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="text-xs text-slate-300 truncate">
-          <span className="font-extrabold text-[#00F5D4]">Origin:</span> {effectiveOrigin}{' '}
-          <span className="text-slate-500 mx-1">→</span>
-          <span className="font-extrabold text-emerald-400">
-            Stop #{Math.min(selectedStopIndex + 1, effectiveDrops.length)}:
-          </span>{' '}
-          {effectiveDrops[selectedStopIndex] || effectiveDrops[0]}
-        </div>
+      {!fullBleed && (
+        <div className="p-3.5 bg-slate-900 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="text-xs text-slate-300 truncate">
+            <span className="font-extrabold text-[#00F5D4]">Origin:</span> {effectiveOrigin}{' '}
+            <span className="text-slate-500 mx-1">→</span>
+            <span className="font-extrabold text-emerald-400">
+              Stop #{Math.min(selectedStopIndex + 1, effectiveDrops.length)}:
+            </span>{' '}
+            {effectiveDrops[selectedStopIndex] || effectiveDrops[0]}
+          </div>
 
-        <a
-          href={googleMapsUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="min-h-[48px] px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-md transition-all shrink-0"
-        >
-          <span>🗺 Launch Turn-by-Turn in Google Maps</span>
-          <span>↗</span>
-        </a>
-      </div>
+          <a
+            href={googleMapsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="min-h-[48px] px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-md transition-all shrink-0"
+          >
+            <span>🗺 Launch Turn-by-Turn in Google Maps</span>
+            <span>↗</span>
+          </a>
+        </div>
+      )}
     </div>
   )
 }

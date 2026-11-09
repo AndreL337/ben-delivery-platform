@@ -172,6 +172,43 @@ async function seedDriverComplianceIfNeeded(userId) {
       }
     }
     console.log(`[OK] Verified Gate A6 & Insurance Compliance Locker for driver ${userId}`)
+
+    // Ensure the pilot driver has at least one active assigned multi-drop MK route for immediate In-Cab HUD testing
+    const { data: activeJobs } = await supabase
+      .from('jobs')
+      .select('id, status')
+      .eq('driver_id', userId)
+      .in('status', ['Assigned', 'In Progress', 'in_transit'])
+      .limit(1)
+
+    if (!activeJobs || activeJobs.length === 0) {
+      const { data: newJob, error: jobErr } = await supabase
+        .from('jobs')
+        .insert([
+          {
+            retailer_id: 'dfb853a0-6aa0-47a7-80b0-4a05ea873c4d',
+            driver_id: userId,
+            pickup_address: 'Barker & Stonehouse MK Hub, Kiln Farm, Milton Keynes MK11 3LG',
+            drop_addresses:
+              '14 Midsummer Blvd, Central Milton Keynes MK9 2EA | 3-Seater Corner Sofa (Room of Choice)\n82 Watling St, Fenny Stratford, Bletchley MK2 2BY | Solid Oak Dining Table (Ground Floor)\n19 Newport Rd, Woburn Sands MK17 8UF | King Divan Bed & Headboard (1st Floor Bedroom)\n45 High St, Stony Stratford MK11 1AA | Tall Wardrobe Unit (2-Man Carry)',
+            status: 'Assigned',
+            vehicle_setup: 'independent',
+            loop_profile: 'roc',
+            requires_tail_lift: true,
+            requires_assembly: false,
+            gross_fee: 440,
+            platform_fee: 55,
+            net_pool: 385
+          }
+        ])
+        .select('id')
+
+      if (!jobErr && newJob?.[0]) {
+        console.log(`[OK] Seeded active 4-stop MK route #${newJob[0].id} assigned to pilot driver ${userId}`)
+      }
+    } else {
+      console.log(`[OK] Pilot driver already has active route #${activeJobs[0].id} (${activeJobs[0].status})`)
+    }
   } catch (err) {
     console.warn('[INFO] Optional compliance pre-seed skipped:', err?.message || err)
   }
