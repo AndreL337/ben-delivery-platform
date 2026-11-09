@@ -8,9 +8,9 @@ import type {
   ComplianceDocType,
   ComplianceStatus
 } from '../../types/logistics'
-import { SignaturePad } from '../../shared/components/SignaturePad'
 import { RateJobModal, DisputePanel } from '../../shared/components/FeedbackModals'
 import { ComplianceUploadModal } from '../crew/ComplianceUploadModal'
+import { CrewInCabView } from '../crew/CrewInCabView'
 import { useDriverRoutingEngine, type RoutingMode } from '../crew/useDriverRoutingEngine'
 import { MKRouteVisualizer } from '../../shared/components/MKRouteVisualizer'
 import {
@@ -107,6 +107,7 @@ export function BookJobForm({
 
   // Active Crew Loop Execution & Task 4 AI Damage Shield States
   const [preLoadInspected, setPreLoadInspected] = useState<boolean>(false)
+  const [inCabRouteStarted, setInCabRouteStarted] = useState<boolean>(false)
   const [preLoadPhotoName, setPreLoadPhotoName] = useState<string>(
     'mk_depot_preload_strapping_verified.jpg'
   )
@@ -114,8 +115,6 @@ export function BookJobForm({
   const [signatureSvg, setSignatureSvg] = useState<string>('')
   const [podUploading, setPodUploading] = useState<boolean>(false)
   const [podMessage, setPodMessage] = useState<string>('')
-  const [blackbookDraftNote, setBlackbookDraftNote] = useState<string>('')
-  const [blackbookDraftType, setBlackbookDraftType] = useState<string>('tight_turning')
   const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Uber-Style Compliance Locker States
@@ -377,6 +376,15 @@ export function BookJobForm({
     }
     if (typeof activeDriverJob?.pre_load_inspected === 'boolean') {
       setPreLoadInspected(activeDriverJob.pre_load_inspected)
+    }
+    if (
+      activeDriverJob?.status === 'In Progress' ||
+      activeDriverJob?.status === 'in_transit' ||
+      Boolean(activeDriverJob?.pre_load_inspected)
+    ) {
+      setInCabRouteStarted(true)
+    } else {
+      setInCabRouteStarted(false)
     }
   }, [activeDriverJob?.id])
 
@@ -1707,434 +1715,342 @@ export function BookJobForm({
           </div>
 
           {activeDriverJob ? (
-            <div className="bg-[#FFFFFF] border border-emerald-300 p-6 rounded-2xl relative overflow-hidden shadow-md space-y-6">
-              <div className="absolute top-0 right-0 w-2 h-full bg-emerald-500"></div>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <div>
-                  <h3 className="text-lg font-extrabold text-[#0F172A] mb-1 tabular-nums">
-                    📍 Active Loop #{String(activeDriverJob.id)}: {activeDriverJob.pickup_address}
-                  </h3>
-                  <div className="flex flex-wrap items-center gap-2 tabular-nums">
-                    <span className="text-xs font-extrabold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
-                      Status: {activeDriverJob.status} • Net Crew Pool: £
-                      {Number(activeDriverJob.net_pool ?? 385).toFixed(2)}
-                    </span>
-                    {activeDriverJob.requires_tail_lift && (
-                      <span className="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300">
-                        ⚠️ Tail-Lift Van Required
-                      </span>
-                    )}
-                    {(activeDriverJob.requires_assembly ||
-                      activeDriverJob.loop_profile === 'assembly') && (
-                      <span className="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-blue-100 text-blue-900 border border-blue-300">
-                        🔧 Tools & Assembly Required
-                      </span>
-                    )}
-                  </div>
-                </div>
+            (() => {
+              const fallbackStop = {
+                stopId: 'stop-0',
+                originalIndex: 0,
+                deliverySequence: 1,
+                address:
+                  parseManifestDrops(activeDriverJob.drop_addresses)[0] ||
+                  '14 Midsummer Blvd, Central Milton Keynes MK9 2EA',
+                postcode: 'MK9 2EA',
+                estimatedCubeM3: 2.4,
+                distanceFromDepotKm: 4.5,
+                distanceFromHomeKm: 1.2,
+                lifoLoadSequence: 1,
+                vanZone: 'Zone D (Tail-Lift — Load Last / Drop First)' as const,
+                blackbookAlerts: []
+              }
+              const firstUncompletedStop =
+                sequencedStops.find((s) => !completedDropIndices.includes(s.originalIndex)) ||
+                sequencedStops[sequencedStops.length - 1] ||
+                fallbackStop
 
-                {onOpenConsumerTracker && (
-                  <button
-                    type="button"
-                    onClick={() => onOpenConsumerTracker(String(activeDriverJob.id))}
-                    className="min-h-[48px] text-xs font-extrabold px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white self-start sm:self-center"
-                  >
-                    📍 View Customer Tracker
-                  </button>
-                )}
-              </div>
+              return inCabRouteStarted ? (
+                <CrewInCabView
+                  job={activeDriverJob}
+                  sequencedStops={sequencedStops.length > 0 ? sequencedStops : [fallbackStop]}
+                  currentStop={firstUncompletedStop}
+                  currentStopNumber={firstUncompletedStop.deliverySequence}
+                  totalStops={Math.max(1, sequencedStops.length)}
+                  completedDropIndices={completedDropIndices}
+                  signatureSvg={signatureSvg}
+                  onSaveSignatureSvg={setSignatureSvg}
+                  podUploading={podUploading}
+                  podMessage={podMessage}
+                  onBackToPreLoad={() => setInCabRouteStarted(false)}
+                  onOpenConsumerTracker={onOpenConsumerTracker}
+                  onOpenDisputeModal={() => setDisputeJob(activeDriverJob)}
+                  onCompleteStop={async (stop, podPhotoFile) => {
+                    const willCompleteIndices = completedDropIndices.includes(stop.originalIndex)
+                      ? completedDropIndices
+                      : [...completedDropIndices, stop.originalIndex]
 
-              {/* PHASE 4: DRIVER-FIRST ROUTING ENGINE (3-MODE SEQUENCING + HOME POSTCODE + 1-TAP INVERT) */}
-              <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-4 space-y-3.5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#0F172A] text-white">
-                        🧭 Driver-First Routing Engine
-                      </span>
-                      {syncingRoute && (
-                        <span className="text-[10px] font-bold text-emerald-700">
-                          ↻ Syncing LIFO Plan...
-                        </span>
-                      )}
-                      {preLoadInspected && (
-                        <span className="text-[10px] font-extrabold text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
-                          🔒 Locked by Pre-Load Gate
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-600 mt-1">
-                      Select drop sequencing mode before loading the van. Re-ordering automatically flips the Reverse-Load (LIFO) bay sheet below.
-                    </p>
-                  </div>
+                    await toggleStopCompleted(stop.originalIndex)
 
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 bg-white border border-[#E2E8F0] rounded-xl px-2.5 py-1.5">
-                      <span className="text-[10px] font-extrabold uppercase text-slate-500">
-                        Home PC:
-                      </span>
-                      <input
-                        type="text"
-                        disabled={preLoadInspected}
-                        value={driverHomePostcode}
-                        onChange={(e) => {
-                          const nextPc = e.target.value.toUpperCase()
-                          setDriverHomePostcode(nextPc)
-                          persistRoutingPlan(routingMode, routeInverted, nextPc)
-                        }}
-                        className="w-16 text-xs font-extrabold text-[#0F172A] outline-none bg-transparent uppercase tabular-nums"
-                        placeholder="MK9"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      disabled={preLoadInspected}
-                      onClick={() => {
-                        const nextInv = !routeInverted
-                        setRouteInverted(nextInv)
-                        persistRoutingPlan(routingMode, nextInv, driverHomePostcode)
-                      }}
-                      className={`min-h-[40px] px-3 py-1.5 rounded-xl text-xs font-extrabold border transition-all ${
-                        preLoadInspected
-                          ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
-                          : routeInverted
-                          ? 'bg-emerald-600 text-white border-emerald-600'
-                          : 'bg-white text-[#0F172A] border-[#E2E8F0] hover:border-slate-400'
-                      }`}
-                    >
-                      ⇄ 1-Tap Invert Route {routeInverted ? '(Inverted)' : ''}
-                    </button>
-                  </div>
-                </div>
+                    // If all stops on the manifest are now finished, settle the route
+                    if (willCompleteIndices.length >= Math.max(1, sequencedStops.length)) {
+                      if (podPhotoFile) {
+                        await uploadPoD(String(activeDriverJob.id), podPhotoFile)
+                      } else {
+                        const { error } = await supabase
+                          .from('jobs')
+                          .update({
+                            status: 'Completed',
+                            signature_svg: signatureSvg || null,
+                            completed_drops_json: willCompleteIndices
+                          })
+                          .eq('id', activeDriverJob.id)
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  {(
-                    [
-                      {
-                        mode: 'clear_bulk_first' as RoutingMode,
-                        title: 'Mode A • Clear the Bulk First',
-                        desc: 'Drops largest m³ items first to free van floor space early'
-                      },
-                      {
-                        mode: 'out_and_back' as RoutingMode,
-                        title: 'Mode B • Out-and-Back',
-                        desc: `Starts furthest out, finishes near Home (${driverHomePostcode || 'MK9'})`
-                      },
-                      {
-                        mode: 'tightest_loop' as RoutingMode,
-                        title: 'Mode C • Tightest Loop',
-                        desc: 'Nearest-neighbor MK road-network progression'
+                        if (!error) {
+                          setPodMessage(
+                            '🛡️ Ben Damage-Shield Certificate Issued: Route marked Completed & e-Signature verified!'
+                          )
+                          setSignatureSvg('')
+                          const { data: updatedJobs } = await supabase
+                            .from('jobs')
+                            .select('*')
+                            .eq('id', activeDriverJob.id)
+                          if (updatedJobs?.[0]) setRatingJob(updatedJobs[0])
+                          await fetchLogisticsData()
+                        }
                       }
-                    ] as const
-                  ).map((opt) => (
-                    <button
-                      key={opt.mode}
-                      type="button"
-                      disabled={preLoadInspected}
-                      onClick={() => {
-                        setRoutingMode(opt.mode)
-                        persistRoutingPlan(opt.mode, routeInverted, driverHomePostcode)
-                      }}
-                      className={`p-3 rounded-xl border text-left transition-all ${
-                        routingMode === opt.mode
-                          ? 'bg-white border-emerald-500 shadow-sm ring-1 ring-emerald-500/30'
-                          : 'bg-white/60 border-[#E2E8F0] hover:bg-white'
-                      } ${preLoadInspected ? 'opacity-65 cursor-not-allowed' : ''}`}
-                    >
-                      <div className="text-xs font-extrabold text-[#0F172A]">{opt.title}</div>
-                      <div className="text-[11px] text-slate-600 mt-0.5 leading-snug">
-                        {opt.desc}
+                    }
+                  }}
+                  onLogException={async (postcodeKey, hazardType, hazardNote) => {
+                    await addBlackbookHazard(postcodeKey, hazardType, hazardNote)
+                    await supabase
+                      .from('jobs')
+                      .update({
+                        exception_notes: `[${hazardType.toUpperCase()}] ${hazardNote}`
+                      })
+                      .eq('id', activeDriverJob.id)
+                    await fetchLogisticsData()
+                  }}
+                />
+              ) : (
+                /* MORNING PRE-LOAD MODE: DRIVER-FIRST ROUTING + STEP A REVERSE-LOAD (LIFO) BAY SHEET */
+                <div className="bg-[#FFFFFF] border border-emerald-300 p-6 rounded-2xl relative overflow-hidden shadow-md space-y-6">
+                  <div className="absolute top-0 right-0 w-2 h-full bg-emerald-500"></div>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300">
+                        Morning Depot Pre-Load &amp; LIFO Sequencing
+                      </span>
+                      <h3 className="text-lg font-extrabold text-[#0F172A] mt-1.5 mb-1 tabular-nums">
+                        📍 Active Loop #{String(activeDriverJob.id)}: {activeDriverJob.pickup_address}
+                      </h3>
+                      <div className="flex flex-wrap items-center gap-2 tabular-nums">
+                        <span className="text-xs font-extrabold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                          Status: {activeDriverJob.status} • Net Crew Pool: £
+                          {Number(activeDriverJob.net_pool ?? 385).toFixed(2)}
+                        </span>
+                        {activeDriverJob.requires_tail_lift && (
+                          <span className="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300">
+                            ⚠️ Tail-Lift Van Required
+                          </span>
+                        )}
+                        {(activeDriverJob.requires_assembly ||
+                          activeDriverJob.loop_profile === 'assembly') && (
+                          <span className="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-blue-100 text-blue-900 border border-blue-300">
+                            🔧 Tools &amp; Assembly Required
+                          </span>
+                        )}
                       </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* TASK 2: INTERACTIVE ROUTE VIEWPORT IN CREW PORTAL (WIRED TO SEQUENCED STOPS) */}
-              <MKRouteVisualizer
-                routeId={activeDriverJob.id}
-                pickupAddress={activeDriverJob.pickup_address}
-                drops={sequencedStops.map((s) => s.address)}
-                completedIndices={sequencedStops
-                  .map((s, seqIdx) =>
-                    completedDropIndices.includes(s.originalIndex) ? seqIdx : -1
-                  )
-                  .filter((idx) => idx !== -1)}
-                status={activeDriverJob.status}
-              />
-
-              {/* TASK 4: SIDE-BY-SIDE AI CONDITION GATE (STEP A PRE-LOAD + LIFO BAY SHEET vs STEP B DOORSTEP POD) */}
-              <div className="bg-emerald-50/70 border border-emerald-300 rounded-2xl p-5 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-200 pb-3">
-                  <div>
-                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-950 block">
-                      🛡️ Side-by-Side AI Condition Gate (12.5% Ben Damage-Shield)
-                    </span>
-                    <p className="text-xs text-emerald-900 mt-0.5">
-                      🛡️ Ben Damage-Shield Certificate: Zero Transit Damage Verified (Pre-Load Matched to Room-of-Choice POD)
-                    </p>
-                  </div>
-                  <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-emerald-600 text-white self-start sm:self-center">
-                    {preLoadInspected ? '✓ Pre-Load & LIFO Locked' : 'Action Required'}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* STEP A: DEPOT PRE-LOAD + REVERSE-LOAD (LIFO) BAY SHEET */}
-                  <div className="bg-[#FFFFFF] border border-emerald-200 rounded-xl p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-extrabold uppercase text-[#0F172A]">
-                        Step A • Depot Pre-Load & Reverse-Load (LIFO) Sheet
-                      </span>
-                      <span className="text-[11px] font-extrabold text-emerald-700">
-                        {preLoadInspected ? '✓ Locked' : 'Pending Load'}
-                      </span>
                     </div>
 
-                    {/* AUTOMATIC REVERSE-LOAD (LIFO) BAY CHECKLIST */}
-                    <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-3 space-y-2 max-h-48 overflow-y-auto">
-                      <div className="flex items-center justify-between text-[10px] font-extrabold uppercase text-slate-600">
-                        <span>LIFO Van Loading Order (Zone A → Zone D)</span>
-                        <span>{lifoLoadSheet.length} Drops</span>
-                      </div>
-                      {lifoLoadSheet.map((item) => (
-                        <div
-                          key={item.stopId}
-                          className="p-2 rounded-lg bg-white border border-slate-200 text-[11px] flex flex-col gap-0.5"
-                        >
-                          <div className="flex items-center justify-between font-extrabold text-[#0F172A]">
-                            <span>
-                              Load #{item.lifoLoadSequence} → Drop #{item.deliverySequence} (
-                              {item.postcode})
+                    {onOpenConsumerTracker && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenConsumerTracker(String(activeDriverJob.id))}
+                        className="min-h-[48px] text-xs font-extrabold px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white self-start sm:self-center"
+                      >
+                        📍 View Customer Tracker
+                      </button>
+                    )}
+                  </div>
+
+                  {/* DRIVER-FIRST ROUTING ENGINE (3-MODE SEQUENCING + HOME POSTCODE + 1-TAP INVERT) */}
+                  <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl p-4 space-y-3.5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#0F172A] text-white">
+                            🧭 Driver-First Routing Engine
+                          </span>
+                          {syncingRoute && (
+                            <span className="text-[10px] font-bold text-emerald-700">
+                              ↻ Syncing LIFO Plan...
                             </span>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 tabular-nums">
-                              ~{item.estimatedCubeM3}m³
+                          )}
+                          {preLoadInspected && (
+                            <span className="text-[10px] font-extrabold text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
+                              🔒 Locked by Pre-Load Gate
                             </span>
-                          </div>
-                          <div className="text-[10px] font-bold text-emerald-700">
-                            {item.vanZone}
-                          </div>
-                          <div className="text-[10px] text-slate-500 truncate">{item.address}</div>
+                          )}
                         </div>
+                        <p className="text-xs text-slate-600 mt-1">
+                          Select drop sequencing mode before loading the van. Re-ordering automatically flips the Reverse-Load (LIFO) bay sheet below.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 bg-white border border-[#E2E8F0] rounded-xl px-2.5 py-1.5">
+                          <span className="text-[10px] font-extrabold uppercase text-slate-500">
+                            Home PC:
+                          </span>
+                          <input
+                            type="text"
+                            disabled={preLoadInspected}
+                            value={driverHomePostcode}
+                            onChange={(e) => {
+                              const nextPc = e.target.value.toUpperCase()
+                              setDriverHomePostcode(nextPc)
+                              persistRoutingPlan(routingMode, routeInverted, nextPc)
+                            }}
+                            className="w-16 text-xs font-extrabold text-[#0F172A] outline-none bg-transparent uppercase tabular-nums"
+                            placeholder="MK9"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          disabled={preLoadInspected}
+                          onClick={() => {
+                            const nextInv = !routeInverted
+                            setRouteInverted(nextInv)
+                            persistRoutingPlan(routingMode, nextInv, driverHomePostcode)
+                          }}
+                          className={`min-h-[40px] px-3 py-1.5 rounded-xl text-xs font-extrabold border transition-all ${
+                            preLoadInspected
+                              ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                              : routeInverted
+                              ? 'bg-emerald-600 text-white border-emerald-600'
+                              : 'bg-white text-[#0F172A] border-[#E2E8F0] hover:border-slate-400'
+                          }`}
+                        >
+                          ⇄ 1-Tap Invert Route {routeInverted ? '(Inverted)' : ''}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {(
+                        [
+                          {
+                            mode: 'clear_bulk_first' as RoutingMode,
+                            title: 'Mode A • Clear the Bulk First',
+                            desc: 'Drops largest m³ items first to free van floor space early'
+                          },
+                          {
+                            mode: 'out_and_back' as RoutingMode,
+                            title: 'Mode B • Out-and-Back',
+                            desc: `Starts furthest out, finishes near Home (${driverHomePostcode || 'MK9'})`
+                          },
+                          {
+                            mode: 'tightest_loop' as RoutingMode,
+                            title: 'Mode C • Tightest Loop',
+                            desc: 'Nearest-neighbor MK road-network progression'
+                          }
+                        ] as const
+                      ).map((opt) => (
+                        <button
+                          key={opt.mode}
+                          type="button"
+                          disabled={preLoadInspected}
+                          onClick={() => {
+                            setRoutingMode(opt.mode)
+                            persistRoutingPlan(opt.mode, routeInverted, driverHomePostcode)
+                          }}
+                          className={`p-3 rounded-xl border text-left transition-all ${
+                            routingMode === opt.mode
+                              ? 'bg-white border-emerald-500 shadow-sm ring-1 ring-emerald-500/30'
+                              : 'bg-white/60 border-[#E2E8F0] hover:bg-white'
+                          } ${preLoadInspected ? 'opacity-65 cursor-not-allowed' : ''}`}
+                        >
+                          <div className="text-xs font-extrabold text-[#0F172A]">{opt.title}</div>
+                          <div className="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                            {opt.desc}
+                          </div>
+                        </button>
                       ))}
                     </div>
+                  </div>
 
-                    <label className="flex items-start gap-2.5 cursor-pointer text-xs font-bold text-[#0F172A]">
-                      <input
-                        type="checkbox"
-                        checked={preLoadInspected}
-                        onChange={async (e) => {
-                          const locked = e.target.checked
-                          setPreLoadInspected(locked)
-                          await supabase
-                            .from('jobs')
-                            .update({
-                              pre_load_inspected: locked,
-                              load_plan_locked_at: locked ? new Date().toISOString() : null
-                            })
-                            .eq('id', activeDriverJob.id)
-                        }}
-                        className="w-4 h-4 mt-0.5 rounded border-emerald-400 text-emerald-600"
-                      />
-                      <span>
-                        Lock Reverse-Load (LIFO) sequence: Carton corners intact & 3.5t Luton ratchet strapping verified prior to departure.
+                  {/* STEP A: DEPOT PRE-LOAD + REVERSE-LOAD (LIFO) BAY SHEET */}
+                  <div className="bg-emerald-50/70 border border-emerald-300 rounded-2xl p-5 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-200 pb-3">
+                      <div>
+                        <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-950 block">
+                          🛡️ Step A • Depot Pre-Load &amp; Reverse-Load (LIFO) Bay Sheet
+                        </span>
+                        <p className="text-xs text-emerald-900 mt-0.5">
+                          Load items from Zone A (Bulkhead) to Zone D (Tail-Lift), inspect carton corners, and tap Start Route to launch the mobile In-Cab View.
+                        </p>
+                      </div>
+                      <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-emerald-600 text-white self-start sm:self-center">
+                        {preLoadInspected ? '✓ Pre-Load & LIFO Locked' : 'Ready to Load'}
                       </span>
-                    </label>
-                    <label className="min-h-[48px] cursor-pointer bg-[#F8FAFC] hover:bg-slate-100 border border-[#E2E8F0] rounded-xl px-3 py-2 flex items-center justify-between text-xs font-extrabold text-[#0F172A]">
-                      <span className="truncate">📷 {preLoadPhotoName}</span>
-                      <span className="text-emerald-700 shrink-0 ml-2">Update Photo</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files[0]) {
-                            setPreLoadPhotoName(e.target.files[0].name)
-                            setPreLoadInspected(true)
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-
-                  {/* STEP B: DOORSTEP POD */}
-                  <div className="bg-[#FFFFFF] border border-emerald-200 rounded-xl p-4 space-y-3 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-extrabold uppercase text-[#0F172A]">
-                          Step B • Doorstep Room-of-Choice POD
-                        </span>
-                        <span className="text-[11px] font-extrabold text-blue-700">
-                          48-Hr Escrow Key
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">
-                        Upload final Room-of-Choice / Assembly photo below to match against Step A and issue the Damage-Shield Certificate.
-                      </p>
                     </div>
-                    <label className="min-h-[48px] cursor-pointer bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-4 rounded-xl text-center text-xs font-extrabold flex items-center justify-center transition-all shadow-sm">
-                      {podUploading
-                        ? 'Uploading Photo & Signature to Vault...'
-                        : '📷 Capture Step B Room-of-Choice POD Photo'}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        className="hidden"
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files[0]) {
-                            uploadPoD(String(activeDriverJob.id), e.target.files[0])
-                          }
-                        }}
-                      />
-                    </label>
-                  </div>
-                </div>
-              </div>
 
-              <div className="space-y-2.5">
-                <div className="text-xs font-extrabold uppercase tracking-wider text-slate-600 tabular-nums">
-                  Sequenced Route Manifest Stops ({completedDropIndices.length} /{' '}
-                  {sequencedStops.length} Completed)
-                </div>
-                {sequencedStops.map((stop) => {
-                  const isDone = completedDropIndices.includes(stop.originalIndex)
-                  const encodedAddr = encodeURIComponent(stop.address)
-                  return (
-                    <div
-                      key={stop.stopId}
-                      className={`text-sm p-4 rounded-xl border flex flex-col gap-3 transition-all ${
-                        isDone
-                          ? 'bg-emerald-50/60 border-emerald-200 text-slate-500 line-through'
-                          : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#0F172A]'
-                      }`}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-start font-bold">
-                          <span
-                            className={`w-7 h-7 rounded-full text-xs flex items-center justify-center mr-3 font-extrabold shrink-0 tabular-nums mt-0.5 ${
-                              isDone
-                                ? 'bg-emerald-600 text-white'
-                                : 'bg-slate-200 text-[#0F172A]'
-                            }`}
+                    <div className="bg-[#FFFFFF] border border-emerald-200 rounded-xl p-4 space-y-3">
+                      <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-3 space-y-2 max-h-56 overflow-y-auto">
+                        <div className="flex items-center justify-between text-[10px] font-extrabold uppercase text-slate-600">
+                          <span>LIFO Van Loading Order (Zone A → Zone D)</span>
+                          <span>{lifoLoadSheet.length} Drops</span>
+                        </div>
+                        {lifoLoadSheet.map((item) => (
+                          <div
+                            key={item.stopId}
+                            className="p-2.5 rounded-lg bg-white border border-slate-200 text-xs flex flex-col gap-0.5"
                           >
-                            {isDone ? '✓' : stop.deliverySequence}
-                          </span>
-                          <div>
-                            <span className="block">{stop.address}</span>
-                            <span className="text-[11px] font-bold text-slate-500 block mt-0.5">
-                              {stop.vanZone} • ~{stop.estimatedCubeM3}m³ • {stop.distanceFromDepotKm} km from Depot
-                            </span>
+                            <div className="flex items-center justify-between font-extrabold text-[#0F172A]">
+                              <span>
+                                Load #{item.lifoLoadSequence} → Drop #{item.deliverySequence} (
+                                {item.postcode})
+                              </span>
+                              <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 tabular-nums">
+                                ~{item.estimatedCubeM3}m³
+                              </span>
+                            </div>
+                            <div className="text-[11px] font-bold text-emerald-700">
+                              {item.vanZone}
+                            </div>
+                            <div className="text-[11px] text-slate-500 truncate">{item.address}</div>
                           </div>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-2 shrink-0">
-                          <a
-                            href={`https://www.google.com/maps/dir/?api=1&destination=${encodedAddr}&travelmode=driving`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="min-h-[48px] text-xs font-extrabold px-3.5 py-2 rounded-xl bg-[#FFFFFF] hover:bg-slate-100 text-[#0F172A] border border-[#E2E8F0] flex items-center transition-all"
-                          >
-                            🗺 Google Maps
-                          </a>
-                          <a
-                            href={`https://waze.com/ul?q=${encodedAddr}&navigate=yes`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="min-h-[48px] text-xs font-extrabold px-3.5 py-2 rounded-xl bg-[#FFFFFF] hover:bg-slate-100 text-[#0F172A] border border-[#E2E8F0] flex items-center transition-all"
-                          >
-                            🚗 Waze
-                          </a>
-                          <button
-                            type="button"
-                            onClick={() => toggleStopCompleted(stop.originalIndex)}
-                            className={`min-h-[48px] text-xs font-extrabold px-4 py-2 rounded-xl transition-all ${
-                              isDone
-                                ? 'bg-emerald-600 text-white'
-                                : 'bg-[#0F172A] hover:bg-slate-800 text-white'
-                            }`}
-                          >
-                            {isDone ? '✓ Delivered' : 'Mark Stop Done'}
-                          </button>
-                        </div>
+                        ))}
                       </div>
 
-                      {stop.blackbookAlerts.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 pt-1 border-t border-slate-200/70">
-                          {stop.blackbookAlerts.map((alert) => (
-                            <span
-                              key={alert.id}
-                              className="text-[11px] font-extrabold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-950 border border-amber-300"
-                            >
-                              📓 Street-Sense ({alert.postcode_key} • {alert.hazard_type.replace('_', ' ')}): {alert.hazard_note}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                      <label className="flex items-start gap-2.5 cursor-pointer text-xs font-bold text-[#0F172A]">
+                        <input
+                          type="checkbox"
+                          checked={preLoadInspected}
+                          onChange={async (e) => {
+                            const locked = e.target.checked
+                            setPreLoadInspected(locked)
+                            await supabase
+                              .from('jobs')
+                              .update({
+                                pre_load_inspected: locked,
+                                load_plan_locked_at: locked ? new Date().toISOString() : null
+                              })
+                              .eq('id', activeDriverJob.id)
+                          }}
+                          className="w-4 h-4 mt-0.5 rounded border-emerald-400 text-emerald-600"
+                        />
+                        <span>
+                          Lock Reverse-Load (LIFO) sequence: Carton corners intact &amp; 3.5t Luton ratchet strapping verified prior to departure.
+                        </span>
+                      </label>
+
+                      <label className="min-h-[48px] cursor-pointer bg-[#F8FAFC] hover:bg-slate-100 border border-[#E2E8F0] rounded-xl px-3 py-2 flex items-center justify-between text-xs font-extrabold text-[#0F172A]">
+                        <span className="truncate">📷 {preLoadPhotoName}</span>
+                        <span className="text-emerald-700 shrink-0 ml-2">Update Pre-Load Photo</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              setPreLoadPhotoName(e.target.files[0].name)
+                              setPreLoadInspected(true)
+                            }
+                          }}
+                        />
+                      </label>
                     </div>
-                  )
-                })}
 
-                {/* STREET-SENSE CREW BLACK-BOOK QUICK LOGGER */}
-                <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-3.5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                  <select
-                    value={blackbookDraftType}
-                    onChange={(e) => setBlackbookDraftType(e.target.value)}
-                    className="min-h-[42px] bg-white border border-[#E2E8F0] rounded-lg px-2.5 text-xs font-extrabold text-[#0F172A] outline-none"
-                  >
-                    <option value="tight_turning">📓 Tight Turning / Cul-de-Sac</option>
-                    <option value="school_run">🏫 School Run Shield (08:15–09:15)</option>
-                    <option value="commercial_shutter">🏭 Commercial Shutter Cutoff</option>
-                    <option value="loading_bay_code">🔐 Loading Bay / Gate Code</option>
-                    <option value="low_bridge">⚠️ Low Bridge / Height Hazard</option>
-                    <option value="stairs_hazard">🪜 Narrow Stairwell / Access Note</option>
-                  </select>
-                  <input
-                    type="text"
-                    value={blackbookDraftNote}
-                    onChange={(e) => setBlackbookDraftNote(e.target.value)}
-                    placeholder={`Add Street-Sense hazard note for ${
-                      sequencedStops[0]?.postcode || 'MK9'
-                    }...`}
-                    className="min-h-[42px] flex-1 bg-white border border-[#E2E8F0] rounded-lg px-3 text-xs text-[#0F172A] outline-none"
-                  />
-                  <button
-                    type="button"
-                    disabled={!blackbookDraftNote.trim()}
-                    onClick={async () => {
-                      const targetPc = sequencedStops[0]?.postcode || 'MK9'
-                      await addBlackbookHazard(
-                        targetPc,
-                        blackbookDraftType,
-                        blackbookDraftNote
-                      )
-                      setBlackbookDraftNote('')
-                    }}
-                    className="min-h-[42px] px-3.5 py-2 rounded-lg bg-[#0F172A] hover:bg-slate-800 disabled:bg-slate-300 text-white text-xs font-extrabold shrink-0"
-                  >
-                    + Save to Black-Book
-                  </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setPreLoadInspected(true)
+                        setInCabRouteStarted(true)
+                        await supabase
+                          .from('jobs')
+                          .update({
+                            pre_load_inspected: true,
+                            load_plan_locked_at: new Date().toISOString(),
+                            status: 'In Progress'
+                          })
+                          .eq('id', activeDriverJob.id)
+                      }}
+                      className="min-h-[56px] w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl py-3.5 px-5 text-base tracking-wide uppercase shadow-lg shadow-emerald-600/25 transition-all"
+                    >
+                      🚀 Lock LIFO Load &amp; Start Route (In-Cab HUD) →
+                    </button>
+                  </div>
                 </div>
-              </div>
-
-              <SignaturePad onSaveSvg={setSignatureSvg} savedSvg={signatureSvg} />
-
-              {podMessage && (
-                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-300 text-xs font-extrabold text-emerald-950">
-                  {podMessage}
-                </div>
-              )}
-
-              <div className="flex items-center justify-between pt-2">
-                <button
-                  type="button"
-                  onClick={() => setDisputeJob(activeDriverJob)}
-                  className="min-h-[48px] text-xs font-extrabold text-red-600 hover:underline"
-                >
-                  ⚠ Log Doorstep Exception / Pre-Load Depot Damage
-                </button>
-              </div>
-            </div>
+              )
+            })()
           ) : (
             <div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 border-b border-[#E2E8F0] pb-2">
