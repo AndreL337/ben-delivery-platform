@@ -860,19 +860,41 @@ export default function App() {
         ) : activeNav === 'agents' ? (
           /* TAB 5: AGENT COMMAND CENTER (DARK GLASSMORPHISM FLIGHT DECK) */
           <AgentCommandCenter />
+        ) : activeNav === 'retailer' ? (
+          /* TAB 2: RETAILER DESKTOP PORTAL (LINEAR / STRIPE STANDARD) */
+          <div className="w-full">
+            <BookJobForm
+              retailerId={effectiveUserId}
+              retailerName={
+                session?.user?.user_metadata?.full_name ||
+                session?.user?.email ||
+                'MK Showroom Manager'
+              }
+              mode="retailer"
+              onSignOut={async () => {
+                await supabase.auth.signOut()
+                setSession(null)
+                setRoleMode('retailer')
+                setShowLogin(false)
+              }}
+              onRequireAuth={() => setShowLogin(true)}
+              onOpenConsumerTracker={(jobId) => {
+                setTrackedJobId(jobId)
+                setActiveNav('tracking')
+              }}
+            />
+          </div>
         ) : (
-          /* TAB 2 & TAB 3: RETAILER PORTAL OR CREW PORTAL (HIGH-CONTRAST DAYLIGHT UI) */
+          /* TAB 3: CREW PORTAL (HIGH-CONTRAST DAYLIGHT & FULL-SCREEN IN-CAB HUD) */
           <div className="max-w-4xl mx-auto w-full">
             <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-6 md:p-8 shadow-sm">
               <div className="border-b border-[#E2E8F0] pb-4 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <div>
                   <h2 className="text-2xl font-extrabold text-[#0F172A]">
-                    {activeNav === 'retailer' ? '🏢 Retailer Dispatch Portal' : '👷 2-Man Crew Portal'}
+                    👷 2-Man Crew Portal
                   </h2>
                   <p className="text-slate-600 text-sm mt-1">
-                    {activeNav === 'retailer'
-                      ? 'Zero-typing AI manifest import, MK Grid shift capacity guardrail meter, and "Pay on Success" Pilot protection.'
-                      : 'High-contrast daylight crew workflow, Side-by-Side AI Damage Shield, 1-tap Google Maps SatNav, and e-Signature PoD.'}
+                    High-contrast daylight crew workflow, Side-by-Side AI Damage Shield, 1-tap Google Maps SatNav, and e-Signature PoD.
                   </p>
                 </div>
                 <span className="text-[11px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 self-start sm:self-center">
@@ -882,7 +904,7 @@ export default function App() {
 
               <BookJobForm
                 retailerId={effectiveUserId}
-                mode={activeNav === 'driver' ? 'driver' : 'retailer'}
+                mode="driver"
                 onRequireAuth={() => setShowLogin(true)}
                 onOpenConsumerTracker={(jobId) => {
                   setTrackedJobId(jobId)
