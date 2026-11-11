@@ -1,6 +1,7 @@
 export type VehicleSetup = 'independent' | 'clientVehicle'
 export type LoopProfile = 'roc' | 'assembly' | 'overflow'
 export type TopNavTab = 'waitlist' | 'retailer' | 'driver' | 'tracking' | 'agents'
+export type AppRoute = 'landing' | 'driver-waitlist' | 'portal' | 'cab' | 'track' | 'command'
 export type ComplianceDocType = 'goods_in_transit' | 'public_liability' | 'hire_and_reward'
 export type ComplianceStatus = 'Verified' | 'Pending Review' | 'Action Required'
 

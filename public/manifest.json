@@ -1,0 +1,25 @@
+{
+  "name": "Ben Crew In-Cab",
+  "short_name": "Ben Crew",
+  "description": "Ben Logistics 2-Man Bulky Crew In-Cab HUD — Gate A6 Compliance, LIFO Bay Sheet, 3-Mode Routing & AI Damage-Shield PoD.",
+  "start_url": "/cab",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#064e3b",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -154,7 +154,7 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
             </p>
           </div>
 
-          {jobs.length > 1 && (
+          {!selectedJobId && jobs.length > 1 && (
             <select
               value={String(activeJob.id)}
               onChange={(e) => {
