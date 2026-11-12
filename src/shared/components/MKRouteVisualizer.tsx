@@ -129,11 +129,11 @@ export const MKRouteVisualizer: React.FC<MKRouteVisualizerProps> = ({
       {!fullBleed && (
         <div className="px-4 py-3 bg-slate-900/95 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#00F5D4] shadow-[0_0_10px_#00F5D4] animate-pulse" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#F6EB61] shadow-[0_0_10px_#F6EB61] animate-pulse" />
             <span className="text-[11px] font-extrabold uppercase tracking-widest text-slate-200">
-              MK Grid Spatial Telemetry {routeId ? `• Loop #${routeId}` : ''}
+              Hub 01 (M1 Corridor) Spatial Telemetry {routeId ? `• Loop #${routeId}` : ''}
             </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 tabular-nums">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#FEFCE8] text-[#713F12] border border-[#F6EB61]/60 tabular-nums">
               {effectiveDrops.length} Stop{effectiveDrops.length === 1 ? '' : 's'} • {status}
             </span>
           </div>
@@ -143,7 +143,7 @@ export const MKRouteVisualizer: React.FC<MKRouteVisualizerProps> = ({
               <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" /> Depot Origin
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-[#00F5D4] inline-block" /> Active Stop
+              <span className="w-2 h-2 rounded-full bg-[#F6EB61] inline-block" /> Active Stop
             </span>
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" /> Completed
@@ -163,13 +163,13 @@ export const MKRouteVisualizer: React.FC<MKRouteVisualizerProps> = ({
         >
           <defs>
             <radialGradient id="mkRadarGlow" cx="50%" cy="48%" r="50%">
-              <stop offset="0%" stopColor="#00F5D4" stopOpacity="0.14" />
-              <stop offset="65%" stopColor="#10B981" stopOpacity="0.05" />
+              <stop offset="0%" stopColor="#004225" stopOpacity="0.28" />
+              <stop offset="65%" stopColor="#005A34" stopOpacity="0.08" />
               <stop offset="100%" stopColor="#090D16" stopOpacity="0" />
             </radialGradient>
             <linearGradient id="routeSplineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#F59E0B" />
-              <stop offset="45%" stopColor="#00F5D4" />
+              <stop offset="0%" stopColor="#F6EB61" />
+              <stop offset="55%" stopColor="#F6EB61" />
               <stop offset="100%" stopColor="#10B981" />
             </linearGradient>
           </defs>
@@ -272,7 +272,7 @@ export const MKRouteVisualizer: React.FC<MKRouteVisualizerProps> = ({
           <polyline
             points={polylinePoints}
             fill="none"
-            stroke="rgba(0, 245, 212, 0.2)"
+            stroke="rgba(246, 235, 97, 0.22)"
             strokeWidth="7"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -327,7 +327,7 @@ export const MKRouteVisualizer: React.FC<MKRouteVisualizerProps> = ({
           {dropPts.map((pt, idx) => {
             const isDone = completedSet.has(idx) || status === 'Completed' || status === 'delivered'
             const isSelected = selectedStopIndex === idx
-            const pinColor = isDone ? '#10B981' : isSelected ? '#00F5D4' : '#38BDF8'
+            const pinColor = isDone ? '#10B981' : isSelected ? '#F6EB61' : '#38BDF8'
             return (
               <g
                 key={idx}
@@ -336,7 +336,7 @@ export const MKRouteVisualizer: React.FC<MKRouteVisualizerProps> = ({
                 style={{ cursor: onSelectStop ? 'pointer' : 'default' }}
               >
                 {isSelected && (
-                  <circle r="16" fill="rgba(0, 245, 212, 0.22)">
+                  <circle r="16" fill="rgba(246, 235, 97, 0.25)">
                     <animate
                       attributeName="r"
                       values="12;19;12"
@@ -403,7 +403,7 @@ export const MKRouteVisualizer: React.FC<MKRouteVisualizerProps> = ({
             href={googleMapsUrl}
             target="_blank"
             rel="noreferrer"
-            className="min-h-[48px] px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-md transition-all shrink-0"
+            className="min-h-[48px] px-4 py-2.5 rounded-xl bg-[#004225] hover:bg-[#005A34] text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-md transition-all shrink-0"
           >
             <span>🗺 Launch Turn-by-Turn in Google Maps</span>
             <span>↗</span>

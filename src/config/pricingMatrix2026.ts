@@ -4,31 +4,31 @@ import type { VehicleSetup, LoopProfile, PricingTier, AgentEventItem } from '../
 export const PRICING_MATRIX: Record<VehicleSetup, Record<LoopProfile, PricingTier>> = {
   independent: {
     roc: {
-      label: 'Independent 3.5t Luton (2-Man) — Standard ROC',
+      label: 'Mercedes Sprinter LWB / 3.5t (2-Man) — Standard ROC',
       grossFee: 440,
       platformFee: 55,
       netPool: 385,
       targetVolume: '12–16 Drops (≤9 hrs)',
       maxDrops: 16,
-      shiftCap: '≤9 hrs • ≤35 mi MK9'
+      shiftCap: '≤9 hrs • Hub 01 (M1 Corridor)'
     },
     assembly: {
-      label: 'Independent 3.5t Luton (2-Man) — Delivery & Assembly',
+      label: 'Mercedes Sprinter LWB / 3.5t (2-Man) — Delivery & Assembly',
       grossFee: 520,
       platformFee: 65,
       netPool: 455,
       targetVolume: '5–8 Drops (≤9 hrs)',
       maxDrops: 8,
-      shiftCap: '≤9 hrs • ≤35 mi MK9'
+      shiftCap: '≤9 hrs • Hub 01 (M1 Corridor)'
     },
     overflow: {
-      label: 'Half-Day / Overflow Pilot Loop (1–4 Drops)',
+      label: 'Mercedes Sprinter LWB Multi-Drop / Overflow Loop (1–4 Drops)',
       grossFee: 145,
       platformFee: 18.13,
       netPool: 126.87,
       targetVolume: '1–4 Drops (≤3.5 hrs)',
       maxDrops: 4,
-      shiftCap: '≤3.5 hrs • ≤20 mi MK9'
+      shiftCap: '≤3.5 hrs • Hub 01 (M1 Corridor)'
     }
   },
   clientVehicle: {
@@ -39,7 +39,7 @@ export const PRICING_MATRIX: Record<VehicleSetup, Record<LoopProfile, PricingTie
       netPool: 306.25,
       targetVolume: '12–16 Drops (≤9 hrs)',
       maxDrops: 16,
-      shiftCap: '≤9 hrs • ≤35 mi MK9'
+      shiftCap: '≤9 hrs • Hub 01 (M1 Corridor)'
     },
     assembly: {
       label: 'Client Vehicle (2-Man Labour Pod) — Delivery & Assembly',
@@ -48,7 +48,7 @@ export const PRICING_MATRIX: Record<VehicleSetup, Record<LoopProfile, PricingTie
       netPool: 358.75,
       targetVolume: '5–8 Drops (≤9 hrs)',
       maxDrops: 8,
-      shiftCap: '≤9 hrs • ≤35 mi MK9'
+      shiftCap: '≤9 hrs • Hub 01 (M1 Corridor)'
     },
     overflow: {
       label: 'Half-Day / Overflow Pilot Loop (1–4 Drops)',
@@ -57,7 +57,7 @@ export const PRICING_MATRIX: Record<VehicleSetup, Record<LoopProfile, PricingTie
       netPool: 126.87,
       targetVolume: '1–4 Drops (≤3.5 hrs)',
       maxDrops: 4,
-      shiftCap: '≤3.5 hrs • ≤20 mi MK9'
+      shiftCap: '≤3.5 hrs • Hub 01 (M1 Corridor)'
     }
   }
 }

@@ -377,11 +377,11 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
               👷
             </div>
             <div>
-              <div className="text-xs font-extrabold text-[#0F172A]">
-                MK Verified 2-Man Bulky Crew (3.5t Luton Tail-Lift)
+              <div className="text-xs font-extrabold text-[#0A0F0D]">
+                Verified 2-Man Crew (Mercedes Sprinter LWB &amp; 3.5t Tail-Lift Specialist Network)
               </div>
               <div className="text-[11px] text-slate-600">
-                £50k Goods in Transit • £1m Public Liability (Driver & Porter Insured)
+                £50k Goods in Transit • £1m Public Liability (Driver &amp; Porter Insured) • Hub 01 (M1 Corridor)
               </div>
             </div>
           </div>

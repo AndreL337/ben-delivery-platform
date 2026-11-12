@@ -173,6 +173,9 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
       <div className="relative z-20 p-3.5 sm:p-4 flex flex-col gap-2">
         <div className="bg-slate-950/90 backdrop-blur-md border border-white/15 rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-2 shadow-xl">
           <div className="flex items-center gap-2 flex-wrap">
+            <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-[#004225] border border-white/15 ben-wordmark text-base font-extrabold tracking-[-0.04em] text-white">
+              BEN<span className="text-[#F6EB61]">.</span>
+            </span>
             {onBackToPreLoad && (
               <button
                 type="button"
@@ -182,11 +185,11 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
                 ← LIFO Sheet
               </button>
             )}
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-extrabold tracking-wider uppercase tabular-nums">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FEFCE8] border border-[#F6EB61] text-[#713F12] text-xs font-extrabold tracking-wider uppercase tabular-nums">
+              <span className="w-2 h-2 rounded-full bg-[#713F12] animate-pulse" />
               STOP {currentStopNumber} OF {totalStops}
             </span>
-            <span className="px-2.5 py-1 rounded-full bg-[#00F5D4]/15 border border-[#00F5D4]/40 text-[#00F5D4] text-xs font-extrabold tabular-nums">
+            <span className="px-2.5 py-1 rounded-full bg-[#004225] border border-emerald-400/40 text-[#F6EB61] text-xs font-extrabold tabular-nums">
               📦 {shortZoneLabel}
             </span>
           </div>
@@ -364,10 +367,10 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
                   href={googleMapsUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="min-h-[56px] flex-1 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-2xl px-5 py-3.5 flex items-center justify-center gap-2.5 text-base font-extrabold tracking-wide uppercase shadow-lg shadow-emerald-600/25 transition-all"
+                  className="min-h-[56px] flex-1 bg-[#004225] hover:bg-[#005A34] active:bg-[#004225] text-white rounded-2xl px-5 py-3.5 flex items-center justify-center gap-2.5 text-base font-extrabold tracking-wide uppercase shadow-lg shadow-[#004225]/25 transition-all"
                 >
                   <span>🗺 NAVIGATE IN SATNAV</span>
-                  <span>↗</span>
+                  <span className="text-[#F6EB61]">↗</span>
                 </a>
                 <a
                   href={wazeUrl}
@@ -382,7 +385,7 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
               <button
                 type="button"
                 onClick={() => setStage('DOORSTEP')}
-                className="min-h-[56px] w-full bg-[#0F172A] hover:bg-slate-800 text-white rounded-2xl px-5 py-3.5 text-base font-extrabold tracking-wide uppercase shadow-md transition-all"
+                className="min-h-[56px] w-full bg-[#0A0F0D] hover:bg-slate-800 text-white rounded-2xl px-5 py-3.5 text-base font-extrabold tracking-wide uppercase shadow-md transition-all"
               >
                 ARRIVED AT STOP →
               </button>
@@ -437,7 +440,7 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
               <button
                 type="button"
                 onClick={() => setStage('POD')}
-                className="min-h-[56px] w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl px-5 py-3.5 text-base font-extrabold tracking-wide uppercase shadow-lg shadow-emerald-600/25 transition-all"
+                className="min-h-[56px] w-full bg-[#004225] hover:bg-[#005A34] text-white rounded-2xl px-5 py-3.5 text-base font-extrabold tracking-wide uppercase shadow-lg shadow-[#004225]/25 transition-all"
               >
                 PROCEED TO POD &amp; SIGNATURE →
               </button>
@@ -487,10 +490,10 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
               {/* SMOOTH SLIDE-TO-COMPLETE BAR */}
               <div
                 ref={trackRef}
-                className="relative w-full h-[60px] bg-slate-900 rounded-2xl p-1 flex items-center overflow-hidden select-none touch-none shadow-inner border border-slate-800"
+                className="relative w-full h-[60px] bg-[#004225] rounded-2xl p-1 flex items-center overflow-hidden select-none touch-none shadow-inner border border-[#005A34]"
               >
                 <div
-                  className="absolute inset-y-0 left-0 bg-emerald-600/35 transition-none"
+                  className="absolute inset-y-0 left-0 bg-[#F6EB61]/25 transition-none"
                   style={{ width: `${sliderX + 56}px` }}
                 />
                 <div className="w-full text-center text-xs sm:text-sm font-extrabold uppercase tracking-widest text-white pointer-events-none z-10">
@@ -522,7 +525,7 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
                   }}
                   onTouchEnd={endSliderDrag}
                   style={{ transform: `translateX(${sliderX}px)` }}
-                  className={`relative z-20 w-[52px] h-[52px] rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-lg flex items-center justify-center shadow-lg cursor-grab active:cursor-grabbing touch-none ${
+                  className={`relative z-20 w-[52px] h-[52px] rounded-xl bg-[#F6EB61] hover:bg-yellow-300 text-[#0A0F0D] font-extrabold text-lg flex items-center justify-center shadow-lg cursor-grab active:cursor-grabbing touch-none ${
                     isDraggingSlider ? '' : 'transition-transform duration-200'
                   }`}
                 >

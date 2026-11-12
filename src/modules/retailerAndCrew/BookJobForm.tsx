@@ -100,7 +100,7 @@ export function BookJobForm({
     {
       docType: 'hire_and_reward',
       title: '3. Hire & Reward Motor Insurance',
-      subtitle: 'Commercial 3.5t Luton haulage / courier motor policy certificate.',
+      subtitle: 'Commercial Mercedes Sprinter LWB / 3.5t haulage & courier motor policy certificate.',
       status: 'Action Required'
     }
   ])
@@ -785,13 +785,13 @@ export function BookJobForm({
                   onClick={() => setCrewHasTailLiftLuton(!crewHasTailLiftLuton)}
                   className={`min-h-[38px] text-[11px] font-extrabold px-3 py-1 rounded-lg transition-all ${
                     crewHasTailLiftLuton
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-amber-100 text-amber-900 border border-amber-300'
+                      ? 'bg-[#004225] text-white'
+                      : 'bg-[#FEFCE8] text-[#713F12] border border-[#F6EB61]'
                   }`}
                 >
                   {crewHasTailLiftLuton
-                    ? '✓ 3.5t Luton w/ Tail-Lift'
-                    : 'Standard LWB (No Tail-Lift)'}
+                    ? '✓ Mercedes Sprinter LWB + 3.5t Tail-Lift'
+                    : 'Mercedes Sprinter LWB High-Roof'}
                 </button>
               </div>
             </div>
@@ -1278,7 +1278,7 @@ export function BookJobForm({
           )}
           <div className="mt-8 pt-4 border-t border-[#E2E8F0] text-center">
             <p className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold">
-              Ben Logistics Node • Outside IR35 Independent Contractor Status Active
+              BEN. — Mercedes Sprinter LWB &amp; 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs • Outside IR35 Active
             </p>
           </div>
         </div>

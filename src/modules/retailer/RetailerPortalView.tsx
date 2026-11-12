@@ -144,8 +144,8 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
       const drops = parseManifestDrops(job.drop_addresses)
       const tierLabel =
         job.loop_profile === 'overflow'
-          ? 'Commercial Multi-Drop (LWB Transit)'
-          : '2-Man Bulky Goods (3.5t Luton Tail-Lift)'
+          ? 'Commercial Multi-Drop (Mercedes Sprinter LWB High-Roof)'
+          : '2-Man Bulky Goods (Mercedes Sprinter LWB / 3.5t Tail-Lift)'
       const dateFormatted = job.created_at
         ? new Date(job.created_at).toISOString().split('T')[0]
         : new Date().toISOString().split('T')[0]
@@ -276,26 +276,30 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
   return (
     <div className="w-full bg-slate-50/60 text-[#0f172a] rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
       {/* 1. TOP UTILITY BAR */}
-      <div className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="bg-white border-b border-[#E2E8F0] px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
-            <span className="text-sm font-extrabold tracking-tight text-[#0f172a]">
-              BEN LOGISTICS
+          <div className="flex items-center gap-2.5">
+            <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-[#004225] ben-wordmark text-base font-extrabold tracking-[-0.04em] text-white shadow-sm">
+              BEN<span className="text-[#F6EB61]">.</span>
+            </span>
+            <span className="ben-wordmark text-lg font-extrabold tracking-[-0.04em] text-[#004225]">
+              BEN<span className="text-[#F6EB61]">.</span>
             </span>
             <span className="text-slate-300 font-light">|</span>
-            <span className="text-xs font-semibold text-slate-600">Showroom Terminal</span>
+            <span className="text-xs font-semibold text-slate-600">
+              Showroom &amp; Commercial Dispatch OS • Hub 01 (M1 Corridor) &amp; National UK
+            </span>
           </div>
 
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700">
             <span>🏢</span>
             <span>{retailerName}</span>
             {retailerId ? (
-              <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+              <span className="text-[10px] font-mono text-[#004225] bg-[#F0F7F4] px-1.5 py-0.5 rounded border border-[#004225]/20">
                 Verified
               </span>
             ) : (
-              <span className="text-[10px] font-mono text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+              <span className="text-[10px] font-mono text-[#713F12] bg-[#FEFCE8] px-1.5 py-0.5 rounded border border-[#F6EB61]">
                 Guest Preview
               </span>
             )}
@@ -309,7 +313,7 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
               setDrawerError(null)
               setIsDrawerOpen(true)
             }}
-            className="min-h-[40px] px-4 py-2 rounded-lg bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+            className="min-h-[40px] px-4 py-2 rounded-lg bg-[#004225] hover:bg-[#005A34] text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
           >
             <span>+ Book New Run</span>
           </button>
@@ -358,10 +362,10 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
               Total Manifests Dispatched
             </span>
             <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-2xl font-extrabold text-[#0f172a] tabular-nums">
+              <span className="text-2xl font-extrabold text-[#0A0F0D] tabular-nums">
                 {kpiStats.total}
               </span>
-              <span className="text-[11px] font-medium text-slate-500">MK9 Hub</span>
+              <span className="text-[11px] font-medium text-slate-500">Hub 01 (M1)</span>
             </div>
           </div>
 
@@ -370,10 +374,10 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
               Active on Road
             </span>
             <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-2xl font-extrabold text-blue-700 tabular-nums">
+              <span className="text-2xl font-extrabold text-[#004225] tabular-nums">
                 {kpiStats.activeOnRoad}
               </span>
-              <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+              <span className="text-[11px] font-semibold text-[#713F12] bg-[#FEFCE8] px-2 py-0.5 rounded border border-[#F6EB61]">
                 In Transit
               </span>
             </div>
@@ -560,19 +564,19 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           {isCommercialOverflow ? (
                             <span className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-semibold">
-                              LWB Transit Multi-Drop
+                              Mercedes Sprinter LWB Multi-Drop
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-[#0f172a] text-[11px] font-semibold">
-                              2-Man 3.5t Luton {job.requires_assembly ? '+ Assembly' : 'Tail-Lift'}
+                            <span className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-[#0A0F0D] text-[11px] font-semibold">
+                              2-Man Sprinter LWB / 3.5t {job.requires_assembly ? '+ Assembly' : 'Tail-Lift'}
                             </span>
                           )}
                         </td>
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           {job.driver_id ? (
                             <div className="flex items-center gap-1.5">
-                              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                              <span className="font-semibold text-[#0f172a]">
+                              <span className="w-2 h-2 rounded-full bg-[#004225]" />
+                              <span className="font-semibold text-[#0A0F0D]">
                                 Crew #{String(job.driver_id).slice(0, 6).toUpperCase()}
                               </span>
                             </div>
@@ -582,11 +586,11 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                         </td>
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           {isCompleted ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold tabular-nums">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#F0F7F4] text-[#004225] border border-[#004225]/25 text-[11px] font-bold tabular-nums">
                               ✓ Completed ({drops.length}/{drops.length})
                             </span>
                           ) : isAssigned ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200 text-[11px] font-bold tabular-nums">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FEFCE8] text-[#713F12] border border-[#F6EB61] text-[11px] font-bold tabular-nums">
                               ● In Transit ({doneCount}/{drops.length})
                             </span>
                           ) : (
@@ -660,10 +664,10 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                 {/* Drawer Header */}
                 <div className="flex items-center justify-between pb-4 border-b border-slate-200">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block">
-                      Milton Keynes Dispatch Desk
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#004225] block">
+                      Mercedes Sprinter LWB &amp; 2-Man Specialist Network — Hub 01 &amp; National UK
                     </span>
-                    <h3 className="text-lg font-extrabold text-[#0f172a]">
+                    <h3 className="text-lg font-extrabold text-[#0A0F0D]">
                       Book New Multi-Drop Run
                     </h3>
                   </div>
@@ -693,15 +697,15 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                       onClick={() => setServiceTier('bulky_2man')}
                       className={`text-left p-4 rounded-xl border transition-all ${
                         serviceTier === 'bulky_2man'
-                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
-                          : 'bg-white text-[#0f172a] border-slate-200 hover:border-slate-300'
+                          ? 'bg-[#004225] text-white border-[#004225] shadow-sm'
+                          : 'bg-white text-[#0A0F0D] border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-extrabold">2-Man Bulky Goods</span>
                         <span
                           className={`text-xs font-bold tabular-nums ${
-                            serviceTier === 'bulky_2man' ? 'text-emerald-400' : 'text-slate-700'
+                            serviceTier === 'bulky_2man' ? 'text-[#F6EB61]' : 'text-slate-700'
                           }`}
                         >
                           £{requiresAssembly ? '520' : '440'}
@@ -709,10 +713,10 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                       </div>
                       <p
                         className={`text-[11px] mt-1 leading-snug ${
-                          serviceTier === 'bulky_2man' ? 'text-slate-300' : 'text-slate-500'
+                          serviceTier === 'bulky_2man' ? 'text-slate-200' : 'text-slate-500'
                         }`}
                       >
-                        3.5t Luton Box with Tail-Lift • Room-of-Choice 2-Man Crew (Up to 10 drops)
+                        Mercedes Sprinter LWB High-Roof &amp; 3.5t Tail-Lift • Room-of-Choice 2-Man Crew
                       </p>
                     </button>
 
@@ -724,8 +728,8 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                       }}
                       className={`text-left p-4 rounded-xl border transition-all ${
                         serviceTier === 'commercial_multidrop'
-                          ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
-                          : 'bg-white text-[#0f172a] border-slate-200 hover:border-slate-300'
+                          ? 'bg-[#004225] text-white border-[#004225] shadow-sm'
+                          : 'bg-white text-[#0A0F0D] border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -733,21 +737,21 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                         <span
                           className={`text-xs font-bold tabular-nums ${
                             serviceTier === 'commercial_multidrop'
-                              ? 'text-emerald-400'
+                              ? 'text-[#F6EB61]'
                               : 'text-slate-700'
                           }`}
                         >
-                          £260
+                          £145
                         </span>
                       </div>
                       <p
                         className={`text-[11px] mt-1 leading-snug ${
                           serviceTier === 'commercial_multidrop'
-                            ? 'text-slate-300'
+                            ? 'text-slate-200'
                             : 'text-slate-500'
                         }`}
                       >
-                        LWB Transit Half-Day Overflow Loop • Threshold / Light Bulky (Up to 5 drops)
+                        Mercedes Sprinter LWB High-Roof • Half-Day Commercial Multi-Drop (Up to 4 drops)
                       </p>
                     </button>
                   </div>
@@ -895,7 +899,7 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="min-h-[42px] px-5 py-2 rounded-lg bg-[#0f172a] hover:bg-slate-800 disabled:bg-slate-400 text-white text-xs font-bold shadow-sm transition-all"
+                  className="min-h-[42px] px-5 py-2 rounded-lg bg-[#004225] hover:bg-[#005A34] disabled:bg-slate-400 text-white text-xs font-bold shadow-sm transition-all tabular-nums"
                 >
                   {submitting
                     ? 'Dispatching Manifest...'

@@ -16,14 +16,42 @@
   background-color: #ffffff !important;
 }
 
-body {
-  font-family: 'Inter', sans-serif;
-  background-color: #FAFBF9 !important; /* Main backdrop with an ultra-light mint/fresh cast */
-  color: #0f172a;
+/* ================================= BEN LOGISTICS BRANDING TOKENS =================================
+   Mobbin 90/8/2 Colour Ratio — British Engineering Heritage meets Silicon Valley Mobility OS
+   ================================================================================================= */
+:root {
+  --ben-canvas: #F8FAFC;        /* 90% Crisp Neutral Canvas */
+  --ben-surface: #FFFFFF;       /* Pure White Cards */
+  --ben-ink: #0A0F0D;           /* Obsidian Tarmac Typography */
+  --ben-primary: #004225;       /* 8% British Racing Green Anchor */
+  --ben-primary-hover: #005A34; /* British Racing Green Hover State */
+  --ben-accent: #F6EB61;        /* 2% Primrose Yellow Signal Accent */
+  --ben-accent-dark: #CA8A04;   /* Deep Signal Gold Contrast Boundary */
+  --ben-bg: #F0F7F4;            /* Subtle Heritage Green Card Container Tint */
+  --ben-border: #E2E8F0;        /* Crisp Structural Border Framework */
 }
 
-h1, h2, h3, h4 {
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--ben-canvas) !important;
+  color: var(--ben-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-display {
   font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.04em;
+}
+
+.ben-wordmark {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 a {
@@ -31,25 +59,15 @@ a {
   color: inherit;
 }
 
-/* ================================= BEN LOGISTICS BRANDING TOKENS ================================= */
-:root {
-  --ben-primary: #064e3b;      /* High-contrast Deep Forest Green Core */
-  --ben-primary-hover: #065f46;/* Vibrant emerald green overlay on hover transitions */
-  --ben-accent: #eab308;       /* High-visibility logistics warning Gold / Amber */
-  --ben-accent-dark: #d97706;  /* Deep gold contrast boundary lines */
-  --ben-bg: #f0fdf4;           /* Soft mint/green subtle card container fill background */
-  --ben-border: rgba(16, 185, 129, 0.15); /* Delicate sage/emerald border framework separators */
-}
-
 /* Force layout alignment parameters even if layout engines conflict */
 .flex { display: flex !important; }
 .justify-between { justify-content: space-between !important; }
 .items-center { align-items: center !important; }
 
-/* Updated Legacy Global Form Class Overrides if used by your template sections */
+/* Updated Global Form Class Overrides */
 .btn-primary {
   background: var(--ben-primary) !important;
-  color: white !important;
+  color: #ffffff !important;
   border: none;
   padding: 14px 32px;
   border-radius: 50px;
@@ -58,7 +76,7 @@ a {
   cursor: pointer;
   transition: background 0.2s, transform 0.2s;
   display: inline-block;
-  box-shadow: 0 2px 4px rgba(6, 78, 59, 0.1);
+  box-shadow: 0 2px 6px rgba(0, 66, 37, 0.16);
 }
 
 .btn-primary:hover {
@@ -67,7 +85,7 @@ a {
 }
 
 .btn-outline {
-  background: rgba(255, 255, 255, 0.9) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
   color: var(--ben-primary) !important;
   border: 2px solid var(--ben-border);
   padding: 14px 32px;
@@ -86,10 +104,10 @@ a {
 
 /* Premium High-Fidelity Custom Class Card & Interactive Action Component Overrides */
 .ben-card {
-  background-color: #ffffff !important;
+  background-color: var(--ben-surface) !important;
   border: 1px solid var(--ben-border) !important;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(6, 78, 59, 0.04);
+  box-shadow: 0 2px 4px rgba(0, 66, 37, 0.04);
   padding: 1.5rem;
 }
 
@@ -102,7 +120,7 @@ a {
   font-size: 13px;
   padding: 10px 20px;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(6, 78, 59, 0.08);
+  box-shadow: 0 2px 4px rgba(0, 66, 37, 0.12);
   transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
@@ -115,11 +133,11 @@ a {
   transform: translateY(0);
 }
 
-/* New High-Visibility Status Tags (E.g., for In Transit, Completed nodes) */
+/* High-Visibility Status Tags (In Transit, Telemetry Highlights — WCAG AAA Readability) */
 .ben-status-alert {
-  background-color: #fef9c3 !important; /* Light alert yellow backdrop context */
-  color: #854d0e !important;            /* Dark readable contrast amber label text */
-  border: 1px solid rgba(234, 179, 8, 0.3);
+  background-color: #FEFCE8 !important; /* Primrose Yellow soft status fill */
+  color: #713F12 !important;            /* WCAG AAA High-Contrast Bronze-Umber text */
+  border: 1px solid rgba(246, 235, 97, 0.65);
   padding: 2px 8px;
   border-radius: 4px;
   font-weight: 600;

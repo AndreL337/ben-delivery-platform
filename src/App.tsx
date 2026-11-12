@@ -86,8 +86,11 @@ export default function App() {
   const [waitlistLoading, setWaitlistLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [role, setRole] = useState('Driver')
+  const [selectedHub, setSelectedHub] = useState(
+    'Hub 01: M1 Corridor (MK • Bedford • Northampton • Luton) — Live Active Zone'
+  )
   const [capabilitySpec, setCapabilitySpec] = useState(
-    '3.5t Luton Box + Tail-Lift • 2-Man Crew'
+    'Mercedes-Benz Sprinter LWB High-Roof • 2-Man Crew'
   )
   const [make, setMake] = useState('')
   const [model, setModel] = useState('')
@@ -320,7 +323,7 @@ export default function App() {
     e.preventDefault()
     setWaitlistLoading(true)
     try {
-      const regionalTerritoryTag = `Milton Keynes (${role} • ${capabilitySpec})`
+      const regionalTerritoryTag = `${selectedHub} (${role} • ${capabilitySpec})`
 
       const calculatedVehicleType =
         make.trim() && model.trim()
@@ -351,7 +354,10 @@ export default function App() {
       setDriverPhone('')
       setEmail('')
       setRole('Driver')
-      setCapabilitySpec('3.5t Luton Box + Tail-Lift • 2-Man Crew')
+      setSelectedHub(
+        'Hub 01: M1 Corridor (MK • Bedford • Northampton • Luton) — Live Active Zone'
+      )
+      setCapabilitySpec('Mercedes-Benz Sprinter LWB High-Roof • 2-Man Crew')
       setMake('')
       setModel('')
       setYear('')
@@ -369,7 +375,7 @@ export default function App() {
       className={`min-h-screen flex flex-col font-sans transition-colors duration-300 ${
         isFlightDeckMode
           ? 'text-slate-100 selection:bg-[#00F5D4]/30'
-          : 'bg-[#F8FAFC] text-[#0F172A] selection:bg-emerald-500/30'
+          : 'bg-[#F8FAFC] text-[#0A0F0D] selection:bg-[#004225]/20'
       }`}
       style={
         isFlightDeckMode
@@ -383,7 +389,7 @@ export default function App() {
           isFlightDeckMode
             ? 'border-b text-white shadow-2xl'
             : currentRoute === 'cab'
-            ? 'bg-[#0F172A] border-b border-emerald-500/30 text-white shadow-md'
+            ? 'bg-[#004225] border-b border-white/15 text-white shadow-md'
             : 'bg-[#FFFFFF]/95 border-b border-[#E2E8F0] backdrop-blur-md shadow-sm'
         }`}
         style={
@@ -404,51 +410,44 @@ export default function App() {
             className="flex items-center space-x-3 text-left group"
           >
             <div
-              className={`w-3 h-3 rounded-full ${
+              className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${
                 isFlightDeckMode
-                  ? 'bg-[#00F5D4] shadow-[0_0_10px_#00F5D4]'
-                  : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]'
+                  ? 'bg-[#004225] border border-[#F6EB61]/50 shadow-[0_0_12px_rgba(246,235,97,0.25)]'
+                  : currentRoute === 'cab'
+                  ? 'bg-white/10 border border-white/20'
+                  : 'bg-[#004225] shadow-sm'
               }`}
-            />
+            >
+              <span className="ben-wordmark text-sm font-extrabold tracking-[-0.04em] text-white">
+                B<span className="text-[#F6EB61]">.</span>
+              </span>
+            </div>
             <div className="flex flex-col">
               <span
-                className={`font-extrabold text-lg tracking-wider leading-none ${
+                className={`ben-wordmark font-extrabold text-2xl tracking-[-0.04em] leading-none ${
                   isFlightDeckMode || currentRoute === 'cab'
                     ? 'text-white'
-                    : 'text-[#0F172A]'
+                    : 'text-[#004225]'
                 }`}
               >
-                BEN
-                <span
-                  className={
-                    isFlightDeckMode
-                      ? 'text-[#00F5D4] font-medium'
-                      : currentRoute === 'cab'
-                      ? 'text-emerald-400 font-medium'
-                      : 'text-emerald-600 font-medium'
-                  }
-                >
-                  LOGISTICS
-                </span>
+                BEN<span className="text-[#F6EB61]">.</span>
               </span>
               <span
                 className={`text-[10px] tracking-widest uppercase font-extrabold mt-1 ${
                   isFlightDeckMode || currentRoute === 'cab'
-                    ? 'text-slate-400'
+                    ? 'text-slate-300'
                     : 'text-slate-500'
                 }`}
               >
                 {currentRoute === 'command'
                   ? 'Restricted Flight Deck • Gate A0 Admin Node'
                   : currentRoute === 'cab'
-                  ? 'Ben Crew In-Cab HUD • MK9 Mobile Telemetry'
+                  ? 'Ben Crew In-Cab HUD • UK M1 Corridor & National Hubs'
                   : currentRoute === 'portal'
-                  ? 'Retailer Dispatch Workspace • Milton Keynes Hub'
+                  ? 'Retailer Dispatch Workspace • Hub 01 (M1 Corridor) & National UK'
                   : currentRoute === 'track'
                   ? 'Live Customer Delivery Telemetry • Damage-Shield Verified'
-                  : currentRoute === 'driver-waitlist'
-                  ? 'Tier-1 2-Man Crew & 3.5t Luton Recruitment Gate'
-                  : 'Milton Keynes 2-Man Bulky Delivery Network'}
+                  : 'Mercedes Sprinter LWB & 2-Man Specialist Network — UK M1 Corridor & National Hubs'}
               </span>
             </div>
           </button>
@@ -461,8 +460,8 @@ export default function App() {
                 onClick={() => navigate('/')}
                 className={`min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
                   currentRoute === 'landing'
-                    ? 'bg-[#0F172A] text-white shadow-sm'
-                    : 'text-slate-600 hover:text-[#0F172A] bg-transparent'
+                    ? 'bg-[#004225] text-white shadow-sm'
+                    : 'text-slate-600 hover:text-[#0A0F0D] bg-transparent'
                 }`}
               >
                 For Retailers
@@ -472,8 +471,8 @@ export default function App() {
                 onClick={() => navigate('/driver')}
                 className={`min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
                   currentRoute === 'driver-waitlist'
-                    ? 'bg-[#0F172A] text-white shadow-sm'
-                    : 'text-slate-600 hover:text-[#0F172A] bg-transparent'
+                    ? 'bg-[#004225] text-white shadow-sm'
+                    : 'text-slate-600 hover:text-[#0A0F0D] bg-transparent'
                 }`}
               >
                 Apply as 2-Man Crew
@@ -481,14 +480,14 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => navigate('/cab')}
-                className="hidden sm:inline-flex min-h-[40px] items-center px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-700 hover:text-[#0F172A] border border-[#E2E8F0] bg-[#F8FAFC] hover:bg-slate-100 transition-all"
+                className="hidden sm:inline-flex min-h-[40px] items-center px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-700 hover:text-[#0A0F0D] border border-[#E2E8F0] bg-[#F8FAFC] hover:bg-slate-100 transition-all"
               >
                 👷 Crew In-Cab Login
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/portal')}
-                className="min-h-[40px] px-4 py-1.5 rounded-xl text-xs font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all"
+                className="min-h-[40px] px-4 py-1.5 rounded-xl text-xs font-extrabold bg-[#004225] hover:bg-[#005A34] text-white shadow-sm transition-all"
               >
                 Retailer Portal →
               </button>
@@ -583,26 +582,26 @@ export default function App() {
       {/* MAIN ROUTE VIEWPORT */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-10 flex flex-col space-y-10">
         {/* =====================================================================
-            ROUTE 1: / (PUBLIC B2B LANDING PAGE FOR MILTON KEYNES RETAILERS)
+            ROUTE 1: / (PUBLIC B2B LANDING PAGE — NATIONAL UK LOGISTICS OS)
            ===================================================================== */}
         {currentRoute === 'landing' && (
           <>
             <div className="space-y-5 max-w-4xl">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-extrabold text-emerald-800 uppercase tracking-widest bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-full tabular-nums">
-                  2026 Milton Keynes 2-Man Bulky Network • 87.5% Crew Net Pool
+                <span className="text-xs font-extrabold text-[#004225] uppercase tracking-widest bg-[#F0F7F4] border border-[#004225]/25 px-3 py-1 rounded-full tabular-nums">
+                  Mercedes Sprinter LWB &amp; 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs
                 </span>
-                <span className="text-xs font-extrabold text-blue-900 uppercase tracking-widest bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
-                  🛡 Showroom Pilot: Pay on Success (First 3 Routes / 14 Days)
+                <span className="text-xs font-extrabold text-[#713F12] uppercase tracking-widest bg-[#FEFCE8] border border-[#F6EB61] px-3 py-1 rounded-full tabular-nums">
+                  ● Hub 01 Live Active Zone: MK • Bedford • Northampton • Luton
                 </span>
               </div>
 
-              <h1 className="text-4xl font-extrabold tracking-tight text-[#0F172A] sm:text-5xl leading-tight">
-                Enterprise 2-Man Bulky Dispatch for Milton Keynes Showrooms.
+              <h1 className="text-4xl font-extrabold tracking-tight text-[#0A0F0D] sm:text-5xl leading-tight">
+                The UK’s Direct-to-Crew Logistics Operating System.
               </h1>
 
               <p className="text-slate-600 text-lg leading-relaxed max-w-3xl">
-                Aptean-grade 3.5t Luton capability matching, Side-by-Side AI Condition Gate PoD, and vetted 2-man room-of-choice crews across MK9 and a 35-mile radius — without 3PL lock-in or fixed fleet overhead.
+                Connecting retailers and commercial shippers directly with vetted Mercedes Sprinter &amp; 2-man crews. Zero 3PL middlemen. Driver-first routing. Instant photographic Proof of Delivery.
               </p>
 
               {/* CLEAR PRIMARY & SECONDARY CTAs */}
@@ -610,24 +609,107 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => navigate('/portal')}
-                  className="min-h-[52px] bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-md shadow-emerald-600/20 text-sm"
+                  className="min-h-[52px] bg-[#004225] hover:bg-[#005A34] text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-md shadow-[#004225]/20 text-sm"
                 >
-                  🏢 Book a Showroom Pilot (/portal) →
+                  🏢 Launch Retailer Dispatch OS (/portal) →
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate('/driver')}
-                  className="min-h-[52px] bg-[#0F172A] hover:bg-slate-800 text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-sm text-sm"
+                  className="min-h-[52px] bg-[#0A0F0D] hover:bg-slate-800 text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-sm text-sm"
                 >
-                  🚛 Apply as a 2-Man Crew (/driver) →
+                  🚛 Register Mercedes Sprinter / 2-Man Crew (/driver) →
                 </button>
                 <button
                   type="button"
                   onClick={() => navigate('/track/mk-live-loop-884')}
-                  className="min-h-[52px] bg-white hover:bg-slate-50 text-[#0F172A] border border-[#E2E8F0] font-extrabold py-3.5 px-5 rounded-xl transition-all shadow-sm text-xs"
+                  className="min-h-[52px] bg-white hover:bg-slate-50 text-[#0A0F0D] border border-[#E2E8F0] font-extrabold py-3.5 px-5 rounded-xl transition-all shadow-sm text-xs"
                 >
                   📍 Inspect Sample Consumer Tracker
                 </button>
+              </div>
+            </div>
+
+            {/* NATIONAL UK HUB ARCHITECTURE STRIP */}
+            <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-5 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-[#E2E8F0]">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#004225] block">
+                    Regional Density Hub Architecture
+                  </span>
+                  <h2 className="text-base font-extrabold text-[#0A0F0D]">
+                    UK M1 Corridor (Hub 01 Live) &amp; National Regional Expansion Hubs
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/driver')}
+                  className="text-xs font-extrabold text-[#004225] hover:underline self-start sm:self-center"
+                >
+                  Register Fleet or Showroom for Your UK Hub →
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="p-3.5 rounded-xl bg-[#F0F7F4] border border-[#004225]/30 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold text-[#004225]">Hub 01 • M1 Corridor</span>
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-[#FEFCE8] text-[#713F12] border border-[#F6EB61]">
+                      ● Live Active Zone
+                    </span>
+                  </div>
+                  <p className="text-xs font-bold text-[#0A0F0D]">
+                    MK • Bedford • Northampton • Luton
+                  </p>
+                  <p className="text-[11px] text-slate-600">
+                    Instant daily multi-drop &amp; 2-man bulky dispatch active now.
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold text-[#0A0F0D]">Hub 02 • London &amp; M25</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white text-slate-700 border border-[#E2E8F0]">
+                      Onboarding Open
+                    </span>
+                  </div>
+                  <p className="text-xs font-bold text-[#0A0F0D]">
+                    Greater London • Watford • Slough
+                  </p>
+                  <p className="text-[11px] text-slate-600">
+                    ULEZ-compliant Mercedes Sprinter LWB &amp; 2-man showroom crews.
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold text-[#0A0F0D]">Hub 03 • Midlands</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white text-slate-700 border border-[#E2E8F0]">
+                      Onboarding Open
+                    </span>
+                  </div>
+                  <p className="text-xs font-bold text-[#0A0F0D]">
+                    Birmingham • Coventry • Leicester
+                  </p>
+                  <p className="text-[11px] text-slate-600">
+                    Golden Triangle warehouse-to-room-of-choice direct dispatch.
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-extrabold text-[#0A0F0D]">Hub 04 • North</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white text-slate-700 border border-[#E2E8F0]">
+                      Onboarding Open
+                    </span>
+                  </div>
+                  <p className="text-xs font-bold text-[#0A0F0D]">
+                    Manchester • Leeds • Warrington
+                  </p>
+                  <p className="text-[11px] text-slate-600">
+                    M62 corridor commercial shippers &amp; 2-man bulky specialists.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -635,10 +717,10 @@ export default function App() {
               {/* LEFT: 2026 Interactive Flat-Rate Loop Pricing Calculator */}
               <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-6 md:p-8 shadow-sm flex flex-col space-y-6">
                 <div>
-                  <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-700 block mb-1">
-                    Transparent 2026 Rate Card
+                  <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#004225] block mb-1">
+                    Transparent 2026 Rate Card • 87.5% Direct to Crew
                   </span>
-                  <h2 className="text-xl font-extrabold text-[#0F172A]">
+                  <h2 className="text-xl font-extrabold text-[#0A0F0D]">
                     Live Loop Pricing &amp; Escrow Split Calculator
                   </h2>
                 </div>
@@ -653,19 +735,19 @@ export default function App() {
                       onClick={() => setVehicleSetup('independent')}
                       className={`min-h-[48px] py-2 px-3 rounded-lg text-sm font-extrabold transition-all ${
                         vehicleSetup === 'independent'
-                          ? 'bg-[#FFFFFF] text-[#0F172A] shadow-sm border border-[#E2E8F0]'
-                          : 'text-slate-600 hover:text-[#0F172A]'
+                          ? 'bg-[#FFFFFF] text-[#0A0F0D] shadow-sm border border-[#E2E8F0]'
+                          : 'text-slate-600 hover:text-[#0A0F0D]'
                       }`}
                     >
-                      Independent 3.5t Van
+                      Mercedes Sprinter LWB / 3.5t
                     </button>
                     <button
                       type="button"
                       onClick={() => setVehicleSetup('clientVehicle')}
                       className={`min-h-[48px] py-2 px-3 rounded-lg text-sm font-extrabold transition-all ${
                         vehicleSetup === 'clientVehicle'
-                          ? 'bg-[#FFFFFF] text-[#0F172A] shadow-sm border border-[#E2E8F0]'
-                          : 'text-slate-600 hover:text-[#0F172A]'
+                          ? 'bg-[#FFFFFF] text-[#0A0F0D] shadow-sm border border-[#E2E8F0]'
+                          : 'text-slate-600 hover:text-[#0A0F0D]'
                       }`}
                     >
                       Client Vehicle (2-Man Pod)
@@ -683,8 +765,8 @@ export default function App() {
                       onClick={() => setLoopProfile('roc')}
                       className={`min-h-[48px] py-2 px-2 rounded-lg text-xs font-extrabold transition-all ${
                         loopProfile === 'roc'
-                          ? 'bg-[#FFFFFF] text-[#0F172A] shadow-sm border border-[#E2E8F0]'
-                          : 'text-slate-600 hover:text-[#0F172A]'
+                          ? 'bg-[#FFFFFF] text-[#0A0F0D] shadow-sm border border-[#E2E8F0]'
+                          : 'text-slate-600 hover:text-[#0A0F0D]'
                       }`}
                     >
                       Standard ROC
@@ -694,8 +776,8 @@ export default function App() {
                       onClick={() => setLoopProfile('assembly')}
                       className={`min-h-[48px] py-2 px-2 rounded-lg text-xs font-extrabold transition-all ${
                         loopProfile === 'assembly'
-                          ? 'bg-[#FFFFFF] text-[#0F172A] shadow-sm border border-[#E2E8F0]'
-                          : 'text-slate-600 hover:text-[#0F172A]'
+                          ? 'bg-[#FFFFFF] text-[#0A0F0D] shadow-sm border border-[#E2E8F0]'
+                          : 'text-slate-600 hover:text-[#0A0F0D]'
                       }`}
                     >
                       Delivery &amp; Assembly
@@ -705,25 +787,25 @@ export default function App() {
                       onClick={() => setLoopProfile('overflow')}
                       className={`min-h-[48px] py-2 px-2 rounded-lg text-xs font-extrabold transition-all ${
                         loopProfile === 'overflow'
-                          ? 'bg-[#FFFFFF] text-[#0F172A] shadow-sm border border-[#E2E8F0]'
-                          : 'text-slate-600 hover:text-[#0F172A]'
+                          ? 'bg-[#FFFFFF] text-[#0A0F0D] shadow-sm border border-[#E2E8F0]'
+                          : 'text-slate-600 hover:text-[#0A0F0D]'
                       }`}
                     >
-                      Overflow Mini-Loop
+                      Sprinter Multi-Drop
                     </button>
                   </div>
                 </div>
 
                 <div className="flex justify-between items-center bg-[#F8FAFC] p-4 rounded-xl border border-[#E2E8F0]">
                   <div>
-                    <span className="text-xs font-extrabold uppercase text-[#0F172A] block">
+                    <span className="text-xs font-extrabold uppercase text-[#0A0F0D] block">
                       Fair-Use Route Capacity
                     </span>
                     <span className="text-[11px] text-slate-600 tabular-nums">
                       {currentTier.shiftCap}
                     </span>
                   </div>
-                  <span className="text-sm font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-md tabular-nums">
+                  <span className="text-sm font-extrabold text-[#004225] bg-[#F0F7F4] border border-[#004225]/25 px-3 py-1 rounded-md tabular-nums">
                     {currentTier.targetVolume}
                   </span>
                 </div>
@@ -731,26 +813,26 @@ export default function App() {
                 <div className="bg-[#FFFFFF] p-5 rounded-xl border border-[#E2E8F0] shadow-sm flex flex-col gap-3 tabular-nums">
                   <div className="flex justify-between text-sm border-b border-[#E2E8F0] pb-2 text-slate-700">
                     <span className="font-bold">2026 Flat Route Booking Fee</span>
-                    <span className="font-extrabold text-[#0F172A]">
+                    <span className="font-extrabold text-[#0A0F0D]">
                       £{currentTier.grossFee.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between text-xs text-slate-600 border-b border-[#E2E8F0] pb-2">
-                    <span>Ben Marketplace Fee (12.5%)</span>
+                    <span>Ben OS Marketplace Fee (12.5%)</span>
                     <span>- £{currentTier.platformFee.toFixed(2)}</span>
                   </div>
 
-                  <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl mt-2 text-left">
+                  <div className="bg-[#F0F7F4] border border-[#004225]/25 p-4 rounded-xl mt-2 text-left">
                     <div className="flex justify-between items-center">
                       <div>
-                        <span className="text-xs font-extrabold uppercase text-emerald-900 block">
+                        <span className="text-xs font-extrabold uppercase text-[#004225] block">
                           Net Dispatched Crew Pool (87.5%)
                         </span>
                         <p className="text-slate-700 text-[10px] mt-1 leading-relaxed max-w-[220px]">
                           Paid after 48-hr PoD SLA. Includes up to 2nd-floor walk-up; 3rd floor+ no lift adds £25 (100% to crew).
                         </p>
                       </div>
-                      <span className="text-3xl font-extrabold text-emerald-700 tabular-nums">
+                      <span className="text-3xl font-extrabold text-[#004225] tabular-nums">
                         £{currentTier.netPool.toFixed(2)}
                       </span>
                     </div>
@@ -758,15 +840,15 @@ export default function App() {
                 </div>
 
                 <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 text-xs text-slate-700 space-y-1.5">
-                  <div className="font-extrabold text-[#0F172A] uppercase tracking-wider text-[11px]">
-                    🛡 MK9 Fair-Use Guardrails &amp; &ldquo;Pay on Success&rdquo; Pilot
+                  <div className="font-extrabold text-[#0A0F0D] uppercase tracking-wider text-[11px]">
+                    🛡 Hub 01 (M1 Corridor) Guardrails &amp; &ldquo;Pay on Success&rdquo; Pilot
                   </div>
                   <p>
-                    • <strong>Pay on Success Pilot:</strong> First 3 routes per showroom (14-day MK window) billed{' '}
+                    • <strong>Pay on Success Pilot:</strong> First 3 routes per showroom (14-day window) billed{' '}
                     <strong>only upon verified photo PoD</strong> (£0.00 if failed due to crew/platform fault).
                   </p>
                   <p>
-                    • <strong>Radius Cap:</strong> ≤35 miles from Central MK (MK9) | £2.20/mi out-of-zone.
+                    • <strong>Active Hub 01 Radius:</strong> ≤35 miles across MK • Bedford • Northampton • Luton | £2.20/mi out-of-zone.
                   </p>
                   <p>
                     • <strong>Shift &amp; Payload Cap:</strong> ≤9 hrs (£50/hr OT) | ≤1,200 kg total / 110 kg max single item.
@@ -778,42 +860,42 @@ export default function App() {
               <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-6 md:p-8 shadow-sm flex flex-col justify-between space-y-6">
                 <div className="space-y-5">
                   <div className="border-b border-[#E2E8F0] pb-4">
-                    <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-700 block">
-                      Built for Milton Keynes Furniture, Sofa &amp; Appliance Showrooms
+                    <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#004225] block">
+                      Mercedes Sprinter LWB &amp; 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs
                     </span>
-                    <h3 className="text-2xl font-extrabold text-[#0F172A] mt-1">
-                      Why Bulky Goods Retailers Switch to Ben
+                    <h3 className="text-2xl font-extrabold text-[#0A0F0D] mt-1">
+                      Why UK Retailers &amp; Commercial Shippers Switch to BEN.
                     </h3>
                     <p className="text-slate-600 text-sm mt-1">
-                      Replace fragmented man-and-van subcontractors and rigid 3PL contracts with a governed, zero-damage local dispatch mesh.
+                      Replace fragmented man-and-van subcontractors and rigid 3PL middlemen with a governed, direct-to-crew logistics operating system.
                     </p>
                   </div>
 
                   <div className="space-y-4">
                     <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                      <div className="text-sm font-extrabold text-[#0F172A]">
-                        1. Side-by-Side AI Condition Gate (Damage-Shield PoD)
+                      <div className="text-sm font-extrabold text-[#0A0F0D]">
+                        1. UK Mercedes-Benz Sprinter (LWB High-Roof) &amp; 3.5t Tail-Lift Fleet Standard
                       </div>
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                        Every loop requires Step A Depot Pre-Load strapping &amp; carton verification matched against Step B Room-of-Choice placement photos and canvas e-signature before 48-hour escrow release.
+                        Standardized on long-wheelbase high-roof Mercedes-Benz Sprinters for commercial multi-drop and 2-man room-of-choice loops, plus 3.5t tail-lift box vans where heavy lift is specified.
                       </p>
                     </div>
 
                     <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                      <div className="text-sm font-extrabold text-[#0F172A]">
-                        2. Strict Gate A6 Insurance &amp; Tail-Lift Enforcement
+                      <div className="text-sm font-extrabold text-[#0A0F0D]">
+                        2. Strict Gate A6 Insurance &amp; Side-by-Side AI Condition Gate PoD
                       </div>
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                        Routes requiring a 3.5t Luton Box + Tail-Lift or 2-man white-glove assembly are cryptographically locked to crews holding verified Goods in Transit (£20k–£50k+), Public Liability (£1m+ covering Driver &amp; Porter), and Hire &amp; Reward cover.
+                        Every route is cryptographically locked to crews holding verified Goods in Transit (£20k–£50k+), Public Liability (£1m+ covering Driver &amp; Porter), and Hire &amp; Reward cover, with pre-load strapping matched against room-of-choice photo PoD.
                       </p>
                     </div>
 
                     <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                      <div className="text-sm font-extrabold text-[#0F172A]">
+                      <div className="text-sm font-extrabold text-[#0A0F0D]">
                         3. Instant Manifest Paste &amp; Tokenized Customer Tracking
                       </div>
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                        Paste raw showroom dispatch notes into the Retailer Portal to auto-calculate shift hours, LIFO van-bay loading zones, and shareable read-only consumer tracking links.
+                        Paste raw dispatch notes into the Retailer Portal to auto-calculate shift hours, LIFO van-bay loading zones, and shareable read-only consumer tracking links.
                       </p>
                     </div>
                   </div>
@@ -823,16 +905,16 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => navigate('/portal')}
-                    className="min-h-[52px] w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 px-4 rounded-xl transition-all shadow-md shadow-emerald-600/20 text-sm"
+                    className="min-h-[52px] w-full bg-[#004225] hover:bg-[#005A34] text-white font-extrabold py-3.5 px-4 rounded-xl transition-all shadow-md shadow-[#004225]/20 text-sm"
                   >
                     Launch Retailer Dispatch Workspace (/portal) →
                   </button>
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600 pt-1">
-                    <span>Operate a 3.5t Luton + Tail-Lift or 2-Man Crew?</span>
+                    <span>Operate a Mercedes Sprinter LWB, 3.5t Tail-Lift, or 2-Man Crew?</span>
                     <button
                       type="button"
                       onClick={() => navigate('/driver')}
-                      className="text-emerald-700 font-extrabold hover:underline"
+                      className="text-[#004225] font-extrabold hover:underline"
                     >
                       Apply at /driver →
                     </button>
@@ -850,18 +932,18 @@ export default function App() {
           <div className="space-y-8">
             <div className="space-y-3 max-w-3xl">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-extrabold text-emerald-800 uppercase tracking-widest bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-full">
+                <span className="text-xs font-extrabold text-[#004225] uppercase tracking-widest bg-[#F0F7F4] border border-[#004225]/25 px-3 py-1 rounded-full">
                   Tier-1 Crew Recruitment Gate • Outside IR35
                 </span>
-                <span className="text-xs font-extrabold text-slate-800 uppercase tracking-widest bg-slate-200/80 border border-slate-300 px-3 py-1 rounded-full">
-                  3.5t Luton Box + Tail-Lift • 2-Man Crew
+                <span className="text-xs font-extrabold text-[#713F12] uppercase tracking-widest bg-[#FEFCE8] border border-[#F6EB61] px-3 py-1 rounded-full">
+                  Mercedes Sprinter LWB &amp; 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs
                 </span>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#0F172A]">
-                Join the Milton Keynes Tier-1 2-Man Bulky Roster
+              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#0A0F0D]">
+                Join the UK Direct-to-Crew Mercedes Sprinter &amp; 2-Man Roster
               </h1>
               <p className="text-slate-600 text-base leading-relaxed">
-                Keep <strong>87.5% of every route fee</strong> (£385–£420 net pool per loop + 100% of £25 heavy-access surcharges). Built for independent 3.5t Luton + Tail-Lift owner-operators and professional 2-man delivery porters.
+                Keep <strong>87.5% of every route fee</strong> (£385–£455 net pool per loop + 100% of £25 heavy-access surcharges). Built for independent Mercedes-Benz Sprinter LWB High-Roof operators, 3.5t Tail-Lift box van owners, and professional 2-man delivery porters across <strong>Hub 01 (MK • Bedford • Northampton • Luton)</strong> and upcoming UK regional hubs.
               </p>
             </div>
 
@@ -871,11 +953,11 @@ export default function App() {
                 {waitlistSubmitted ? (
                   <div className="text-center py-10 space-y-4">
                     <span className="text-5xl">✅</span>
-                    <h3 className="text-2xl font-extrabold text-[#0F172A]">
+                    <h3 className="text-2xl font-extrabold text-[#0A0F0D]">
                       Crew Capability Profile Logged.
                     </h3>
                     <p className="text-slate-600 text-sm leading-relaxed px-4">
-                      We’ve received your professional credentials for the Milton Keynes 2-Man Bulky Network. Our Supply &amp; Compliance Agent will verify your GIT &amp; Public Liability certificates shortly.
+                      We’ve received your professional credentials for the Mercedes Sprinter LWB &amp; 2-Man Specialist Network. Our Supply &amp; Compliance Agent will verify your GIT &amp; Public Liability certificates shortly.
                     </p>
                     <div className="flex flex-wrap justify-center gap-3 pt-4">
                       <button
@@ -888,7 +970,7 @@ export default function App() {
                       <button
                         type="button"
                         onClick={() => navigate('/cab')}
-                        className="min-h-[44px] px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm"
+                        className="min-h-[44px] px-5 py-2 rounded-xl bg-[#004225] hover:bg-[#005A34] text-white text-xs font-extrabold shadow-sm"
                       >
                         Open Mobile In-Cab HUD (/cab) →
                       </button>
@@ -897,12 +979,36 @@ export default function App() {
                 ) : (
                   <form onSubmit={handleWaitlistSubmit} className="flex flex-col space-y-4">
                     <div className="border-b border-[#E2E8F0] pb-4 mb-1">
-                      <h2 className="text-xl font-extrabold text-[#0F172A]">
+                      <h2 className="text-xl font-extrabold text-[#0A0F0D]">
                         Crew &amp; Vehicle Capability Intake
                       </h2>
                       <p className="text-slate-600 text-sm mt-1">
-                        Register your 3.5t Luton Box + Tail-Lift or 2-Man Crew profile for Milton Keynes showroom loops.
+                        Register your Mercedes-Benz Sprinter LWB High-Roof, 3.5t Tail-Lift Box Van, or 2-Man Crew profile for Hub 01 (M1 Corridor) or your regional UK hub.
                       </p>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-extrabold uppercase tracking-wider text-slate-600 block mb-1.5">
+                        Select UK Regional Operating Hub
+                      </label>
+                      <select
+                        value={selectedHub}
+                        onChange={(e) => setSelectedHub(e.target.value)}
+                        className="min-h-[48px] w-full bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#004225] text-[#0A0F0D] rounded-xl py-2.5 px-4 outline-none transition-all text-sm font-bold"
+                      >
+                        <option value="Hub 01: M1 Corridor (MK • Bedford • Northampton • Luton) — Live Active Zone">
+                          Hub 01: M1 Corridor (MK • Bedford • Northampton • Luton) — Live Active Zone
+                        </option>
+                        <option value="Hub 02: Greater London & M25 Orbital (Registration Open)">
+                          Hub 02: Greater London &amp; M25 Orbital (Registration Open)
+                        </option>
+                        <option value="Hub 03: Midlands Golden Triangle — Birmingham • Coventry • Leicester">
+                          Hub 03: Midlands Golden Triangle — Birmingham • Coventry • Leicester
+                        </option>
+                        <option value="Hub 04: Northern Powerhouse — Manchester • Leeds • Warrington">
+                          Hub 04: Northern Powerhouse — Manchester • Leeds • Warrington
+                        </option>
+                      </select>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -912,7 +1018,7 @@ export default function App() {
                         value={driverName}
                         onChange={(e) => setDriverName(e.target.value)}
                         required
-                        className="min-h-[48px] bg-[#FFFFFF] border border-[#E2E8F0] focus:border-emerald-600 text-[#0F172A] rounded-xl py-2.5 px-4 outline-none transition-all placeholder:text-slate-400"
+                        className="min-h-[48px] bg-[#FFFFFF] border border-[#E2E8F0] focus:border-[#004225] text-[#0A0F0D] rounded-xl py-2.5 px-4 outline-none transition-all placeholder:text-slate-400"
                       />
                       <input
                         type="tel"
@@ -920,7 +1026,7 @@ export default function App() {
                         value={driverPhone}
                         onChange={(e) => setDriverPhone(e.target.value)}
                         required
-                        className="min-h-[48px] bg-[#FFFFFF] border border-[#E2E8F0] focus:border-emerald-600 text-[#0F172A] rounded-xl py-2.5 px-4 outline-none transition-all placeholder:text-slate-400"
+                        className="min-h-[48px] bg-[#FFFFFF] border border-[#E2E8F0] focus:border-[#004225] text-[#0A0F0D] rounded-xl py-2.5 px-4 outline-none transition-all placeholder:text-slate-400 tabular-nums"
                       />
                     </div>
 
@@ -931,14 +1037,14 @@ export default function App() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="min-h-[48px] bg-[#FFFFFF] border border-[#E2E8F0] focus:border-emerald-600 text-[#0F172A] rounded-xl py-2.5 px-4 outline-none transition-all placeholder:text-slate-400"
+                        className="min-h-[48px] bg-[#FFFFFF] border border-[#E2E8F0] focus:border-[#004225] text-[#0A0F0D] rounded-xl py-2.5 px-4 outline-none transition-all placeholder:text-slate-400"
                       />
                       <select
                         value={role}
                         onChange={(e) => setRole(e.target.value)}
-                        className="min-h-[48px] bg-[#FFFFFF] border border-[#E2E8F0] focus:border-emerald-600 text-[#0F172A] rounded-xl py-2.5 px-4 outline-none transition-all font-semibold"
+                        className="min-h-[48px] bg-[#FFFFFF] border border-[#E2E8F0] focus:border-[#004225] text-[#0A0F0D] rounded-xl py-2.5 px-4 outline-none transition-all font-semibold"
                       >
-                        <option value="Driver">Lead Driver (3.5t Luton + Tail-Lift)</option>
+                        <option value="Driver">Lead Driver (Sprinter LWB / 3.5t Tail-Lift)</option>
                         <option value="Porter">Second Man / Delivery Porter</option>
                       </select>
                     </div>
@@ -950,13 +1056,13 @@ export default function App() {
                       <select
                         value={capabilitySpec}
                         onChange={(e) => setCapabilitySpec(e.target.value)}
-                        className="min-h-[48px] w-full bg-[#F8FAFC] border border-[#E2E8F0] focus:border-emerald-600 text-[#0F172A] rounded-xl py-2.5 px-4 outline-none transition-all text-sm font-bold"
+                        className="min-h-[48px] w-full bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#004225] text-[#0A0F0D] rounded-xl py-2.5 px-4 outline-none transition-all text-sm font-bold"
                       >
-                        <option value="3.5t Luton Box + Tail-Lift • 2-Man Crew">
-                          3.5t Luton Box + Tail-Lift • 2-Man Crew (Tier-1 Bulky Spec)
+                        <option value="Mercedes-Benz Sprinter LWB High-Roof • 2-Man Crew">
+                          Mercedes-Benz Sprinter LWB High-Roof • 2-Man Crew (Primary Fleet Standard)
                         </option>
-                        <option value="3.5t Luton Box (Low-Loader) • 2-Man Crew">
-                          3.5t Luton Box (Low-Loader) • 2-Man Crew
+                        <option value="3.5t Luton Box + Tail-Lift • 2-Man Crew">
+                          3.5t Box Van + Tail-Lift • 2-Man Crew (Heavy Lift Spec)
                         </option>
                         <option value="Client Vehicle 2-Man Pod (Driver + Porter Only)">
                           Client Vehicle 2-Man Pod (Driver + Porter Only)
@@ -967,24 +1073,24 @@ export default function App() {
                     <div className="grid grid-cols-3 gap-3">
                       <input
                         type="text"
-                        placeholder="Van Make (e.g. Mercedes)"
+                        placeholder="Van Make (e.g. Mercedes-Benz)"
                         value={make}
                         onChange={(e) => setMake(e.target.value)}
-                        className="min-h-[48px] col-span-1 bg-[#FFFFFF] border border-[#E2E8F0] focus:border-emerald-600 text-[#0F172A] rounded-xl py-2.5 px-3 outline-none text-sm placeholder:text-slate-400"
+                        className="min-h-[48px] col-span-1 bg-[#FFFFFF] border border-[#E2E8F0] focus:border-[#004225] text-[#0A0F0D] rounded-xl py-2.5 px-3 outline-none text-sm placeholder:text-slate-400"
                       />
                       <input
                         type="text"
-                        placeholder="Model (e.g. Sprinter Luton)"
+                        placeholder="Model (e.g. Sprinter 315 LWB)"
                         value={model}
                         onChange={(e) => setModel(e.target.value)}
-                        className="min-h-[48px] col-span-1 bg-[#FFFFFF] border border-[#E2E8F0] focus:border-emerald-600 text-[#0F172A] rounded-xl py-2.5 px-3 outline-none text-sm placeholder:text-slate-400"
+                        className="min-h-[48px] col-span-1 bg-[#FFFFFF] border border-[#E2E8F0] focus:border-[#004225] text-[#0A0F0D] rounded-xl py-2.5 px-3 outline-none text-sm placeholder:text-slate-400"
                       />
                       <input
                         type="number"
                         placeholder="Year"
                         value={year}
                         onChange={(e) => setYear(e.target.value)}
-                        className="min-h-[48px] col-span-1 bg-[#FFFFFF] border border-[#E2E8F0] focus:border-emerald-600 text-[#0F172A] rounded-xl py-2.5 px-3 outline-none text-sm placeholder:text-slate-400 tabular-nums"
+                        className="min-h-[48px] col-span-1 bg-[#FFFFFF] border border-[#E2E8F0] focus:border-[#004225] text-[#0A0F0D] rounded-xl py-2.5 px-3 outline-none text-sm placeholder:text-slate-400 tabular-nums"
                       />
                     </div>
 
@@ -994,7 +1100,7 @@ export default function App() {
                         checked={isInsured}
                         onChange={(e) => setIsInsured(e.target.checked)}
                         required
-                        className="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500/20 bg-white"
+                        className="w-4 h-4 rounded border-slate-300 text-[#004225] focus:ring-[#004225]/20 bg-white"
                       />
                       I confirm I hold valid Goods in Transit (£20k+), Public Liability (£1m+ covering 2-Man Crew), &amp; Hire and Reward insurance.
                     </label>
@@ -1002,7 +1108,7 @@ export default function App() {
                     <button
                       type="submit"
                       disabled={waitlistLoading}
-                      className="min-h-[52px] w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 px-4 rounded-xl transition-all shadow-md shadow-emerald-600/20 mt-2"
+                      className="min-h-[52px] w-full bg-[#004225] hover:bg-[#005A34] text-white font-extrabold py-3.5 px-4 rounded-xl transition-all shadow-md shadow-[#004225]/20 mt-2"
                     >
                       {waitlistLoading
                         ? 'Securing Route Allocation...'
@@ -1014,36 +1120,36 @@ export default function App() {
 
               {/* RIGHT 5 COLS: CREW EARNINGS & MOBILE IN-CAB PWA ACCESS */}
               <div className="lg:col-span-5 space-y-5">
-                <div className="bg-[#0F172A] text-white rounded-2xl p-6 shadow-md space-y-4">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-400/30">
-                    Already Approved on the MK Roster?
+                <div className="bg-[#004225] text-white rounded-2xl p-6 shadow-md space-y-4">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest bg-[#FEFCE8] text-[#713F12] px-2.5 py-1 rounded-full border border-[#F6EB61]">
+                    Already Approved on Hub 01 (M1 Corridor)?
                   </span>
                   <h3 className="text-xl font-extrabold text-white">
                     Launch the Mobile In-Cab HUD (/cab)
                   </h3>
-                  <p className="text-xs text-slate-300 leading-relaxed">
-                    Access Gate A6 compliance onboarding, claim live Milton Keynes showroom loops, switch between 3 Driver-First routing modes, and capture Damage-Shield PoDs from your phone.
+                  <p className="text-xs text-slate-200 leading-relaxed">
+                    Access Gate A6 compliance onboarding, claim live Hub 01 showroom &amp; commercial loops, switch between 3 Driver-First routing modes, and capture Damage-Shield PoDs from your phone.
                   </p>
                   <button
                     type="button"
                     onClick={() => navigate('/cab')}
-                    className="min-h-[48px] w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-3 px-4 rounded-xl transition-all text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/20"
+                    className="min-h-[48px] w-full bg-[#F6EB61] hover:bg-yellow-300 text-[#0A0F0D] font-extrabold py-3 px-4 rounded-xl transition-all text-xs uppercase tracking-wider shadow-lg"
                   >
-                    📲 Open Ben Crew In-Cab App (/cab) →
+                    📲 Open BEN. Crew In-Cab App (/cab) →
                   </button>
                 </div>
 
                 <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-6 shadow-sm space-y-3">
-                  <h4 className="text-sm font-extrabold text-[#0F172A] uppercase tracking-wider">
-                    2-Man Crew Operating Standards
+                  <h4 className="text-sm font-extrabold text-[#0A0F0D] uppercase tracking-wider">
+                    Mercedes Sprinter &amp; 2-Man Operating Standards
                   </h4>
-                  <ul className="text-xs text-slate-600 space-y-2 leading-relaxed">
+                  <ul className="text-xs text-slate-600 space-y-2 leading-relaxed tabular-nums">
                     <li>
-                      • <strong>£385.00 Net Crew Pool</strong> on Standard ROC loops (8–10 drops) &amp;{' '}
-                      <strong>£420.00 Net Crew Pool</strong> on White-Glove Assembly loops (6–8 drops).
+                      • <strong>£385.00 Net Crew Pool</strong> on Standard ROC loops &amp;{' '}
+                      <strong>£455.00 Net Crew Pool</strong> on White-Glove Assembly loops.
                     </li>
                     <li>
-                      • <strong>LIFO Van-Bay Load Sheet:</strong> Last drop loads first into Zone A (Bulkhead) so heavy sofas are never double-handled on the roadside.
+                      • <strong>LIFO Van-Bay Load Sheet:</strong> Last drop loads first into Zone A (Bulkhead) so bulky items are never double-handled on the roadside.
                     </li>
                     <li>
                       • <strong>Outside IR35 Contractor Status:</strong> Full right of substitution with vetted crew members and autonomous route mode selection.
@@ -1111,7 +1217,7 @@ export default function App() {
                     <button
                       type="submit"
                       disabled={authLoading}
-                      className="min-h-[48px] w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 px-4 rounded-xl transition-all shadow-md shadow-emerald-600/20 text-sm"
+                      className="min-h-[48px] w-full bg-[#004225] hover:bg-[#005A34] text-white font-extrabold py-3 px-4 rounded-xl transition-all shadow-md shadow-[#004225]/20 text-sm"
                     >
                       {authLoading
                         ? 'Authenticating Showroom...'
@@ -1122,13 +1228,13 @@ export default function App() {
 
                     <div className="pt-3 border-t border-[#E2E8F0] space-y-2.5">
                       <span className="block text-[10px] font-extrabold uppercase tracking-widest text-slate-500 text-center">
-                        Milton Keynes Showroom Pilot Instant Access
+                        Hub 01 (M1 Corridor) &amp; National UK Retailer Pilot Instant Access
                       </span>
                       <button
                         type="button"
                         disabled={authLoading}
                         onClick={() => handleQuickPilotLogin('retailer')}
-                        className="min-h-[44px] w-full bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-extrabold py-2.5 px-3 rounded-xl transition-all shadow-sm"
+                        className="min-h-[44px] w-full bg-[#0A0F0D] hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-extrabold py-2.5 px-3 rounded-xl transition-all shadow-sm"
                       >
                         🧪 Demo Retailer Sign-In (retailer@benlogistics.co.uk)
                       </button>
@@ -1225,7 +1331,7 @@ export default function App() {
                     <button
                       type="submit"
                       disabled={authLoading}
-                      className="min-h-[50px] w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 px-4 rounded-xl transition-all shadow-md shadow-emerald-600/20 text-sm"
+                      className="min-h-[50px] w-full bg-[#004225] hover:bg-[#005A34] text-white font-extrabold py-3 px-4 rounded-xl transition-all shadow-md shadow-[#004225]/20 text-sm"
                     >
                       {authLoading
                         ? 'Unlocking In-Cab HUD...'
@@ -1236,13 +1342,13 @@ export default function App() {
 
                     <div className="pt-3 border-t border-[#E2E8F0] space-y-2.5">
                       <span className="block text-[10px] font-extrabold uppercase tracking-widest text-slate-500 text-center">
-                        MK9 Verified Crew Instant Pilot Access
+                        Hub 01 (M1 Corridor) Verified Crew Instant Pilot Access
                       </span>
                       <button
                         type="button"
                         disabled={authLoading}
                         onClick={() => handleQuickPilotLogin('driver')}
-                        className="min-h-[46px] w-full bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 text-emerald-950 border border-emerald-300 text-xs font-extrabold py-2.5 px-3 rounded-xl transition-all shadow-sm"
+                        className="min-h-[46px] w-full bg-[#FEFCE8] hover:bg-yellow-100 disabled:opacity-50 text-[#713F12] border border-[#F6EB61] text-xs font-extrabold py-2.5 px-3 rounded-xl transition-all shadow-sm"
                       >
                         🚚 Demo Driver Sign-In (driver@benlogistics.co.uk)
                       </button>
@@ -1401,7 +1507,7 @@ export default function App() {
             : 'border-[#E2E8F0] bg-[#FFFFFF] text-slate-500'
         }`}
       >
-        &copy; 2026 Ben Logistics Ltd (Milton Keynes Marketplace Node). Acting strictly as a technology marketplace agent connecting Retailers and Independent Contractor Crews.
+        &copy; 2026 Ben Logistics Ltd (<span className="font-bold text-[#004225]">BEN.</span> — Mercedes Sprinter LWB &amp; 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs). Acting strictly as a Direct-to-Crew Logistics Operating System connecting Retailers and Independent Contractor Crews.
       </footer>
     </div>
   )
