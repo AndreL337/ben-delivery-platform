@@ -1,7 +1,8 @@
-# BEN. — Brand Identity, Visual Design System & National UK Positioning (`docs/BRAND_SYSTEM.md`)
+# ben. — Brand Identity, Visual Design System & National UK Positioning (`docs/BRAND_SYSTEM.md`)
 
 > **Single Source of Truth — Agent 5 (Brand, UI & Growth Architect)**  
 > **Domain:** `benlogistics.co.uk`  
+> **Locked Wordmark:** Concept B (`ben.` Lowercase Connected Route-Bridge Mark)  
 > **Status:** Locked Production Specification (2026)
 
 ---
@@ -48,16 +49,18 @@ To maintain enterprise software clarity and prevent heavy dark-green visual bloc
 
 ---
 
-## 3. Typography, Light-Canvas Wordmark & Numeric Discipline
+## 3. Typography, Locked Concept B Wordmark (`ben.`) & Numeric Discipline
 
 ### Wordmark & Display Headers (`Outfit`)
 - **Font Family:** `'Outfit', sans-serif`
 - **Weight:** `800 ExtraBold`
 - **Letter Spacing:** Bespoke geometric cut with tight `-0.05em` tracking (`tracking-[-0.05em]`)
-- **The `BEN.` Light-Canvas Wordmark Construction:**
-  - On light backgrounds (`#FFFFFF` / `#F8FAFC`), render the `BEN` letters directly in **British Racing Green (`#004225`)** (`font-extrabold tracking-[-0.05em]`).
-  - Render the terminal period as a sharp geometric **Primrose Yellow (`#F6EB61`)** accent node ringed with a **`1.5px solid #004225`** border (`.ben-wordmark-dot`) so the yellow mark has crisp optical contrast against white backgrounds.
-  - On dark In-Cab HUD overlays (`#090D16`), `BEN` renders in `#FFFFFF` with the `#F6EB61` accent node.
+- **The Locked Concept B (`ben.`) Wordmark Specification:**
+  1. **Case:** Strictly lowercase **`ben.`** (sleek, approachable UK mobility/fintech unicorn aesthetic inspired by *wise*, *monzo*, and *deliveroo*).
+  2. **Lettering Colour on Light Surfaces:** Deep British Racing Green (`#004225`) on `#FFFFFF` and `#F8FAFC` surfaces (`#FFFFFF` lettering on dark In-Cab HUD overlays).
+  3. **Signature Route-Bridge Ligature (`e–n`):** Rendered via `<BenWordmark />` (`src/shared/components/BenWordmark.tsx`) with a horizontal connecting route-bridge stroke linking the crossbar of the `e` directly into the stem of the `n`.
+  4. **Terminal Route-Pin Node (`.`):** Circular waypoint dot (`border-radius: 9999px`) filled in **Primrose Yellow (`#F6EB61`)** with a **`2px solid #004225`** British Racing Green outer ring (`.ben-wordmark-dot`) so it pops with crisp optical contrast against white and light-slate surfaces.
+  5. **Favicon & App Icon (`public/favicon.svg`):** Lowercase geometric **`b.`** in `#004225` paired with the `2px`-ringed `#F6EB61` circular waypoint dot on a crisp white squircle framed in `#004225`.
 
 ### UI, Ledger & Telemetry Typography (`Inter`)
 - **Font Family:** `'Inter', sans-serif`

@@ -3,6 +3,7 @@ import { supabase } from '../../config/supabaseClient'
 import { parseManifestDrops } from '../../config/pricingMatrix2026'
 import type { JobRecord } from '../../types/logistics'
 import { MKRouteVisualizer } from '../../shared/components/MKRouteVisualizer'
+import { BenWordmark } from '../../shared/components/BenWordmark'
 
 const DEMO_TRACK_JOB: JobRecord = {
   id: 'mk-live-loop-884',
@@ -137,12 +138,13 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
         {/* TOP HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-5">
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-700 tabular-nums">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <BenWordmark variant="light" size="sm" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#004225] animate-pulse"></span>
+              <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#004225] tabular-nums">
                 High-Contrast Daylight Tracker • Route #{String(activeJob.id)}
               </span>
-              <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-[#F0F7F4] text-[#004225] border border-[#004225]/25">
                 🛡️ AI Damage Shield Active
               </span>
             </div>

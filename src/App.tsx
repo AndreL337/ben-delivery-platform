@@ -5,6 +5,7 @@ import type { VehicleSetup, LoopProfile, AppRoute } from './types/logistics'
 import { AgentCommandCenter } from './modules/admin/AgentCommandCenter'
 import { ConsumerTrackView } from './modules/tracking/ConsumerTrackView'
 import { BookJobForm } from './modules/retailerAndCrew/BookJobForm'
+import { BenWordmark } from './shared/components/BenWordmark'
 import './App.css'
 
 interface ParsedLocation {
@@ -410,14 +411,10 @@ export default function App() {
             className="flex items-center space-x-3 text-left group"
           >
             <div className="flex flex-col">
-              <span
-                className={`ben-wordmark font-extrabold text-[26px] tracking-[-0.05em] leading-none ${
-                  isFlightDeckMode ? 'text-white' : 'text-[#004225]'
-                }`}
-              >
-                BEN
-                <span className="ben-wordmark-dot" aria-hidden="true" />
-              </span>
+              <BenWordmark
+                variant={isFlightDeckMode ? 'dark' : 'light'}
+                size="lg"
+              />
               <span
                 className={`text-[10px] tracking-widest uppercase font-extrabold mt-1 ${
                   isFlightDeckMode ? 'text-slate-300' : 'text-slate-500'
@@ -847,8 +844,9 @@ export default function App() {
                     <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#004225] block">
                       3.5t LWB, XLWB &amp; Luton 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs
                     </span>
-                    <h3 className="text-2xl font-extrabold text-[#0A0F0D] mt-1">
-                      Why UK Retailers &amp; Commercial Shippers Switch to BEN.
+                    <h3 className="text-2xl font-extrabold text-[#0A0F0D] mt-1 flex flex-wrap items-baseline gap-1.5">
+                      <span>Why UK Retailers &amp; Commercial Shippers Switch to</span>
+                      <BenWordmark variant="light" size="md" />
                     </h3>
                     <p className="text-slate-600 text-sm mt-1">
                       Replace fragmented man-and-van subcontractors and rigid 3PL middlemen with a governed, direct-to-crew logistics operating system.
@@ -1125,7 +1123,7 @@ export default function App() {
                     onClick={() => navigate('/cab')}
                     className="min-h-[48px] w-full bg-[#004225] hover:bg-[#005A34] text-white font-extrabold py-3 px-4 rounded-xl transition-all text-xs uppercase tracking-wider shadow-sm"
                   >
-                    📲 Open BEN. Crew In-Cab App (/cab) →
+                    📲 Open ben. Crew In-Cab App (/cab) →
                   </button>
                 </div>
 
@@ -1497,7 +1495,7 @@ export default function App() {
             : 'border-[#E2E8F0] bg-[#FFFFFF] text-slate-500'
         }`}
       >
-        &copy; 2026 Ben Logistics Ltd (<span className="font-bold text-[#004225]">BEN.</span> — 3.5t LWB, XLWB &amp; Luton 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs). Acting strictly as a Direct-to-Crew Logistics Operating System connecting Retailers and Independent Contractor Crews.
+        &copy; 2026 Ben Logistics Ltd (<BenWordmark variant={isFlightDeckMode ? 'dark' : 'light'} size="sm" className="mx-0.5" /> — 3.5t LWB, XLWB &amp; Luton 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs). Acting strictly as a Direct-to-Crew Logistics Operating System connecting Retailers and Independent Contractor Crews.
       </footer>
     </div>
   )

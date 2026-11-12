@@ -1278,7 +1278,7 @@ export function BookJobForm({
           )}
           <div className="mt-8 pt-4 border-t border-[#E2E8F0] text-center">
             <p className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold">
-              BEN. — 3.5t LWB, XLWB &amp; Luton 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs • Outside IR35 Active
+              <span className="lowercase text-[#004225]">ben.</span> — 3.5t LWB, XLWB &amp; Luton 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs • Outside IR35 Active
             </p>
           </div>
         </div>

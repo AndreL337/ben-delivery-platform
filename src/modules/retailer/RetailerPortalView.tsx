@@ -7,6 +7,7 @@ import {
   calculateShiftAndGuardrails
 } from '../../shared/utils/manifestAiParser'
 import { RateJobModal, DisputePanel } from '../../shared/components/FeedbackModals'
+import { BenWordmark } from '../../shared/components/BenWordmark'
 
 export interface RetailerPortalViewProps {
   retailerId: string
@@ -282,10 +283,7 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
       <div className="bg-white/90 backdrop-blur-md border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2.5">
-            <span className="ben-wordmark text-2xl font-extrabold tracking-[-0.05em] text-[#004225]">
-              BEN
-              <span className="ben-wordmark-dot" aria-hidden="true" />
-            </span>
+            <BenWordmark variant="light" size="md" />
             <span className="text-slate-300 font-light">|</span>
             <span className="text-xs font-semibold text-slate-600">
               Showroom &amp; Commercial Dispatch OS • Hub 01 (M1 Corridor) &amp; National UK

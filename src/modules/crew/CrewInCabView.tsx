@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { SignaturePad } from '../../shared/components/SignaturePad'
 import { MKRouteVisualizer } from '../../shared/components/MKRouteVisualizer'
+import { BenWordmark } from '../../shared/components/BenWordmark'
 import type { RoutedManifestStop, BlackbookHazard } from './useDriverRoutingEngine'
 
 export type InCabStage = 'TRANSIT' | 'DOORSTEP' | 'POD'
@@ -173,8 +174,8 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
       <div className="relative z-20 p-3.5 sm:p-4 flex flex-col gap-2">
         <div className="bg-slate-950/90 backdrop-blur-md border border-white/15 rounded-2xl px-3.5 py-2.5 flex items-center justify-between gap-2 shadow-xl">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-[#004225] border border-white/15 ben-wordmark text-base font-extrabold tracking-[-0.04em] text-white">
-              BEN<span className="text-[#F6EB61]">.</span>
+            <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-white border border-slate-200 shadow-sm">
+              <BenWordmark variant="light" size="sm" />
             </span>
             {onBackToPreLoad && (
               <button

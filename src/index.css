@@ -48,21 +48,34 @@ h1, h2, h3, h4, .font-display {
   font-weight: 800;
   letter-spacing: -0.05em;
   line-height: 1;
+  text-transform: lowercase;
   display: inline-flex;
   align-items: baseline;
+  position: relative;
+}
+
+.ben-ligature-bridge {
+  width: 0.22em;
+  height: 0.14em;
+  margin-left: -0.06em;
+  margin-right: -0.06em;
+  align-self: center;
+  transform: translateY(0.08em);
+  pointer-events: none;
 }
 
 .ben-wordmark-dot {
   display: inline-block;
-  width: 0.3em;
-  height: 0.3em;
-  min-width: 7px;
-  min-height: 7px;
+  width: 0.32em;
+  height: 0.32em;
+  min-width: 8px;
+  min-height: 8px;
   background-color: #F6EB61;
-  border: 1.5px solid #004225;
-  border-radius: 2px;
+  border: 2px solid #004225;
+  border-radius: 9999px;
   margin-left: 2px;
   transform: translateY(-1px);
+  flex-shrink: 0;
 }
 
 .tabular-nums {
