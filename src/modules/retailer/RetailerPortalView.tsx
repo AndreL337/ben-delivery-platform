@@ -43,6 +43,9 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
   // Slide-over Booking Drawer states
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false)
   const [serviceTier, setServiceTier] = useState<ServiceTierKey>('bulky_2man')
+  const [fleetClassSpec, setFleetClassSpec] = useState<string>(
+    '3.5t Luton / Low-Loader Box Van (with Tail-Lift) — 2-Man Heavy Bulky & White-Glove'
+  )
   const [pickupAddress, setPickupAddress] = useState<string>(
     'Barker & Stonehouse MK Hub, Kiln Farm, Milton Keynes MK11 3LG'
   )
@@ -144,8 +147,8 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
       const drops = parseManifestDrops(job.drop_addresses)
       const tierLabel =
         job.loop_profile === 'overflow'
-          ? 'Commercial Multi-Drop (Mercedes Sprinter LWB High-Roof)'
-          : '2-Man Bulky Goods (Mercedes Sprinter LWB / 3.5t Tail-Lift)'
+          ? 'Commercial Multi-Drop (LWB / XLWB / MWB Van)'
+          : '2-Man Bulky Goods (3.5t LWB, XLWB & Luton Tail-Lift)'
       const dateFormatted = job.created_at
         ? new Date(job.created_at).toISOString().split('T')[0]
         : new Date().toISOString().split('T')[0]
@@ -276,14 +279,12 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
   return (
     <div className="w-full bg-slate-50/60 text-[#0f172a] rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
       {/* 1. TOP UTILITY BAR */}
-      <div className="bg-white border-b border-[#E2E8F0] px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="bg-white/90 backdrop-blur-md border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2.5">
-            <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-[#004225] ben-wordmark text-base font-extrabold tracking-[-0.04em] text-white shadow-sm">
-              BEN<span className="text-[#F6EB61]">.</span>
-            </span>
-            <span className="ben-wordmark text-lg font-extrabold tracking-[-0.04em] text-[#004225]">
-              BEN<span className="text-[#F6EB61]">.</span>
+            <span className="ben-wordmark text-2xl font-extrabold tracking-[-0.05em] text-[#004225]">
+              BEN
+              <span className="ben-wordmark-dot" aria-hidden="true" />
             </span>
             <span className="text-slate-300 font-light">|</span>
             <span className="text-xs font-semibold text-slate-600">
@@ -564,11 +565,11 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           {isCommercialOverflow ? (
                             <span className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 text-[11px] font-semibold">
-                              Mercedes Sprinter LWB Multi-Drop
+                              LWB / MWB Commercial Multi-Drop
                             </span>
                           ) : (
                             <span className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-[#0A0F0D] text-[11px] font-semibold">
-                              2-Man Sprinter LWB / 3.5t {job.requires_assembly ? '+ Assembly' : 'Tail-Lift'}
+                              2-Man 3.5t LWB / Luton {job.requires_assembly ? '+ Assembly' : 'Tail-Lift'}
                             </span>
                           )}
                         </td>
@@ -665,7 +666,7 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                 <div className="flex items-center justify-between pb-4 border-b border-slate-200">
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-widest text-[#004225] block">
-                      Mercedes Sprinter LWB &amp; 2-Man Specialist Network — Hub 01 &amp; National UK
+                      3.5t LWB, XLWB &amp; Luton 2-Man Specialist Network — Hub 01 &amp; National UK
                     </span>
                     <h3 className="text-lg font-extrabold text-[#0A0F0D]">
                       Book New Multi-Drop Run
@@ -687,36 +688,35 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                 )}
 
                 {/* 1. Service Tier Selector Cards */}
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-600 block">
-                    1. Select Service &amp; Vehicle Tier
+                    1. Select Service &amp; UK Fleet Class
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       type="button"
-                      onClick={() => setServiceTier('bulky_2man')}
+                      onClick={() => {
+                        setServiceTier('bulky_2man')
+                        setFleetClassSpec(
+                          '3.5t Luton / Low-Loader Box Van (with Tail-Lift) — 2-Man Heavy Bulky & White-Glove'
+                        )
+                      }}
                       className={`text-left p-4 rounded-xl border transition-all ${
                         serviceTier === 'bulky_2man'
-                          ? 'bg-[#004225] text-white border-[#004225] shadow-sm'
+                          ? 'bg-[#F0F7F4] text-[#0A0F0D] border-2 border-[#004225] shadow-sm'
                           : 'bg-white text-[#0A0F0D] border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-extrabold">2-Man Bulky Goods</span>
-                        <span
-                          className={`text-xs font-bold tabular-nums ${
-                            serviceTier === 'bulky_2man' ? 'text-[#F6EB61]' : 'text-slate-700'
-                          }`}
-                        >
+                        <span className="text-xs font-extrabold text-[#004225]">
+                          2-Man Bulky Goods
+                        </span>
+                        <span className="text-xs font-extrabold tabular-nums text-[#004225]">
                           £{requiresAssembly ? '520' : '440'}
                         </span>
                       </div>
-                      <p
-                        className={`text-[11px] mt-1 leading-snug ${
-                          serviceTier === 'bulky_2man' ? 'text-slate-200' : 'text-slate-500'
-                        }`}
-                      >
-                        Mercedes Sprinter LWB High-Roof &amp; 3.5t Tail-Lift • Room-of-Choice 2-Man Crew
+                      <p className="text-[11px] mt-1 leading-snug text-slate-600">
+                        3.5t Luton / Low-Loader (with Tail-Lift) or LWB/XLWB High-Roof • 2-Man Crew
                       </p>
                     </button>
 
@@ -725,35 +725,55 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                       onClick={() => {
                         setServiceTier('commercial_multidrop')
                         setRequiresAssembly(false)
+                        setFleetClassSpec(
+                          'LWB / XLWB High-Roof Panel Van (3.5t) — e.g., Sprinter, Transit Jumbo, Crafter, Master'
+                        )
                       }}
                       className={`text-left p-4 rounded-xl border transition-all ${
                         serviceTier === 'commercial_multidrop'
-                          ? 'bg-[#004225] text-white border-[#004225] shadow-sm'
+                          ? 'bg-[#F0F7F4] text-[#0A0F0D] border-2 border-[#004225] shadow-sm'
                           : 'bg-white text-[#0A0F0D] border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-extrabold">Commercial Multi-Drop</span>
-                        <span
-                          className={`text-xs font-bold tabular-nums ${
-                            serviceTier === 'commercial_multidrop'
-                              ? 'text-[#F6EB61]'
-                              : 'text-slate-700'
-                          }`}
-                        >
+                        <span className="text-xs font-extrabold text-[#004225]">
+                          Commercial Multi-Drop
+                        </span>
+                        <span className="text-xs font-extrabold tabular-nums text-[#004225]">
                           £145
                         </span>
                       </div>
-                      <p
-                        className={`text-[11px] mt-1 leading-snug ${
-                          serviceTier === 'commercial_multidrop'
-                            ? 'text-slate-200'
-                            : 'text-slate-500'
-                        }`}
-                      >
-                        Mercedes Sprinter LWB High-Roof • Half-Day Commercial Multi-Drop (Up to 4 drops)
+                      <p className="text-[11px] mt-1 leading-snug text-slate-600">
+                        LWB / XLWB High-Roof or MWB Commercial &amp; EV Van • Half-Day Loop (1–4 drops)
                       </p>
                     </button>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">
+                      Required UK Commercial Vehicle Taxonomy
+                    </label>
+                    <select
+                      value={fleetClassSpec}
+                      onChange={(e) => setFleetClassSpec(e.target.value)}
+                      className="w-full min-h-[40px] bg-slate-50 border border-slate-200 focus:border-[#004225] rounded-lg px-3 py-1.5 text-xs font-semibold text-[#0A0F0D] outline-none"
+                    >
+                      <option value="LWB / XLWB High-Roof Panel Van (3.5t) — e.g., Sprinter, Transit Jumbo, Crafter, Master">
+                        1. LWB / XLWB High-Roof Panel Van (3.5t) — e.g., Sprinter, Transit Jumbo, Crafter, Master
+                      </option>
+                      <option value="3.5t Luton / Low-Loader Box Van (with Tail-Lift) — 2-Man Heavy Bulky & White-Glove">
+                        2. 3.5t Luton / Low-Loader Box Van (with Tail-Lift) — 2-Man Heavy Bulky &amp; White-Glove
+                      </option>
+                      <option value="MWB / Urban Commercial & EV Van — Trade Counter & High-Density Multi-Drop">
+                        3. MWB / Urban Commercial &amp; EV Van — Trade Counter &amp; High-Density Multi-Drop
+                      </option>
+                      <option value="7.5t Box Truck (with Tail-Lift) — Heavy Commercial Trunking">
+                        4. 7.5t Box Truck (with Tail-Lift) — Heavy Commercial Trunking
+                      </option>
+                      <option value="No Vehicle (On-Roster 2-Man Porter / Assembly Specialist)">
+                        5. No Vehicle (On-Roster 2-Man Porter / Assembly Specialist)
+                      </option>
+                    </select>
                   </div>
                 </div>
 

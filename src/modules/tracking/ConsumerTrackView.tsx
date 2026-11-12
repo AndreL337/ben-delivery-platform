@@ -378,7 +378,7 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
             </div>
             <div>
               <div className="text-xs font-extrabold text-[#0A0F0D]">
-                Verified 2-Man Crew (Mercedes Sprinter LWB &amp; 3.5t Tail-Lift Specialist Network)
+                Verified 2-Man Crew (3.5t LWB, XLWB &amp; Luton Specialist Network)
               </div>
               <div className="text-[11px] text-slate-600">
                 £50k Goods in Transit • £1m Public Liability (Driver &amp; Porter Insured) • Hub 01 (M1 Corridor)

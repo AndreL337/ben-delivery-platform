@@ -90,7 +90,7 @@ export default function App() {
     'Hub 01: M1 Corridor (MK • Bedford • Northampton • Luton) — Live Active Zone'
   )
   const [capabilitySpec, setCapabilitySpec] = useState(
-    'Mercedes-Benz Sprinter LWB High-Roof • 2-Man Crew'
+    'LWB / XLWB High-Roof Panel Van (3.5t) — e.g., Sprinter, Transit Jumbo, Crafter, Master'
   )
   const [make, setMake] = useState('')
   const [model, setModel] = useState('')
@@ -357,7 +357,9 @@ export default function App() {
       setSelectedHub(
         'Hub 01: M1 Corridor (MK • Bedford • Northampton • Luton) — Live Active Zone'
       )
-      setCapabilitySpec('Mercedes-Benz Sprinter LWB High-Roof • 2-Man Crew')
+      setCapabilitySpec(
+        'LWB / XLWB High-Roof Panel Van (3.5t) — e.g., Sprinter, Transit Jumbo, Crafter, Master'
+      )
       setMake('')
       setModel('')
       setYear('')
@@ -383,14 +385,12 @@ export default function App() {
           : undefined
       }
     >
-      {/* CONTEXT-ISOLATED HEADER (NO INTERNAL ROLE TOGGLES LEAKED TO PUBLIC) */}
+      {/* CONTEXT-ISOLATED HEADER (LIGHT CANVAS 90/8/2 ARCHITECTURE) */}
       <header
         className={`w-full sticky top-0 z-50 px-6 py-3.5 transition-all ${
           isFlightDeckMode
             ? 'border-b text-white shadow-2xl'
-            : currentRoute === 'cab'
-            ? 'bg-[#004225] border-b border-white/15 text-white shadow-md'
-            : 'bg-[#FFFFFF]/95 border-b border-[#E2E8F0] backdrop-blur-md shadow-sm'
+            : 'backdrop-blur-md bg-white/90 border-b border-slate-200 text-[#0A0F0D] shadow-sm'
         }`}
         style={
           isFlightDeckMode
@@ -409,34 +409,18 @@ export default function App() {
             onClick={() => navigate(currentRoute === 'cab' ? '/cab' : '/')}
             className="flex items-center space-x-3 text-left group"
           >
-            <div
-              className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${
-                isFlightDeckMode
-                  ? 'bg-[#004225] border border-[#F6EB61]/50 shadow-[0_0_12px_rgba(246,235,97,0.25)]'
-                  : currentRoute === 'cab'
-                  ? 'bg-white/10 border border-white/20'
-                  : 'bg-[#004225] shadow-sm'
-              }`}
-            >
-              <span className="ben-wordmark text-sm font-extrabold tracking-[-0.04em] text-white">
-                B<span className="text-[#F6EB61]">.</span>
-              </span>
-            </div>
             <div className="flex flex-col">
               <span
-                className={`ben-wordmark font-extrabold text-2xl tracking-[-0.04em] leading-none ${
-                  isFlightDeckMode || currentRoute === 'cab'
-                    ? 'text-white'
-                    : 'text-[#004225]'
+                className={`ben-wordmark font-extrabold text-[26px] tracking-[-0.05em] leading-none ${
+                  isFlightDeckMode ? 'text-white' : 'text-[#004225]'
                 }`}
               >
-                BEN<span className="text-[#F6EB61]">.</span>
+                BEN
+                <span className="ben-wordmark-dot" aria-hidden="true" />
               </span>
               <span
                 className={`text-[10px] tracking-widest uppercase font-extrabold mt-1 ${
-                  isFlightDeckMode || currentRoute === 'cab'
-                    ? 'text-slate-300'
-                    : 'text-slate-500'
+                  isFlightDeckMode ? 'text-slate-300' : 'text-slate-500'
                 }`}
               >
                 {currentRoute === 'command'
@@ -447,7 +431,7 @@ export default function App() {
                   ? 'Retailer Dispatch Workspace • Hub 01 (M1 Corridor) & National UK'
                   : currentRoute === 'track'
                   ? 'Live Customer Delivery Telemetry • Damage-Shield Verified'
-                  : 'Mercedes Sprinter LWB & 2-Man Specialist Network — UK M1 Corridor & National Hubs'}
+                  : '3.5t LWB, XLWB & Luton 2-Man Specialist Network — UK M1 Corridor & National Hubs'}
               </span>
             </div>
           </button>
@@ -509,7 +493,7 @@ export default function App() {
                     <p className="text-[11px] text-slate-500 font-bold">
                       {session.user?.email || 'retailer@benlogistics.co.uk'}
                     </p>
-                    <p className="text-xs font-extrabold text-emerald-600">
+                    <p className="text-xs font-extrabold text-[#004225]">
                       ● Verified Retailer Workspace
                     </p>
                   </div>
@@ -527,14 +511,14 @@ export default function App() {
 
           {currentRoute === 'cab' && (
             <div className="flex items-center gap-2.5">
-              <span className="hidden sm:inline-flex text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+              <span className="hidden sm:inline-flex text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#F0F7F4] text-[#004225] border border-[#004225]/25">
                 📲 PWA Standalone Ready
               </span>
               {session ? (
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="min-h-[40px] bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-400/30 text-xs font-extrabold py-1.5 px-3 rounded-xl transition-all"
+                  className="min-h-[40px] bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-extrabold py-1.5 px-3 rounded-xl transition-all"
                 >
                   End Shift
                 </button>
@@ -542,7 +526,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => navigate('/driver')}
-                  className="min-h-[40px] bg-white/10 hover:bg-white/20 text-white border border-white/15 text-xs font-extrabold py-1.5 px-3 rounded-xl transition-all"
+                  className="min-h-[40px] bg-[#F8FAFC] hover:bg-slate-100 text-[#0A0F0D] border border-[#E2E8F0] text-xs font-extrabold py-1.5 px-3 rounded-xl transition-all"
                 >
                   Crew Waitlist →
                 </button>
@@ -589,7 +573,7 @@ export default function App() {
             <div className="space-y-5 max-w-4xl">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs font-extrabold text-[#004225] uppercase tracking-widest bg-[#F0F7F4] border border-[#004225]/25 px-3 py-1 rounded-full tabular-nums">
-                  Mercedes Sprinter LWB &amp; 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs
+                  3.5t LWB, XLWB &amp; Luton 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs
                 </span>
                 <span className="text-xs font-extrabold text-[#713F12] uppercase tracking-widest bg-[#FEFCE8] border border-[#F6EB61] px-3 py-1 rounded-full tabular-nums">
                   ● Hub 01 Live Active Zone: MK • Bedford • Northampton • Luton
@@ -601,7 +585,7 @@ export default function App() {
               </h1>
 
               <p className="text-slate-600 text-lg leading-relaxed max-w-3xl">
-                Connecting retailers and commercial shippers directly with vetted Mercedes Sprinter &amp; 2-man crews. Zero 3PL middlemen. Driver-first routing. Instant photographic Proof of Delivery.
+                Connecting retailers and commercial shippers directly with vetted 3.5t LWB, XLWB &amp; Luton 2-man crews. Zero 3PL middlemen. Driver-first routing. Instant photographic Proof of Delivery.
               </p>
 
               {/* CLEAR PRIMARY & SECONDARY CTAs */}
@@ -618,7 +602,7 @@ export default function App() {
                   onClick={() => navigate('/driver')}
                   className="min-h-[52px] bg-[#0A0F0D] hover:bg-slate-800 text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-sm text-sm"
                 >
-                  🚛 Register Mercedes Sprinter / 2-Man Crew (/driver) →
+                  🚛 Register 3.5t Van / 2-Man Crew (/driver) →
                 </button>
                 <button
                   type="button"
@@ -677,7 +661,7 @@ export default function App() {
                     Greater London • Watford • Slough
                   </p>
                   <p className="text-[11px] text-slate-600">
-                    ULEZ-compliant Mercedes Sprinter LWB &amp; 2-man showroom crews.
+                    ULEZ-compliant 3.5t LWB, XLWB, EV &amp; Luton 2-man crews.
                   </p>
                 </div>
 
@@ -739,7 +723,7 @@ export default function App() {
                           : 'text-slate-600 hover:text-[#0A0F0D]'
                       }`}
                     >
-                      Mercedes Sprinter LWB / 3.5t
+                      Independent 3.5t LWB / Luton
                     </button>
                     <button
                       type="button"
@@ -791,7 +775,7 @@ export default function App() {
                           : 'text-slate-600 hover:text-[#0A0F0D]'
                       }`}
                     >
-                      Sprinter Multi-Drop
+                      Commercial Multi-Drop
                     </button>
                   </div>
                 </div>
@@ -861,7 +845,7 @@ export default function App() {
                 <div className="space-y-5">
                   <div className="border-b border-[#E2E8F0] pb-4">
                     <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#004225] block">
-                      Mercedes Sprinter LWB &amp; 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs
+                      3.5t LWB, XLWB &amp; Luton 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs
                     </span>
                     <h3 className="text-2xl font-extrabold text-[#0A0F0D] mt-1">
                       Why UK Retailers &amp; Commercial Shippers Switch to BEN.
@@ -874,10 +858,10 @@ export default function App() {
                   <div className="space-y-4">
                     <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
                       <div className="text-sm font-extrabold text-[#0A0F0D]">
-                        1. UK Mercedes-Benz Sprinter (LWB High-Roof) &amp; 3.5t Tail-Lift Fleet Standard
+                        1. Inclusive UK 3.5t Commercial Fleet &amp; Tail-Lift Taxonomy
                       </div>
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                        Standardized on long-wheelbase high-roof Mercedes-Benz Sprinters for commercial multi-drop and 2-man room-of-choice loops, plus 3.5t tail-lift box vans where heavy lift is specified.
+                        Make-and-model agnostic matching across LWB/XLWB High-Roof panel vans (Sprinter, Transit Jumbo, Crafter, Master), 3.5t Luton/Low-Loader box vans with tail-lift, MWB/EV urban vans, and 7.5t commercial box trucks.
                       </p>
                     </div>
 
@@ -910,7 +894,7 @@ export default function App() {
                     Launch Retailer Dispatch Workspace (/portal) →
                   </button>
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600 pt-1">
-                    <span>Operate a Mercedes Sprinter LWB, 3.5t Tail-Lift, or 2-Man Crew?</span>
+                    <span>Operate a 3.5t LWB/XLWB Van, Luton Tail-Lift, or 2-Man Crew?</span>
                     <button
                       type="button"
                       onClick={() => navigate('/driver')}
@@ -936,14 +920,14 @@ export default function App() {
                   Tier-1 Crew Recruitment Gate • Outside IR35
                 </span>
                 <span className="text-xs font-extrabold text-[#713F12] uppercase tracking-widest bg-[#FEFCE8] border border-[#F6EB61] px-3 py-1 rounded-full">
-                  Mercedes Sprinter LWB &amp; 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs
+                  3.5t LWB, XLWB &amp; Luton 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs
                 </span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#0A0F0D]">
-                Join the UK Direct-to-Crew Mercedes Sprinter &amp; 2-Man Roster
+                Join the UK Direct-to-Crew 3.5t Commercial Van &amp; 2-Man Roster
               </h1>
               <p className="text-slate-600 text-base leading-relaxed">
-                Keep <strong>87.5% of every route fee</strong> (£385–£455 net pool per loop + 100% of £25 heavy-access surcharges). Built for independent Mercedes-Benz Sprinter LWB High-Roof operators, 3.5t Tail-Lift box van owners, and professional 2-man delivery porters across <strong>Hub 01 (MK • Bedford • Northampton • Luton)</strong> and upcoming UK regional hubs.
+                Keep <strong>87.5% of every route fee</strong> (£385–£455 net pool per loop + 100% of £25 heavy-access surcharges). Open to independent owner-operators running LWB/XLWB High-Roof vans (Ford Transit, Mercedes Sprinter, VW Crafter, Renault Master, Iveco Daily, Vauxhall Movano, Peugeot Boxer), 3.5t Luton/Low-Loader tail-lift box vans, 7.5t trucks, and professional 2-man delivery porters.
               </p>
             </div>
 
@@ -957,7 +941,7 @@ export default function App() {
                       Crew Capability Profile Logged.
                     </h3>
                     <p className="text-slate-600 text-sm leading-relaxed px-4">
-                      We’ve received your professional credentials for the Mercedes Sprinter LWB &amp; 2-Man Specialist Network. Our Supply &amp; Compliance Agent will verify your GIT &amp; Public Liability certificates shortly.
+                      We’ve received your professional credentials for the 3.5t LWB, XLWB &amp; Luton 2-Man Specialist Network. Our Supply &amp; Compliance Agent will verify your GIT &amp; Public Liability certificates shortly.
                     </p>
                     <div className="flex flex-wrap justify-center gap-3 pt-4">
                       <button
@@ -983,7 +967,7 @@ export default function App() {
                         Crew &amp; Vehicle Capability Intake
                       </h2>
                       <p className="text-slate-600 text-sm mt-1">
-                        Register your Mercedes-Benz Sprinter LWB High-Roof, 3.5t Tail-Lift Box Van, or 2-Man Crew profile for Hub 01 (M1 Corridor) or your regional UK hub.
+                        Register your LWB/XLWB panel van, 3.5t Luton/Low-Loader box van, commercial vehicle, or 2-Man Porter profile for Hub 01 (M1 Corridor) or your regional UK hub.
                       </p>
                     </div>
 
@@ -1044,28 +1028,34 @@ export default function App() {
                         onChange={(e) => setRole(e.target.value)}
                         className="min-h-[48px] bg-[#FFFFFF] border border-[#E2E8F0] focus:border-[#004225] text-[#0A0F0D] rounded-xl py-2.5 px-4 outline-none transition-all font-semibold"
                       >
-                        <option value="Driver">Lead Driver (Sprinter LWB / 3.5t Tail-Lift)</option>
-                        <option value="Porter">Second Man / Delivery Porter</option>
+                        <option value="Driver">Lead Driver / Owner-Operator (3.5t / 7.5t)</option>
+                        <option value="Porter">Second Man / Delivery Porter &amp; Assembly</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="text-xs font-extrabold uppercase tracking-wider text-slate-600 block mb-1.5">
-                        Verified Vehicle &amp; Crew Configuration
+                        UK Commercial Fleet Taxonomy (Make &amp; Model Agnostic)
                       </label>
                       <select
                         value={capabilitySpec}
                         onChange={(e) => setCapabilitySpec(e.target.value)}
                         className="min-h-[48px] w-full bg-[#F8FAFC] border border-[#E2E8F0] focus:border-[#004225] text-[#0A0F0D] rounded-xl py-2.5 px-4 outline-none transition-all text-sm font-bold"
                       >
-                        <option value="Mercedes-Benz Sprinter LWB High-Roof • 2-Man Crew">
-                          Mercedes-Benz Sprinter LWB High-Roof • 2-Man Crew (Primary Fleet Standard)
+                        <option value="LWB / XLWB High-Roof Panel Van (3.5t) — e.g., Sprinter, Transit Jumbo, Crafter, Master">
+                          1. LWB / XLWB High-Roof Panel Van (3.5t) — e.g., Sprinter, Transit Jumbo, Crafter, Master
                         </option>
-                        <option value="3.5t Luton Box + Tail-Lift • 2-Man Crew">
-                          3.5t Box Van + Tail-Lift • 2-Man Crew (Heavy Lift Spec)
+                        <option value="3.5t Luton / Low-Loader Box Van (with Tail-Lift) — 2-Man Heavy Bulky & White-Glove">
+                          2. 3.5t Luton / Low-Loader Box Van (with Tail-Lift) — 2-Man Heavy Bulky &amp; White-Glove
                         </option>
-                        <option value="Client Vehicle 2-Man Pod (Driver + Porter Only)">
-                          Client Vehicle 2-Man Pod (Driver + Porter Only)
+                        <option value="MWB / Urban Commercial & EV Van — Trade Counter & High-Density Multi-Drop">
+                          3. MWB / Urban Commercial &amp; EV Van — Trade Counter &amp; High-Density Multi-Drop
+                        </option>
+                        <option value="7.5t Box Truck (with Tail-Lift) — Heavy Commercial Trunking">
+                          4. 7.5t Box Truck (with Tail-Lift) — Heavy Commercial Trunking
+                        </option>
+                        <option value="No Vehicle (On-Roster 2-Man Porter / Assembly Specialist)">
+                          5. No Vehicle (On-Roster 2-Man Porter / Assembly Specialist)
                         </option>
                       </select>
                     </div>
@@ -1073,14 +1063,14 @@ export default function App() {
                     <div className="grid grid-cols-3 gap-3">
                       <input
                         type="text"
-                        placeholder="Van Make (e.g. Mercedes-Benz)"
+                        placeholder="Make (e.g. Ford, Mercedes, VW)"
                         value={make}
                         onChange={(e) => setMake(e.target.value)}
                         className="min-h-[48px] col-span-1 bg-[#FFFFFF] border border-[#E2E8F0] focus:border-[#004225] text-[#0A0F0D] rounded-xl py-2.5 px-3 outline-none text-sm placeholder:text-slate-400"
                       />
                       <input
                         type="text"
-                        placeholder="Model (e.g. Sprinter 315 LWB)"
+                        placeholder="Model (e.g. Transit, Sprinter, Crafter)"
                         value={model}
                         onChange={(e) => setModel(e.target.value)}
                         className="min-h-[48px] col-span-1 bg-[#FFFFFF] border border-[#E2E8F0] focus:border-[#004225] text-[#0A0F0D] rounded-xl py-2.5 px-3 outline-none text-sm placeholder:text-slate-400"
@@ -1118,22 +1108,22 @@ export default function App() {
                 )}
               </div>
 
-              {/* RIGHT 5 COLS: CREW EARNINGS & MOBILE IN-CAB PWA ACCESS */}
+              {/* RIGHT 5 COLS: CREW EARNINGS & MOBILE IN-CAB PWA ACCESS (LIGHT SURFACE 90/8/2) */}
               <div className="lg:col-span-5 space-y-5">
-                <div className="bg-[#004225] text-white rounded-2xl p-6 shadow-md space-y-4">
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest bg-[#FEFCE8] text-[#713F12] px-2.5 py-1 rounded-full border border-[#F6EB61]">
+                <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-6 shadow-sm space-y-4">
+                  <span className="inline-block text-[10px] font-extrabold uppercase tracking-widest bg-[#FEFCE8] text-[#713F12] px-2.5 py-1 rounded-full border border-[#F6EB61]">
                     Already Approved on Hub 01 (M1 Corridor)?
                   </span>
-                  <h3 className="text-xl font-extrabold text-white">
+                  <h3 className="text-xl font-extrabold text-[#0A0F0D]">
                     Launch the Mobile In-Cab HUD (/cab)
                   </h3>
-                  <p className="text-xs text-slate-200 leading-relaxed">
+                  <p className="text-xs text-slate-600 leading-relaxed">
                     Access Gate A6 compliance onboarding, claim live Hub 01 showroom &amp; commercial loops, switch between 3 Driver-First routing modes, and capture Damage-Shield PoDs from your phone.
                   </p>
                   <button
                     type="button"
                     onClick={() => navigate('/cab')}
-                    className="min-h-[48px] w-full bg-[#F6EB61] hover:bg-yellow-300 text-[#0A0F0D] font-extrabold py-3 px-4 rounded-xl transition-all text-xs uppercase tracking-wider shadow-lg"
+                    className="min-h-[48px] w-full bg-[#004225] hover:bg-[#005A34] text-white font-extrabold py-3 px-4 rounded-xl transition-all text-xs uppercase tracking-wider shadow-sm"
                   >
                     📲 Open BEN. Crew In-Cab App (/cab) →
                   </button>
@@ -1141,7 +1131,7 @@ export default function App() {
 
                 <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-6 shadow-sm space-y-3">
                   <h4 className="text-sm font-extrabold text-[#0A0F0D] uppercase tracking-wider">
-                    Mercedes Sprinter &amp; 2-Man Operating Standards
+                    UK 3.5t &amp; 2-Man Crew Operating Standards
                   </h4>
                   <ul className="text-xs text-slate-600 space-y-2 leading-relaxed tabular-nums">
                     <li>
@@ -1507,7 +1497,7 @@ export default function App() {
             : 'border-[#E2E8F0] bg-[#FFFFFF] text-slate-500'
         }`}
       >
-        &copy; 2026 Ben Logistics Ltd (<span className="font-bold text-[#004225]">BEN.</span> — Mercedes Sprinter LWB &amp; 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs). Acting strictly as a Direct-to-Crew Logistics Operating System connecting Retailers and Independent Contractor Crews.
+        &copy; 2026 Ben Logistics Ltd (<span className="font-bold text-[#004225]">BEN.</span> — 3.5t LWB, XLWB &amp; Luton 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs). Acting strictly as a Direct-to-Crew Logistics Operating System connecting Retailers and Independent Contractor Crews.
       </footer>
     </div>
   )

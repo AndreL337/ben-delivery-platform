@@ -4,7 +4,7 @@ import type { VehicleSetup, LoopProfile, PricingTier, AgentEventItem } from '../
 export const PRICING_MATRIX: Record<VehicleSetup, Record<LoopProfile, PricingTier>> = {
   independent: {
     roc: {
-      label: 'Mercedes Sprinter LWB / 3.5t (2-Man) — Standard ROC',
+      label: '3.5t LWB, XLWB & Luton (2-Man) — Standard ROC',
       grossFee: 440,
       platformFee: 55,
       netPool: 385,
@@ -13,7 +13,7 @@ export const PRICING_MATRIX: Record<VehicleSetup, Record<LoopProfile, PricingTie
       shiftCap: '≤9 hrs • Hub 01 (M1 Corridor)'
     },
     assembly: {
-      label: 'Mercedes Sprinter LWB / 3.5t (2-Man) — Delivery & Assembly',
+      label: '3.5t LWB, XLWB & Luton (2-Man) — Delivery & Assembly',
       grossFee: 520,
       platformFee: 65,
       netPool: 455,
@@ -22,7 +22,7 @@ export const PRICING_MATRIX: Record<VehicleSetup, Record<LoopProfile, PricingTie
       shiftCap: '≤9 hrs • Hub 01 (M1 Corridor)'
     },
     overflow: {
-      label: 'Mercedes Sprinter LWB Multi-Drop / Overflow Loop (1–4 Drops)',
+      label: 'LWB / MWB Commercial Multi-Drop & Overflow Loop (1–4 Drops)',
       grossFee: 145,
       platformFee: 18.13,
       netPool: 126.87,

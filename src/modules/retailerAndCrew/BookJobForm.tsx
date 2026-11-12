@@ -100,7 +100,7 @@ export function BookJobForm({
     {
       docType: 'hire_and_reward',
       title: '3. Hire & Reward Motor Insurance',
-      subtitle: 'Commercial Mercedes Sprinter LWB / 3.5t haulage & courier motor policy certificate.',
+      subtitle: 'Commercial 3.5t LWB, XLWB, Luton & 7.5t haulage / courier motor policy certificate.',
       status: 'Action Required'
     }
   ])
@@ -790,8 +790,8 @@ export function BookJobForm({
                   }`}
                 >
                   {crewHasTailLiftLuton
-                    ? '✓ Mercedes Sprinter LWB + 3.5t Tail-Lift'
-                    : 'Mercedes Sprinter LWB High-Roof'}
+                    ? '✓ 3.5t Luton / Low-Loader + Tail-Lift'
+                    : 'LWB / XLWB High-Roof Panel Van (3.5t)'}
                 </button>
               </div>
             </div>
@@ -1278,7 +1278,7 @@ export function BookJobForm({
           )}
           <div className="mt-8 pt-4 border-t border-[#E2E8F0] text-center">
             <p className="text-[10px] text-slate-500 uppercase tracking-widest font-extrabold">
-              BEN. — Mercedes Sprinter LWB &amp; 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs • Outside IR35 Active
+              BEN. — 3.5t LWB, XLWB &amp; Luton 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs • Outside IR35 Active
             </p>
           </div>
         </div>

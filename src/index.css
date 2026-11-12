@@ -46,8 +46,23 @@ h1, h2, h3, h4, .font-display {
 .ben-wordmark {
   font-family: 'Outfit', sans-serif;
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.05em;
   line-height: 1;
+  display: inline-flex;
+  align-items: baseline;
+}
+
+.ben-wordmark-dot {
+  display: inline-block;
+  width: 0.3em;
+  height: 0.3em;
+  min-width: 7px;
+  min-height: 7px;
+  background-color: #F6EB61;
+  border: 1.5px solid #004225;
+  border-radius: 2px;
+  margin-left: 2px;
+  transform: translateY(-1px);
 }
 
 .tabular-nums {
