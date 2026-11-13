@@ -14,7 +14,8 @@ import {
   ArrowUpRight,
   X,
   Copy,
-  Printer
+  Printer,
+  Download
 } from 'lucide-react'
 import { supabase } from '../../config/supabaseClient'
 import { PRICING_MATRIX, parseManifestDrops } from '../../config/pricingMatrix2026'
@@ -520,7 +521,8 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                 onClick={handleExportCsv}
                 className="min-h-[38px] px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-[#0f172a] border border-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
               >
-                <span>⬇ Export CSV</span>
+                <Download className="w-3.5 h-3.5" />
+                <span>Export CSV</span>
               </button>
             </div>
           </div>
