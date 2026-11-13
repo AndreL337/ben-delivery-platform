@@ -6,6 +6,8 @@ import { AgentCommandCenter } from './modules/admin/AgentCommandCenter'
 import { ConsumerTrackView } from './modules/tracking/ConsumerTrackView'
 import { BookJobForm } from './modules/retailerAndCrew/BookJobForm'
 import { BenWordmark } from './shared/components/BenWordmark'
+import { BenLogo } from './shared/components/BenLogo'
+import { RateCardView } from './modules/marketing/RateCardView'
 import { LegalDocumentModal, type LegalDocType } from './shared/components/LegalModals'
 import './App.css'
 
@@ -49,7 +51,12 @@ function resolveRouteFromLocation(pathname: string, search: string): ParsedLocat
     return { route: 'command', trackedJobId: null }
   }
 
-  // 6. Default / -> Public B2B Landing Page
+  // 6. /rate-card -> Printable A4 B2B Rate Card & Pilot Sheet
+  if (/^\/rate-card$/i.test(cleanPath)) {
+    return { route: 'rate-card', trackedJobId: null }
+  }
+
+  // 7. Default / -> Public B2B Landing Page
   return { route: 'landing', trackedJobId: null }
 }
 
@@ -413,7 +420,7 @@ export default function App() {
             className="flex items-center space-x-3 text-left group"
           >
             <div className="flex flex-col">
-              <BenWordmark
+              <BenLogo
                 variant={isFlightDeckMode ? 'dark' : 'light'}
                 size="lg"
               />
@@ -428,6 +435,8 @@ export default function App() {
                   ? 'Ben Crew In-Cab HUD • UK M1 Corridor & National Hubs'
                   : currentRoute === 'portal'
                   ? 'Retailer Dispatch Workspace • Hub 01 (M1 Corridor) & National UK'
+                  : currentRoute === 'rate-card'
+                  ? '2026 Commercial B2B Rate Card & 3-Route Showroom Pilot Sheet'
                   : currentRoute === 'track'
                   ? 'Live Customer Delivery Telemetry • Damage-Shield Verified'
                   : '3.5t LWB, XLWB & Luton 2-Man Specialist Network — UK M1 Corridor & National Hubs'}
@@ -436,7 +445,9 @@ export default function App() {
           </button>
 
           {/* ISOLATED ROUTE ACTIONS PER EXPERIENCE */}
-          {(currentRoute === 'landing' || currentRoute === 'driver-waitlist') && (
+          {(currentRoute === 'landing' ||
+            currentRoute === 'driver-waitlist' ||
+            currentRoute === 'rate-card') && (
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
@@ -448,6 +459,17 @@ export default function App() {
                 }`}
               >
                 For Retailers
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/rate-card')}
+                className={`min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
+                  currentRoute === 'rate-card'
+                    ? 'bg-[#004225] text-white shadow-sm'
+                    : 'text-[#713F12] bg-[#FEFCE8] hover:bg-yellow-100 border border-[#004225]/30'
+                }`}
+              >
+                2026 Rate Card
               </button>
               <button
                 type="button"
@@ -479,6 +501,13 @@ export default function App() {
 
           {currentRoute === 'portal' && (
             <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => navigate('/rate-card')}
+                className="min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-[#713F12] bg-[#FEFCE8] hover:bg-yellow-100 border border-[#004225] transition-all"
+              >
+                📄 2026 Rate Card
+              </button>
               <button
                 type="button"
                 onClick={() => navigate('/')}
@@ -605,6 +634,13 @@ export default function App() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => navigate('/rate-card')}
+                  className="min-h-[52px] bg-[#FEFCE8] hover:bg-yellow-100 text-[#0A0F0D] border border-[#004225] font-extrabold py-3.5 px-5 rounded-xl transition-all shadow-sm text-xs"
+                >
+                  📄 2026 Printable B2B Rate Card (/rate-card)
+                </button>
+                <button
+                  type="button"
                   onClick={() => navigate('/track/mk-live-loop-884')}
                   className="min-h-[52px] bg-white hover:bg-slate-50 text-[#0A0F0D] border border-[#E2E8F0] font-extrabold py-3.5 px-5 rounded-xl transition-all shadow-sm text-xs"
                 >
@@ -612,6 +648,75 @@ export default function App() {
                 </button>
               </div>
             </div>
+
+            {/* GOOGLE POMELLI CAMPAIGN 01 — 3 CORE VALUE PILLAR CARDS */}
+            <section className="ben-blueprint-grid bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-6 md:p-8 shadow-sm space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#E2E8F0] pb-4">
+                <div className="space-y-1.5">
+                  <div className="ben-Accent-Bar" />
+                  <div className="flex items-center gap-2">
+                    <BenLogo variant="light" size="sm" />
+                    <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#004225]">
+                      DIRECT UK DISPATCH. NO 3PL MIDDLEMEN.
+                    </span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-[#0A0F0D] tracking-tight">
+                    Direct-to-Crew 2-Man Logistics Built for Commercial Shippers
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/rate-card')}
+                  className="text-xs font-extrabold text-[#004225] hover:underline self-start sm:self-end"
+                >
+                  Open Printable A4 Rate Card (/rate-card) →
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {/* PILLAR 1: DIRECT-TO-CREW UK LOGISTICS */}
+                <div className="ben-callout-left ben-card-offset-green rounded-xl p-5 space-y-2.5">
+                  <div className="ben-Accent-Bar" />
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#004225] block">
+                    Pillar 01 • Direct UK Dispatch
+                  </span>
+                  <h3 className="text-base font-extrabold text-[#0A0F0D] uppercase tracking-tight">
+                    Direct-to-Crew UK Logistics
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Connect commercial shippers straight to vetted 2-man delivery crews nationwide. Discover how direct-to-crew 2-man logistics cuts your supply chain costs instantly.
+                  </p>
+                </div>
+
+                {/* PILLAR 2: ZERO BROKER MARKUPS */}
+                <div className="ben-callout-left ben-card-offset-yellow rounded-xl p-5 space-y-2.5">
+                  <div className="ben-Accent-Bar" />
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#713F12] block">
+                    Pillar 02 • 87.5% Direct to Crew
+                  </span>
+                  <h3 className="text-base font-extrabold text-[#0A0F0D]">
+                    Zero Broker Markups
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Lock in transparent flat-rate loops across your UK supply chain with total clarity.
+                  </p>
+                </div>
+
+                {/* PILLAR 3: INSTANT DIGITAL PROOF OF DELIVERY */}
+                <div className="ben-callout-left ben-card-offset-green rounded-xl p-5 space-y-2.5">
+                  <div className="ben-Accent-Bar" />
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#004225] block">
+                    Pillar 03 • Damage-Shield Telemetry
+                  </span>
+                  <h3 className="text-base font-extrabold text-[#0A0F0D]">
+                    Instant Digital Proof of Delivery
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Track live updates and receive instant digital sign-offs right from the warehouse floor.
+                  </p>
+                </div>
+              </div>
+            </section>
 
             {/* NATIONAL UK HUB ARCHITECTURE STRIP */}
             <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-5 shadow-sm">
@@ -1389,6 +1494,13 @@ export default function App() {
            ===================================================================== */}
         {currentRoute === 'track' && (
           <ConsumerTrackView selectedJobId={trackedJobId} />
+        )}
+
+        {/* =====================================================================
+            ROUTE 5B: /rate-card (PRINTABLE A4 B2B RATE CARD & PILOT SHEET)
+           ===================================================================== */}
+        {currentRoute === 'rate-card' && (
+          <RateCardView onNavigate={navigate} />
         )}
 
         {/* =====================================================================

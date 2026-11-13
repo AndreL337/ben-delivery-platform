@@ -316,7 +316,19 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <a
+            href="/rate-card"
+            onClick={(e) => {
+              e.preventDefault()
+              window.history.pushState({}, '', '/rate-card')
+              window.dispatchEvent(new PopStateEvent('popstate'))
+            }}
+            className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[#FEFCE8] hover:bg-yellow-100 text-[#713F12] border border-[#004225] text-xs font-extrabold transition-all flex items-center gap-1.5"
+          >
+            <span>📄 2026 Rate Card</span>
+          </a>
+
           <button
             type="button"
             onClick={() => {
