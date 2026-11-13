@@ -1,0 +1,27 @@
+<svg width="360" height="120" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ben.">
+  <!-- Lowercase 'b': vertical ascender stem + geometric circular bowl -->
+  <path
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M2.8 4.0C2.8 3.34 3.34 2.8 4.0 2.8H9.3C9.96 2.8 10.5 3.34 10.5 4.0V13.56A13.35 13.35 0 1 1 10.5 35.64V36.6C10.5 37.26 9.96 37.8 9.3 37.8H4.0C3.34 37.8 2.8 37.26 2.8 36.6V4.0ZM17.2 18.05A6.55 6.55 0 1 0 17.2 31.15A6.55 6.55 0 1 0 17.2 18.05Z"
+    fill="#004225"
+  />
+
+  <!-- Connected 'en' Ligature: Lowercase 'e' with continuous horizontal route-bridge into left stem of 'n' -->
+  <path
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M60.74 21.3A13.35 13.35 0 1 0 60.22 29.5L53.19 28.5A6.65 6.65 0 0 1 41.56 26.9H66.3V36.6C66.3 37.26 66.84 37.8 67.5 37.8H72.8C73.46 37.8 74.0 37.26 74.0 36.6V24.8A6.7 6.7 0 0 1 87.4 24.8V36.6C87.4 37.26 87.94 37.8 88.6 37.8H93.8C94.46 37.8 95.0 37.26 95.0 36.6V23.45A12.2 12.2 0 0 0 74.0 15.0V12.8C74.0 12.14 73.46 11.6 72.8 11.6H67.5C66.84 11.6 66.3 12.14 66.3 12.8V21.3H60.74ZM42.03 21.3H53.57A6.65 6.65 0 0 0 42.03 21.3Z"
+    fill="#004225"
+  />
+
+  <!-- Terminal Waypoint Dot (`.`): Primrose Yellow (#F6EB61) with 2.5px British Racing Green (#004225) outer stroke -->
+  <circle
+    cx="106.2"
+    cy="31.3"
+    r="5.2"
+    fill="#F6EB61"
+    stroke="#004225"
+    stroke-width="2.5"
+  />
+</svg>
