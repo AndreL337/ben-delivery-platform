@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ben Logistics — 2026 Milton Keynes Commercial Rate Card &amp; Showroom Pilot</title>
+  <style>
+    :root {
+      --forest: #064e3b;
+      --forest-light: #ecfdf5;
+      --amber: #eab308;
+      --amber-bg: #fefce8;
+      --ink: #0f172a;
+      --muted: #475569;
+      --border: #cbd5e1;
+    }
+    @page {
+      size: A4 portrait;
+      margin: 12mm;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+      color: var(--ink);
+      background: #f1f5f9;
+      line-height: 1.45;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 16px auto;
+      background: #ffffff;
+      padding: 14mm 16mm;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    @media print {
+      body { background: #ffffff; }
+      .page {
+        width: 100%;
+        min-height: auto;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+      }
+      .no-print { display: none !important; }
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 3px solid var(--forest);
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-badge {
+      background: var(--forest);
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 20px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      letter-spacing: 0.04em;
+    }
+    .brand-sub {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .contact-pill {
+      text-align: right;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .contact-pill strong {
+      color: var(--forest);
+      font-size: 12px;
+      display: block;
+    }
+    .hero {
+      background: var(--forest);
+      color: #ffffff;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 14px;
+      border-left: 6px solid var(--amber);
+    }
+    .hero-tag {
+      display: inline-block;
+      background: var(--amber);
+      color: var(--ink);
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+    }
+    .hero h1 {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+    .hero p {
+      font-size: 12px;
+      color: #d1fae5;
+    }
+    h2 {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--forest);
+      margin-bottom: 8px;
+      margin-top: 4px;
+    }
+    .rates-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .rate-card {
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .rate-card.featured {
+      border-color: var(--forest);
+      background: var(--forest-light);
+    }
+    .rate-card .tier {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--forest);
+    }
+    .rate-card .price {
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--ink);
+      margin: 4px 0;
+    }
+    .rate-card .price span {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .rate-card ul {
+      list-style: none;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    .rate-card li {
+      margin-bottom: 3px;
+    }
+    .pilot-box {
+      background: var(--amber-bg);
+      border: 1.5px solid var(--amber);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+    }
+    .pilot-box h3 {
+      font-size: 13px;
+      font-weight: 800;
+      color: #713f12;
+      margin-bottom: 4px;
+    }
+    .pilot-box p {
+      font-size: 11.5px;
+      color: #422006;
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .info-panel {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: #f8fafc;
+    }
+    .info-panel h3 {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--forest);
+      margin-bottom: 6px;
+    }
+    .info-panel ul {
+      padding-left: 16px;
+      font-size: 11px;
+      color: var(--ink);
+    }
+    .info-panel li {
+      margin-bottom: 4px;
+    }
+    .footer {
+      border-top: 2px solid var(--border);
+      padding-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10.5px;
+      color: var(--muted);
+    }
+    .cta-pill {
+      background: var(--forest);
+      color: #ffffff;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 11px;
+      text-decoration: none;
+    }
+    .print-bar {
+      text-align: center;
+      padding: 10px;
+    }
+    .print-bar button {
+      background: var(--forest);
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="print-bar no-print">
+    <button onclick="window.print()">🖨 Print / Export A4 PDF</button>
+  </div>
+
+  <div class="page">
+    <div>
+      <header class="header">
+        <div class="brand">
+          <div class="brand-badge">BEN LOGISTICS</div>
+          <div>
+            <div style="font-weight:800;font-size:14px;color:var(--ink);">Milton Keynes 2-Man Bulky Network</div>
+            <div class="brand-sub">2026 Commercial Rate Card &amp; Showroom Pilot Sheet</div>
+          </div>
+        </div>
+        <div class="contact-pill">
+          <strong>ops@benlogistics.co.uk</strong>
+          <span>Portal: https://benlogistics.co.uk/portal</span>
+          <br />
+          <span>Milton Keynes Hub (MK1–MK19 • 35-Mile Zone)</span>
+        </div>
+      </header>
+
+      <section class="hero">
+        <span class="hero-tag">Showroom Pilot • Zero Upfront Retainer</span>
+        <h1>Enterprise 2-Man Bulky Dispatch Without 3PL Lock-In</h1>
+        <p>
+          Aptean-grade route matching, 3-stage live customer SMS tracking, depot pre-load condition checks, and photo + e-signature Proof of Delivery for Milton Keynes furniture, kitchen &amp; appliance showrooms.
+        </p>
+      </section>
+
+      <h2>1. Transparent 2026 Flat-Rate Schedule (Milton Keynes Hub)</h2>
+      <div class="rates-grid">
+        <div class="rate-card featured">
+          <div>
+            <div class="tier">Standard 2-Man ROC</div>
+            <div class="price">£440 <span>/ day</span></div>
+            <ul>
+              <li>✓ <strong>Up to 16 drops</strong> (≤9 hrs)</li>
+              <li>✓ 3.5t Luton Van + Tail-Lift</li>
+              <li>✓ Room-of-Choice (up to 2nd floor)</li>
+              <li>✓ £385 Crew / £55 Ben Fee (12.5%)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="rate-card">
+          <div>
+            <div class="tier">Delivery &amp; Assembly</div>
+            <div class="price">£520 <span>/ day</span></div>
+            <ul>
+              <li>✓ <strong>Up to 8 drops</strong> (≤9 hrs)</li>
+              <li>✓ 2-Man White-Glove &amp; Tools</li>
+              <li>✓ Beds, Dining Tables &amp; Wardrobes</li>
+              <li>✓ £455 Crew / £65 Ben Fee (12.5%)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="rate-card">
+          <div>
+            <div class="tier">Overflow / Friday Rescue</div>
+            <div class="price">£145 <span>/ flat</span></div>
+            <ul>
+              <li>✓ <strong>1–4 drops</strong> (≤3.5 hrs / ≤20 mi)</li>
+              <li>✓ Same-Day / Next-Day Cover</li>
+              <li>✓ Ideal for missed drops or failed carriers</li>
+              <li>✓ Zero contract or minimum volume</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="pilot-box">
+        <h3>🛡 "Pay-on-Success" Showroom Pilot Guarantee (First 3 Routes / 14 Days)</h3>
+        <p>
+          Put Ben to the test risk-free: your showroom pays the fixed route rate <strong>only upon verified photographic &amp; e-signature Proof of Delivery (PoD)</strong>. If a run fails due to crew error, transit damage, or platform fault, you are invoiced <strong>£0.00</strong>. All crews carry verified £20k–£50k+ Goods in Transit &amp; £1m+ Public Liability insurance (covering both Lead Driver &amp; Porter) with a 48-hour damage SLA.
+        </p>
+      </div>
+
+      <h2>2. Two Flexible Deployment Modes</h2>
+      <div class="two-col">
+        <div class="info-panel">
+          <h3>Option A: Marketplace (Vetted Ben 2-Man Crews)</h3>
+          <ul>
+            <li><strong>Instant Surge Capacity:</strong> Dispatch onto the Milton Keynes Open Freight Board in 60 seconds.</li>
+            <li><strong>Tail-Lift &amp; Assembly Matching:</strong> Automatically restricts heavy &gt;100kg loads to verified 3.5t Luton tail-lift crews.</li>
+            <li><strong>Direct Day-1 Settlement:</strong> 87.5% paid directly to crew + 12.5% Ben platform fee invoiced on PoD.</li>
+          </ul>
+        </div>
+
+        <div class="info-panel">
+          <h3>Option B: In-House Van Software (Client Vehicle Pod)</h3>
+          <ul>
+            <li><strong>Keep Your Own Vans (£350 ROC / £410 Assembly):</strong> Use Ben's 2-man labour pods or run your own fleet through our portal.</li>
+            <li><strong>Enterprise Telemetry Included:</strong> Depot pre-load photos, 3-stage customer `/track` links, and 90-day GDPR PoD archive.</li>
+            <li><strong>Fair-Use Guardrails:</strong> 35-mile MK9 radius (£2.20/mi out-of-zone), 1,200 kg payload cap, +£25 3rd-floor no-lift surcharge.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div>
+        <strong>Ben Logistics Ltd</strong> — Acting strictly as a UK B2B technology marketplace agent.<br />
+        35-mile MK9 radius • 48-hr damage SLA • UK GDPR 90-day automated PoD retention.
+      </div>
+      <a class="cta-pill" href="https://benlogistics.co.uk/portal">Book First Pilot Run → benlogistics.co.uk/portal</a>
+    </footer>
+  </div>
+</body>
+</html>

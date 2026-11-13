@@ -6,6 +6,7 @@ import { AgentCommandCenter } from './modules/admin/AgentCommandCenter'
 import { ConsumerTrackView } from './modules/tracking/ConsumerTrackView'
 import { BookJobForm } from './modules/retailerAndCrew/BookJobForm'
 import { BenWordmark } from './shared/components/BenWordmark'
+import { LegalDocumentModal, type LegalDocType } from './shared/components/LegalModals'
 import './App.css'
 
 interface ParsedLocation {
@@ -72,6 +73,7 @@ export default function App() {
   const [authChecking, setAuthChecking] = useState<boolean>(true)
   const [isAdminVerified, setIsAdminVerified] = useState<boolean>(false)
   const [adminUnlockedInSession, setAdminUnlockedInSession] = useState<boolean>(false)
+  const [activeLegalDoc, setActiveLegalDoc] = useState<LegalDocType | null>(null)
 
   // Auth Form States (isolated per protected route: /portal, /cab, /command)
   const [authEmail, setAuthEmail] = useState('')
@@ -1489,14 +1491,45 @@ export default function App() {
 
       {/* FOOTER */}
       <footer
-        className={`w-full py-6 border-t text-center text-xs font-medium mt-auto ${
+        className={`w-full py-6 px-6 border-t text-center text-xs font-medium mt-auto ${
           isFlightDeckMode
             ? 'border-white/10 bg-[#090D16] text-slate-400'
             : 'border-[#E2E8F0] bg-[#FFFFFF] text-slate-500'
         }`}
       >
-        &copy; 2026 Ben Logistics Ltd (<BenWordmark variant={isFlightDeckMode ? 'dark' : 'light'} size="sm" className="mx-0.5" /> — 3.5t LWB, XLWB &amp; Luton 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs). Acting strictly as a Direct-to-Crew Logistics Operating System connecting Retailers and Independent Contractor Crews.
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+          <span>
+            &copy; 2026 Ben Logistics Ltd (
+            <BenWordmark variant={isFlightDeckMode ? 'dark' : 'light'} size="sm" className="mx-0.5" />{' '}
+            — UK Ltd Marketplace Agent). Not a carrier or employer.
+          </span>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] font-bold">
+            <button
+              type="button"
+              onClick={() => setActiveLegalDoc('terms')}
+              className="hover:underline text-emerald-700"
+            >
+              Platform Terms &amp; Conditions
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveLegalDoc('retailer_pilot')}
+              className="hover:underline text-emerald-700"
+            >
+              Pay-on-Success Pilot Agreement
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveLegalDoc('gdpr')}
+              className="hover:underline text-emerald-700"
+            >
+              UK GDPR &amp; 90-Day Data Retention
+            </button>
+          </div>
+        </div>
       </footer>
+
+      <LegalDocumentModal docType={activeLegalDoc} onClose={() => setActiveLegalDoc(null)} />
     </div>
   )
 }

@@ -8,6 +8,7 @@ import {
 } from '../../shared/utils/manifestAiParser'
 import { RateJobModal, DisputePanel } from '../../shared/components/FeedbackModals'
 import { BenWordmark } from '../../shared/components/BenWordmark'
+import { LegalDocumentModal, type LegalDocType } from '../../shared/components/LegalModals'
 
 export interface RetailerPortalViewProps {
   retailerId: string
@@ -57,8 +58,12 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
   const [drawerError, setDrawerError] = useState<string | null>(null)
   const [toastBanner, setToastBanner] = useState<string | null>(null)
 
-  // Modals: PoD Certificate, Crew Rating, Dispute
+  // Modals: PoD Certificate, Pilot Invoice/Settlement, Legal Terms, Crew Rating, Dispute
   const [selectedJobForPoD, setSelectedJobForPoD] = useState<any | null>(null)
+  const [selectedJobForInvoice, setSelectedJobForInvoice] = useState<any | null>(null)
+  const [pilotTermsAccepted, setPilotTermsAccepted] = useState<boolean>(false)
+  const [activeLegalDoc, setActiveLegalDoc] = useState<LegalDocType | null>(null)
+  const [invoiceCopied, setInvoiceCopied] = useState<boolean>(false)
   const [ratingJob, setRatingJob] = useState<any | null>(null)
   const [disputeJob, setDisputeJob] = useState<any | null>(null)
 
@@ -190,6 +195,12 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
     }
     if (parsedDrops.length === 0) {
       setDrawerError('Please enter at least one delivery destination (1 line per stop).')
+      return
+    }
+    if (!pilotTermsAccepted) {
+      setDrawerError(
+        'Please review and accept the Retailer Service Agreement & Pay-on-Success Pilot Terms before dispatching.'
+      )
       return
     }
 
@@ -599,7 +610,13 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                           )}
                         </td>
                         <td className="py-3.5 px-4 text-right font-bold text-[#0f172a] whitespace-nowrap tabular-nums">
-                          £{Number(job.gross_fee ?? 440).toFixed(2)}
+                          <div>£{Number(job.gross_fee ?? 440).toFixed(2)}</div>
+                          {isCompleted && (
+                            <div className="text-[10px] font-semibold text-slate-500 mt-0.5">
+                              Crew £{Number(job.net_pool ?? Number(job.gross_fee ?? 440) * 0.875).toFixed(2)} (87.5%) • Ben £
+                              {Number(job.platform_fee ?? Number(job.gross_fee ?? 440) * 0.125).toFixed(2)} (12.5%)
+                            </div>
+                          )}
                         </td>
                         <td className="py-3.5 px-4 text-right whitespace-nowrap">
                           <div className="inline-flex items-center justify-end gap-1.5">
@@ -611,6 +628,17 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                                   className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-bold transition-all"
                                 >
                                   View PoD
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setInvoiceCopied(false)
+                                    setSelectedJobForInvoice(job)
+                                  }}
+                                  className="px-2.5 py-1.5 rounded-lg bg-[#004225] hover:bg-[#005A34] text-white text-xs font-bold transition-all shadow-sm"
+                                  title="Generate Pilot Invoice / Settlement Summary"
+                                >
+                                  Invoice / Split
                                 </button>
                                 <button
                                   type="button"
@@ -895,13 +923,36 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                         Total Fixed Run Fee
                       </span>
                       <span className="text-[11px] text-slate-500">
-                        Includes £{netPool.toFixed(2)} Net Crew Pool + £{platformFee.toFixed(2)} Platform Fee
+                        Includes £{netPool.toFixed(2)} Direct Crew Settlement (87.5%) + £{platformFee.toFixed(2)} Ben Fee (12.5%)
                       </span>
                     </div>
                     <span className="text-2xl font-extrabold text-[#0f172a]">
                       £{grossFee.toFixed(2)}
                     </span>
                   </div>
+                </div>
+
+                {/* 5. Retailer Service Agreement & Pay-on-Success Pilot Terms Gate */}
+                <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3.5 space-y-2">
+                  <label className="flex items-start gap-2.5 cursor-pointer text-xs text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={pilotTermsAccepted}
+                      onChange={(e) => setPilotTermsAccepted(e.target.checked)}
+                      className="w-4 h-4 mt-0.5 rounded border-slate-300 text-[#004225]"
+                    />
+                    <span>
+                      I accept the{' '}
+                      <button
+                        type="button"
+                        onClick={() => setActiveLegalDoc('retailer_pilot')}
+                        className="font-extrabold text-[#004225] underline hover:text-emerald-900"
+                      >
+                        Retailer Service Agreement &amp; Pay-on-Success Pilot Terms
+                      </button>{' '}
+                      (£0.00 fee if Ben/crew fails, 48-hr damage SLA, direct crew settlement + 12.5% platform fee invoice on verified PoD).
+                    </span>
+                  </label>
                 </div>
               </div>
 
@@ -1015,6 +1066,18 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
               <button
                 type="button"
+                onClick={() => {
+                  const job = selectedJobForPoD
+                  setSelectedJobForPoD(null)
+                  setInvoiceCopied(false)
+                  setSelectedJobForInvoice(job)
+                }}
+                className="px-4 py-2 rounded-lg bg-[#004225] hover:bg-[#005A34] text-white text-xs font-bold shadow-sm"
+              >
+                Generate Pilot Invoice / Settlement Summary →
+              </button>
+              <button
+                type="button"
                 onClick={() => setSelectedJobForPoD(null)}
                 className="px-4 py-2 rounded-lg bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-bold"
               >
@@ -1024,6 +1087,144 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* PILOT SETTLEMENT & 12.5% PLATFORM FEE INVOICE MODAL */}
+      {selectedJobForInvoice && (() => {
+        const gross = Number(selectedJobForInvoice.gross_fee ?? 440)
+        const crewNet = Number(selectedJobForInvoice.net_pool ?? gross * 0.875)
+        const benFee = Number(selectedJobForInvoice.platform_fee ?? gross * 0.125)
+        const invDate = selectedJobForInvoice.created_at
+          ? new Date(selectedJobForInvoice.created_at).toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0]
+        const invRef = `BEN-PILOT-${String(selectedJobForInvoice.id).slice(0, 8).toUpperCase()}`
+        const summaryText = [
+          `BEN LOGISTICS LTD — DAY-1 PILOT SETTLEMENT & PLATFORM FEE INVOICE`,
+          `Invoice Reference: ${invRef}`,
+          `Date: ${invDate}`,
+          `Showroom: ${retailerName}`,
+          `Manifest: #MK-${selectedJobForInvoice.id}`,
+          `Origin: ${selectedJobForInvoice.pickup_address}`,
+          `------------------------------------------------------------`,
+          `1. 87.5% Direct Crew Settlement (Paid Directly to Crew): £${crewNet.toFixed(2)}`,
+          `2. 12.5% Ben Platform Fee (Invoiced by Ben Logistics Ltd): £${benFee.toFixed(2)}`,
+          `Total Route Value (Verified PoD): £${gross.toFixed(2)}`,
+          `------------------------------------------------------------`,
+          `Pilot Settlement Note: Ben Logistics Ltd acts strictly as a tech marketplace agent and does not hold client escrow funds during the MK pilot.`
+        ].join('\n')
+
+        return (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+            <div className="bg-white border border-slate-200 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-5 text-[#0f172a]">
+              <div className="flex items-start justify-between border-b border-slate-200 pb-4">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-extrabold uppercase tracking-wider">
+                    Day-1 Pilot Direct Settlement • Zero Escrow Held
+                  </span>
+                  <h3 className="text-lg font-extrabold text-[#0f172a] mt-1.5">
+                    Pilot Invoice &amp; Settlement Summary ({invRef})
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Manifest #MK-{String(selectedJobForInvoice.id)} • Verified PoD Date: {invDate}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedJobForInvoice(null)}
+                  className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3 text-xs tabular-nums">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-extrabold text-[#0f172a] block">
+                      1. 87.5% Direct Crew Settlement
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      Settled directly to Independent 2-Man Crew (#
+                      {selectedJobForInvoice.driver_id
+                        ? String(selectedJobForInvoice.driver_id).slice(0, 6).toUpperCase()
+                        : 'MK-CREW'}
+                      )
+                    </span>
+                  </div>
+                  <span className="text-base font-extrabold text-[#004225]">
+                    £{crewNet.toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between pt-2.5 border-t border-slate-200">
+                  <div>
+                    <span className="font-extrabold text-[#0f172a] block">
+                      2. 12.5% Ben Platform Fee Invoice
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      Invoiced by Ben Logistics Ltd upon verified photographic + e-signature PoD
+                    </span>
+                  </div>
+                  <span className="text-base font-extrabold text-[#0f172a]">
+                    £{benFee.toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between pt-2.5 border-t border-slate-300">
+                  <span className="font-extrabold uppercase tracking-wider text-[#0f172a]">
+                    Total Completed Route Value
+                  </span>
+                  <span className="text-xl font-extrabold text-[#0f172a]">
+                    £{gross.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-950 leading-relaxed">
+                <strong>Compliance &amp; Escrow Notice:</strong> To keep Day-1 Milton Keynes pilot
+                operations lean and compliant, Ben Logistics Ltd does not hold unregulated client
+                escrow funds. Showrooms settle the 87.5% crew pool directly upon PoD and pay the
+                12.5% Ben Platform Fee invoice (ops@benlogistics.co.uk).
+              </div>
+
+              <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(summaryText)
+                    setInvoiceCopied(true)
+                  }}
+                  className="px-4 py-2 rounded-lg bg-white hover:bg-slate-50 text-[#0f172a] border border-slate-200 text-xs font-bold"
+                >
+                  {invoiceCopied ? '✓ Copied to Clipboard' : '📋 Copy Summary'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-4 py-2 rounded-lg bg-[#004225] hover:bg-[#005A34] text-white text-xs font-bold shadow-sm"
+                >
+                  🖨 Print / Save PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedJobForInvoice(null)}
+                  className="px-4 py-2 rounded-lg bg-[#0f172a] hover:bg-slate-800 text-white text-xs font-bold"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* LEGAL TERMS & PAY-ON-SUCCESS PILOT AGREEMENT MODAL */}
+      <LegalDocumentModal
+        docType={activeLegalDoc}
+        onClose={() => setActiveLegalDoc(null)}
+        onAccept={
+          activeLegalDoc === 'retailer_pilot' ? () => setPilotTermsAccepted(true) : undefined
+        }
+      />
 
       {/* CREW RATING MODAL */}
       {ratingJob && (
