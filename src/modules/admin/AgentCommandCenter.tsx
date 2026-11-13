@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Cpu, Zap, Database, Copy, Check, X } from 'lucide-react'
 import { supabase } from '../../config/supabaseClient'
 import { DEFAULT_AGENT_EVENTS } from '../../config/pricingMatrix2026'
 import type { AgentEventItem } from '../../types/logistics'
@@ -80,7 +81,7 @@ export function AgentCommandCenter() {
     if (target && decision === 'approved') {
       if (target.event_type === 'CREW_INSURANCE_AUDIT') {
         setActionToast(
-          '✓ Supply & Compliance Agent: Marked driver GIT & Public Liability documents as Verified in `public.compliance_documents`.'
+          'Supply & Compliance Agent: Marked driver GIT & Public Liability documents as Verified in `public.compliance_documents`.'
         )
         try {
           await supabase
@@ -92,11 +93,11 @@ export function AgentCommandCenter() {
         }
       } else if (target.event_type === 'FAIR_USE_SURCHARGE_FLAG') {
         setActionToast(
-          '✓ Dispatch Guardrail Agent: Applied +£25.00 heavy-access & out-of-zone mileage surcharge to active route ledger.'
+          'Dispatch Guardrail Agent: Applied +£25.00 heavy-access & out-of-zone mileage surcharge to active route ledger.'
         )
       } else if (target.event_type === 'ESCROW_RELEASE_READY') {
         setActionToast(
-          '✓ PoD & Settlement Agent: Released 48-hr escrow hold (`payouts.status = released`) for £385.00 net crew payout.'
+          'PoD & Settlement Agent: Released 48-hr escrow hold (`payouts.status = released`) for £385.00 net crew payout.'
         )
         try {
           await supabase
@@ -107,10 +108,10 @@ export function AgentCommandCenter() {
           // Local state preserved
         }
       } else {
-        setActionToast(`✓ Approved ${target.agent_name} event (${target.event_type}).`)
+        setActionToast(`Approved ${target.agent_name} event (${target.event_type}).`)
       }
     } else if (target && decision === 'rejected') {
-      setActionToast(`✕ Rejected ${target.agent_name} recommendation (${target.event_type}).`)
+      setActionToast(`Rejected ${target.agent_name} recommendation (${target.event_type}).`)
     }
 
     try {
@@ -223,7 +224,7 @@ export function AgentCommandCenter() {
           </span>
           <div className="text-2xl font-extrabold text-white mt-1 tabular-nums flex items-baseline gap-2">
             <span>87.5% Pool</span>
-            <span className="text-xs font-bold text-[#10B981]">✓ Outside IR35</span>
+            <span className="text-xs font-bold text-[#10B981]">Outside IR35</span>
           </div>
           <span className="text-[11px] text-slate-400 block mt-0.5">
             48-Hr Post-PoD Dispute Shield Armed
@@ -276,8 +277,9 @@ export function AgentCommandCenter() {
                 {supabaseConnected ? '● Supabase Live' : '● Resilient Local Mesh Active'}
               </span>
             </div>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-white mt-2.5 tracking-tight">
-              🤖 Ben Agent Command Center
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white mt-2.5 tracking-tight flex items-center gap-2.5">
+              <Cpu className="w-7 h-7 text-[#00F5D4]" strokeWidth={1.75} />
+              <span>Ben Agent Command Center</span>
             </h2>
             <p className="text-sm text-slate-300 mt-1 max-w-2xl">
               Executive glassmorphism flight deck for Gate A6 compliance clearance, 35-mile / 3rd-floor fair-use guardrails, and 48-hour escrow release.
@@ -293,21 +295,23 @@ export function AgentCommandCenter() {
               onClick={loadAgentEvents}
               className="min-h-[44px] text-xs font-extrabold px-4 py-2 rounded-xl border border-white/15 bg-slate-900/90 hover:bg-slate-800 text-slate-100 transition-all"
             >
-              {loadingEvents ? 'Refreshing...' : '↻ Sync Queue'}
+              {loadingEvents ? 'Refreshing...' : 'Sync Queue'}
             </button>
             <button
               type="button"
               onClick={seedDefaultEventsToSupabase}
-              className="min-h-[44px] text-xs font-extrabold px-4 py-2 rounded-xl border border-[#00F5D4]/40 bg-[#00F5D4]/10 hover:bg-[#00F5D4]/20 text-[#00F5D4] transition-all"
+              className="min-h-[44px] text-xs font-extrabold px-4 py-2 rounded-xl border border-[#00F5D4]/40 bg-[#00F5D4]/10 hover:bg-[#00F5D4]/20 text-[#00F5D4] transition-all inline-flex items-center gap-1.5"
             >
-              ⚡ Push Seed Events
+              <Zap className="w-3.5 h-3.5" strokeWidth={1.75} />
+              <span>Push Seed Events</span>
             </button>
             <button
               type="button"
               onClick={() => setShowSql(!showSql)}
-              className="min-h-[44px] text-xs font-extrabold px-4 py-2 rounded-xl bg-[#10B981] hover:bg-emerald-400 text-slate-950 transition-all shadow-lg shadow-emerald-500/20"
+              className="min-h-[44px] text-xs font-extrabold px-4 py-2 rounded-xl bg-[#10B981] hover:bg-emerald-400 text-slate-950 transition-all shadow-lg shadow-emerald-500/20 inline-flex items-center gap-1.5"
             >
-              {showSql ? 'Hide SQL Setup' : '🗄 `agent_events` SQL Setup'}
+              <Database className="w-3.5 h-3.5" strokeWidth={1.75} />
+              <span>{showSql ? 'Hide SQL Setup' : '`agent_events` SQL Setup'}</span>
             </button>
           </div>
         </div>
@@ -318,9 +322,9 @@ export function AgentCommandCenter() {
             <button
               type="button"
               onClick={() => setActionToast('')}
-              className="text-emerald-300 hover:text-white ml-3"
+              className="text-emerald-300 hover:text-white ml-3 p-1"
             >
-              ✕
+              <X className="w-4 h-4" strokeWidth={1.75} />
             </button>
           </div>
         )}
@@ -333,15 +337,25 @@ export function AgentCommandCenter() {
                   Supabase SQL Editor Initializer (`public.agent_events`)
                 </h4>
                 <p className="text-xs text-slate-400">
-                  Run this snippet in your Supabase SQL Editor to persist Agent Command Center approvals & rejections.
+                  Run this snippet in your Supabase SQL Editor to persist Agent Command Center approvals &amp; rejections.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={copySqlToClipboard}
-                className="text-xs font-extrabold px-3 py-1.5 rounded-lg bg-[#00F5D4] hover:bg-teal-300 text-slate-950 transition-all"
+                className="text-xs font-extrabold px-3 py-1.5 rounded-lg bg-[#00F5D4] hover:bg-teal-300 text-slate-950 transition-all inline-flex items-center gap-1.5"
               >
-                {copiedSql ? '✓ Copied SQL!' : '📋 Copy SQL'}
+                {copiedSql ? (
+                  <>
+                    <Check className="w-3.5 h-3.5" strokeWidth={2} />
+                    <span>Copied SQL</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" strokeWidth={1.75} />
+                    <span>Copy SQL</span>
+                  </>
+                )}
               </button>
             </div>
             <pre className="text-xs font-mono text-[#00F5D4] overflow-x-auto bg-black/50 p-4 rounded-lg border border-white/10 leading-relaxed">
@@ -417,7 +431,7 @@ export function AgentCommandCenter() {
                       : 'bg-[#10B981] hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20'
                   }`}
                 >
-                  {ev.status === 'approved' ? '✓ Approved & Executed' : 'Approve & Execute'}
+                  {ev.status === 'approved' ? 'Approved & Executed' : 'Approve & Execute'}
                 </button>
                 <button
                   type="button"
@@ -429,7 +443,7 @@ export function AgentCommandCenter() {
                       : 'bg-slate-900 hover:bg-red-950/60 text-red-300 border border-red-500/30'
                   }`}
                 >
-                  {ev.status === 'rejected' ? '✕ Rejected' : 'Reject'}
+                  {ev.status === 'rejected' ? 'Rejected' : 'Reject'}
                 </button>
               </div>
             </div>

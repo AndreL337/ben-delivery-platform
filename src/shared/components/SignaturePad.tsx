@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react'
+import { PenTool, Check } from 'lucide-react'
 
 export function SignaturePad({
   onSaveSvg,
@@ -94,13 +95,15 @@ export function SignaturePad({
   return (
     <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
-          ✍️ Customer Room-of-Choice e-Signature (`signature_svg`)
+        <span className="text-xs font-bold uppercase tracking-wider text-slate-700 inline-flex items-center gap-1.5">
+          <PenTool className="w-3.5 h-3.5 text-[#004225]" strokeWidth={1.75} />
+          <span>Customer Room-of-Choice e-Signature (`signature_svg`)</span>
         </span>
         <div className="flex items-center gap-2">
           {savedSvg && (
-            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
-              ✓ Signature Captured
+            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+              <Check className="w-3 h-3" strokeWidth={2} />
+              <span>Signature Captured</span>
             </span>
           )}
           <button

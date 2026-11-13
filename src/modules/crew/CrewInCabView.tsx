@@ -1,4 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react'
+import {
+  Package,
+  MapPin,
+  AlertTriangle,
+  Zap,
+  X,
+  Navigation,
+  Phone,
+  Camera,
+  ShieldCheck,
+  Wrench,
+  Home,
+  Check,
+  ArrowRight,
+  ArrowUpRight,
+  FileWarning
+} from 'lucide-react'
 import { SignaturePad } from '../../shared/components/SignaturePad'
 import { MKRouteVisualizer } from '../../shared/components/MKRouteVisualizer'
 import { BenWordmark } from '../../shared/components/BenWordmark'
@@ -83,7 +100,7 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
     noteText: string
   ) => {
     await onLogException(currentStop.postcode, hazardType, noteText)
-    setLocalBanner(`⚠️ Logged [${hazardType.replace('_', ' ').toUpperCase()}]: ${noteText}`)
+    setLocalBanner(`Logged [${hazardType.replace('_', ' ').toUpperCase()}]: ${noteText}`)
     setShowDelayMenu(false)
   }
 
@@ -190,8 +207,9 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
               <span className="w-2 h-2 rounded-full bg-[#713F12] animate-pulse" />
               STOP {currentStopNumber} OF {totalStops}
             </span>
-            <span className="px-2.5 py-1 rounded-full bg-[#004225] border border-emerald-400/40 text-[#F6EB61] text-xs font-extrabold tabular-nums">
-              📦 {shortZoneLabel}
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#004225] border border-emerald-400/40 text-[#F6EB61] text-xs font-bold tabular-nums">
+              <Package className="w-3.5 h-3.5" strokeWidth={1.75} />
+              <span>{shortZoneLabel}</span>
             </span>
           </div>
 
@@ -200,17 +218,19 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenConsumerTracker(String(job.id))}
-                className="hidden sm:inline-flex min-h-[38px] items-center px-3 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-white/10 text-xs font-extrabold"
+                className="hidden sm:inline-flex min-h-[38px] items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-white/10 text-xs font-semibold"
               >
-                📍 Live Track
+                <MapPin className="w-3.5 h-3.5" strokeWidth={1.75} />
+                <span>Live Track</span>
               </button>
             )}
             <button
               type="button"
               onClick={() => setShowDelayMenu(!showDelayMenu)}
-              className="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold tracking-wide uppercase shadow-md transition-all shrink-0"
+              className="min-h-[40px] px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold tracking-wide uppercase shadow-md transition-all shrink-0 inline-flex items-center gap-1.5"
             >
-              ⚠️ FLAG DELAY
+              <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2} />
+              <span>FLAG DELAY</span>
             </button>
           </div>
         </div>
@@ -219,15 +239,16 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
         {showDelayMenu && (
           <div className="bg-slate-950/95 backdrop-blur-md border border-amber-400/40 rounded-2xl p-3.5 shadow-2xl space-y-2.5 text-white">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold uppercase tracking-wider text-amber-300">
-                ⚡ 1-Tap Non-Blocking Delay & Street-Sense Logger ({currentStop.postcode})
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-300 inline-flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5" strokeWidth={1.75} />
+                <span>1-Tap Non-Blocking Delay &amp; Street-Sense Logger ({currentStop.postcode})</span>
               </span>
               <button
                 type="button"
                 onClick={() => setShowDelayMenu(false)}
-                className="text-xs text-slate-400 hover:text-white font-bold px-2"
+                className="text-xs text-slate-400 hover:text-white font-bold p-1"
               >
-                ✕
+                <X className="w-4 h-4" strokeWidth={1.75} />
               </button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -239,9 +260,10 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
                     'Traffic / Gridlock delay on MK approach (+15 mins ETA notified)'
                   )
                 }
-                className="min-h-[44px] p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-left text-xs font-extrabold text-amber-200"
+                className="min-h-[44px] p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-left text-xs font-semibold text-amber-200 inline-flex items-center gap-2"
               >
-                🚗 +15m Traffic Delay
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" strokeWidth={1.75} />
+                <span>+15m Traffic Delay</span>
               </button>
               <button
                 type="button"
@@ -251,9 +273,10 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
                     'School run / cul-de-sac congestion at postcode — approaching with caution'
                   )
                 }
-                className="min-h-[44px] p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-left text-xs font-extrabold text-amber-200"
+                className="min-h-[44px] p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-white/10 text-left text-xs font-semibold text-amber-200 inline-flex items-center gap-2"
               >
-                🏫 School Run / Access
+                <MapPin className="w-3.5 h-3.5 shrink-0" strokeWidth={1.75} />
+                <span>School Run / Access</span>
               </button>
               <button
                 type="button"
@@ -261,9 +284,10 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
                   setShowDelayMenu(false)
                   if (onOpenDisputeModal) onOpenDisputeModal()
                 }}
-                className="min-h-[44px] p-2.5 rounded-xl bg-red-950/80 hover:bg-red-900/80 border border-red-500/40 text-left text-xs font-extrabold text-red-200"
+                className="min-h-[44px] p-2.5 rounded-xl bg-red-950/80 hover:bg-red-900/80 border border-red-500/40 text-left text-xs font-semibold text-red-200 inline-flex items-center gap-2"
               >
-                🛡️ Formal SLA / Damage Log
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0" strokeWidth={1.75} />
+                <span>Formal SLA / Damage Log</span>
               </button>
             </div>
           </div>
@@ -301,12 +325,18 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
               <div className="space-y-1">
                 {localBanner && <div>{localBanner}</div>}
                 {job.exception_notes && !localBanner && (
-                  <div>⚠️ Active Route Note: {job.exception_notes}</div>
+                  <div className="flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" strokeWidth={1.75} />
+                    <span>Active Route Note: {job.exception_notes}</span>
+                  </div>
                 )}
                 {currentStop.blackbookAlerts.map((alert) => (
-                  <div key={alert.id}>
-                    📓 Street-Sense ({alert.postcode_key} • {alert.hazard_type.replace('_', ' ')}):{' '}
-                    {alert.hazard_note}
+                  <div key={alert.id} className="flex items-start gap-1.5">
+                    <FileWarning className="w-3.5 h-3.5 shrink-0 mt-0.5" strokeWidth={1.75} />
+                    <span>
+                      Street-Sense ({alert.postcode_key} • {alert.hazard_type.replace('_', ' ')}):{' '}
+                      {alert.hazard_note}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -314,9 +344,9 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setLocalBanner('')}
-                  className="text-amber-700 hover:text-amber-950 font-bold"
+                  className="text-amber-700 hover:text-amber-950 font-bold p-0.5"
                 >
-                  ✕
+                  <X className="w-3.5 h-3.5" strokeWidth={1.75} />
                 </button>
               )}
             </div>
@@ -368,27 +398,30 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
                   href={googleMapsUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="min-h-[56px] flex-1 bg-[#004225] hover:bg-[#005A34] active:bg-[#004225] text-white rounded-2xl px-5 py-3.5 flex items-center justify-center gap-2.5 text-base font-extrabold tracking-wide uppercase shadow-lg shadow-[#004225]/25 transition-all"
+                  className="min-h-[56px] flex-1 bg-[#004225] hover:bg-[#005A34] active:bg-[#004225] text-white rounded-2xl px-5 py-3.5 flex items-center justify-center gap-2.5 text-base font-bold tracking-wide uppercase shadow-lg shadow-[#004225]/25 transition-all"
                 >
-                  <span>🗺 NAVIGATE IN SATNAV</span>
-                  <span className="text-[#F6EB61]">↗</span>
+                  <Navigation className="w-4 h-4" strokeWidth={1.75} />
+                  <span>NAVIGATE IN SATNAV</span>
+                  <ArrowUpRight className="w-4 h-4 text-[#F6EB61]" strokeWidth={2} />
                 </a>
                 <a
                   href={wazeUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="min-h-[56px] sm:w-36 bg-slate-100 hover:bg-slate-200 text-[#0F172A] border border-slate-300 rounded-2xl px-4 py-3.5 flex items-center justify-center gap-2 text-sm font-extrabold uppercase transition-all"
+                  className="min-h-[56px] sm:w-36 bg-slate-100 hover:bg-slate-200 text-[#0F172A] border border-slate-300 rounded-2xl px-4 py-3.5 flex items-center justify-center gap-2 text-sm font-bold uppercase transition-all"
                 >
-                  🚗 Waze
+                  <Navigation className="w-4 h-4" strokeWidth={1.75} />
+                  <span>Waze</span>
                 </a>
               </div>
 
               <button
                 type="button"
                 onClick={() => setStage('DOORSTEP')}
-                className="min-h-[56px] w-full bg-[#0A0F0D] hover:bg-slate-800 text-white rounded-2xl px-5 py-3.5 text-base font-extrabold tracking-wide uppercase shadow-md transition-all"
+                className="min-h-[56px] w-full bg-[#0A0F0D] hover:bg-slate-800 text-white rounded-2xl px-5 py-3.5 text-base font-bold tracking-wide uppercase shadow-md transition-all inline-flex items-center justify-center gap-2"
               >
-                ARRIVED AT STOP →
+                <span>ARRIVED AT STOP</span>
+                <ArrowRight className="w-4 h-4" strokeWidth={2} />
               </button>
             </div>
           )}
@@ -398,21 +431,32 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
               {/* DELIVERY NOTES (ROOM OF CHOICE / ASSEMBLY) */}
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-slate-600">
-                    🛋 Room-of-Choice Delivery Instructions
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-600 inline-flex items-center gap-1.5">
+                    <Home className="w-3.5 h-3.5 text-[#004225]" strokeWidth={1.75} />
+                    <span>Room-of-Choice Delivery Instructions</span>
                   </span>
-                  <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                    🛡️ Step A Pre-Load Verified
+                  <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 inline-flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5" strokeWidth={1.75} />
+                    <span>Step A Pre-Load Verified</span>
                   </span>
                 </div>
-                <p className="text-sm font-bold text-[#0F172A]">
-                  {job.requires_assembly || job.loop_profile === 'assembly'
-                    ? '🔧 Two-Man White-Glove Room-of-Choice Placement & Full Item Assembly Required.'
-                    : '🛋 Two-Man Room-of-Choice Placement (Up to 2nd Floor). Inspect stairwell clearance before unstrapping.'}
+                <p className="text-sm font-semibold text-[#0F172A] flex items-start gap-2">
+                  {job.requires_assembly || job.loop_profile === 'assembly' ? (
+                    <>
+                      <Wrench className="w-4 h-4 text-[#004225] shrink-0 mt-0.5" strokeWidth={1.75} />
+                      <span>Two-Man White-Glove Room-of-Choice Placement &amp; Full Item Assembly Required.</span>
+                    </>
+                  ) : (
+                    <>
+                      <Home className="w-4 h-4 text-[#004225] shrink-0 mt-0.5" strokeWidth={1.75} />
+                      <span>Two-Man Room-of-Choice Placement (Up to 2nd Floor). Inspect stairwell clearance before unstrapping.</span>
+                    </>
+                  )}
                 </p>
                 {job.has_third_floor_no_lift && (
-                  <p className="text-xs font-extrabold text-emerald-800">
-                    ✓ +£25.00 3rd-Floor Walk-Up Surcharge Active (100% credited to crew pool)
+                  <p className="text-xs font-semibold text-emerald-800 inline-flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" strokeWidth={2} />
+                    <span>+£25.00 3rd-Floor Walk-Up Surcharge Active (100% credited to crew pool)</span>
                   </p>
                 )}
               </div>
@@ -420,9 +464,10 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
               <div className="grid grid-cols-2 gap-2.5">
                 <a
                   href="tel:+441908000000"
-                  className="min-h-[52px] bg-white hover:bg-slate-50 border border-slate-300 text-[#0F172A] rounded-2xl px-4 py-3 flex items-center justify-center gap-2 text-xs font-extrabold uppercase tracking-wider shadow-sm transition-all"
+                  className="min-h-[52px] bg-white hover:bg-slate-50 border border-slate-300 text-[#0F172A] rounded-2xl px-4 py-3 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider shadow-sm transition-all"
                 >
-                  📞 CALL RECIPIENT
+                  <Phone className="w-3.5 h-3.5" strokeWidth={1.75} />
+                  <span>CALL RECIPIENT</span>
                 </a>
                 <button
                   type="button"
@@ -432,18 +477,20 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
                       'Customer Not Home (10-min wait timer started) / Restricted Doorway Fit check'
                     )
                   }
-                  className="min-h-[52px] bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-950 rounded-2xl px-4 py-3 flex items-center justify-center gap-2 text-xs font-extrabold uppercase tracking-wider shadow-sm transition-all"
+                  className="min-h-[52px] bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-950 rounded-2xl px-4 py-3 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider shadow-sm transition-all"
                 >
-                  ⚠️ ACCESS ISSUE
+                  <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.75} />
+                  <span>ACCESS ISSUE</span>
                 </button>
               </div>
 
               <button
                 type="button"
                 onClick={() => setStage('POD')}
-                className="min-h-[56px] w-full bg-[#004225] hover:bg-[#005A34] text-white rounded-2xl px-5 py-3.5 text-base font-extrabold tracking-wide uppercase shadow-lg shadow-[#004225]/25 transition-all"
+                className="min-h-[56px] w-full bg-[#004225] hover:bg-[#005A34] text-white rounded-2xl px-5 py-3.5 text-base font-bold tracking-wide uppercase shadow-lg shadow-[#004225]/25 transition-all inline-flex items-center justify-center gap-2"
               >
-                PROCEED TO POD &amp; SIGNATURE →
+                <span>PROCEED TO POD &amp; SIGNATURE</span>
+                <ArrowRight className="w-4 h-4" strokeWidth={2} />
               </button>
             </div>
           )}
@@ -453,17 +500,19 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
               {/* INLINE CAMERA INPUT */}
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <span className="text-xs font-extrabold uppercase tracking-wider text-[#0F172A] block">
-                    📷 Room-of-Choice Condition Photo
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#0F172A] flex items-center gap-1.5">
+                    <Camera className="w-3.5 h-3.5 text-[#004225]" strokeWidth={1.75} />
+                    <span>Room-of-Choice Condition Photo</span>
                   </span>
-                  <span className="text-[11px] text-slate-600">
+                  <span className="text-[11px] text-slate-600 block mt-0.5">
                     {podPhotoName
                       ? `Attached: ${podPhotoName}`
                       : 'Snap placement photo to issue Ben Damage-Shield Certificate'}
                   </span>
                 </div>
-                <label className="min-h-[48px] cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 shadow-sm shrink-0 transition-all">
-                  <span>{podPhotoName ? '↻ Retake Photo' : '📷 Snap POD Photo'}</span>
+                <label className="min-h-[48px] cursor-pointer bg-[#004225] hover:bg-[#005A34] text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm shrink-0 transition-all">
+                  <Camera className="w-4 h-4" strokeWidth={1.75} />
+                  <span>{podPhotoName ? 'Retake Photo' : 'Snap POD Photo'}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -483,7 +532,7 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
               <SignaturePad onSaveSvg={onSaveSignatureSvg} savedSvg={signatureSvg} />
 
               {podMessage && (
-                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-xs font-extrabold text-emerald-950">
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-xs font-bold text-emerald-950">
                   {podMessage}
                 </div>
               )}
@@ -497,14 +546,14 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
                   className="absolute inset-y-0 left-0 bg-[#F6EB61]/25 transition-none"
                   style={{ width: `${sliderX + 56}px` }}
                 />
-                <div className="w-full text-center text-xs sm:text-sm font-extrabold uppercase tracking-widest text-white pointer-events-none z-10">
+                <div className="w-full text-center text-xs sm:text-sm font-bold uppercase tracking-widest text-white pointer-events-none z-10">
                   {podUploading
                     ? 'Uploading PoD to Vault...'
                     : slideCompleted
-                    ? '✓ Stop Completed!'
+                    ? 'Stop Completed'
                     : isFinalStop
-                    ? '»» Slide to Complete Final Stop & Settle Loop »»'
-                    : `»» Slide to Complete Stop #${currentStopNumber} »»`}
+                    ? 'Slide to Complete Final Stop & Settle Loop'
+                    : `Slide to Complete Stop #${currentStopNumber}`}
                 </div>
 
                 <div
@@ -526,11 +575,15 @@ export const CrewInCabView: React.FC<CrewInCabViewProps> = ({
                   }}
                   onTouchEnd={endSliderDrag}
                   style={{ transform: `translateX(${sliderX}px)` }}
-                  className={`relative z-20 w-[52px] h-[52px] rounded-xl bg-[#F6EB61] hover:bg-yellow-300 text-[#0A0F0D] font-extrabold text-lg flex items-center justify-center shadow-lg cursor-grab active:cursor-grabbing touch-none ${
+                  className={`relative z-20 w-[52px] h-[52px] rounded-xl bg-[#F6EB61] hover:bg-yellow-300 text-[#0A0F0D] font-bold flex items-center justify-center shadow-lg cursor-grab active:cursor-grabbing touch-none ${
                     isDraggingSlider ? '' : 'transition-transform duration-200'
                   }`}
                 >
-                  {slideCompleted ? '✓' : '➔'}
+                  {slideCompleted ? (
+                    <Check className="w-5 h-5" strokeWidth={2.5} />
+                  ) : (
+                    <ArrowRight className="w-5 h-5" strokeWidth={2} />
+                  )}
                 </div>
               </div>
             </div>

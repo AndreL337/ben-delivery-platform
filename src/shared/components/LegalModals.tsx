@@ -1,4 +1,5 @@
 import React from 'react'
+import { X } from 'lucide-react'
 
 export type LegalDocType = 'terms' | 'retailer_pilot' | 'gdpr'
 
@@ -42,10 +43,10 @@ export const LegalDocumentModal: React.FC<LegalModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-lg bg-slate-200/70 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-sm shrink-0"
+            className="w-8 h-8 rounded-lg bg-slate-200/70 hover:bg-slate-200 text-slate-700 flex items-center justify-center shrink-0"
             aria-label="Close legal modal"
           >
-            ✕
+            <X className="w-4 h-4" strokeWidth={1.75} />
           </button>
         </div>
 

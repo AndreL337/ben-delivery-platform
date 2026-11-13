@@ -1,4 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import {
+  ArrowRight,
+  Route,
+  Percent,
+  ShieldCheck,
+  Truck,
+  CheckCircle2,
+  AlertCircle,
+  Lock,
+  Smartphone,
+  FlaskConical,
+  KeyRound
+} from 'lucide-react'
 import { supabase } from './config/supabaseClient'
 import { PRICING_MATRIX } from './config/pricingMatrix2026'
 import type { VehicleSetup, LoopProfile, AppRoute } from './types/logistics'
@@ -395,12 +408,12 @@ export default function App() {
           : undefined
       }
     >
-      {/* CONTEXT-ISOLATED HEADER (LIGHT CANVAS 90/8/2 ARCHITECTURE) */}
+      {/* CONTEXT-ISOLATED HEADER (MOBBIN / STRIPE GLASSMORPHIC BAR) */}
       <header
-        className={`w-full sticky top-0 z-50 px-6 py-3.5 transition-all ${
+        className={`w-full sticky top-0 z-50 h-16 px-6 flex items-center transition-all ${
           isFlightDeckMode
             ? 'border-b text-white shadow-2xl'
-            : 'backdrop-blur-md bg-white/90 border-b border-slate-200 text-[#0A0F0D] shadow-sm'
+            : 'bg-white/85 backdrop-blur-md border-b border-slate-200/70 text-[#0A0F0D]'
         }`}
         style={
           isFlightDeckMode
@@ -412,123 +425,121 @@ export default function App() {
             : undefined
         }
       >
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
-          {/* BRAND LOGO & ROUTE CONTEXT SUBTITLE */}
+        <div className="max-w-6xl w-full mx-auto flex items-center justify-between gap-4">
+          {/* LEFT: LOGO + 1PX VERTICAL DIVIDER + MUTED SUBTITLE */}
           <button
             type="button"
             onClick={() => navigate(currentRoute === 'cab' ? '/cab' : '/')}
-            className="flex items-center space-x-3 text-left group"
+            className="flex items-center gap-3 text-left group shrink-0"
           >
-            <div className="flex flex-col">
-              <BenLogo
-                variant={isFlightDeckMode ? 'dark' : 'light'}
-                size="lg"
-              />
-              <span
-                className={`text-[10px] tracking-widest uppercase font-extrabold mt-1 ${
-                  isFlightDeckMode ? 'text-slate-300' : 'text-slate-500'
-                }`}
-              >
-                {currentRoute === 'command'
-                  ? 'Restricted Flight Deck • Gate A0 Admin Node'
-                  : currentRoute === 'cab'
-                  ? 'Ben Crew In-Cab HUD • UK M1 Corridor & National Hubs'
-                  : currentRoute === 'portal'
-                  ? 'Retailer Dispatch Workspace • Hub 01 (M1 Corridor) & National UK'
-                  : currentRoute === 'rate-card'
-                  ? '2026 Commercial B2B Rate Card & 3-Route Showroom Pilot Sheet'
-                  : currentRoute === 'track'
-                  ? 'Live Customer Delivery Telemetry • Damage-Shield Verified'
-                  : '3.5t LWB, XLWB & Luton 2-Man Specialist Network — UK M1 Corridor & National Hubs'}
-              </span>
-            </div>
+            <BenLogo variant={isFlightDeckMode ? 'dark' : 'light'} size="md" />
+            <span
+              className={`hidden md:inline-block h-4 w-px ${
+                isFlightDeckMode ? 'bg-white/20' : 'bg-slate-200'
+              }`}
+              aria-hidden="true"
+            />
+            <span
+              className={`hidden md:inline-block text-xs font-medium tracking-tight ${
+                isFlightDeckMode ? 'text-slate-300' : 'text-slate-500'
+              }`}
+            >
+              {currentRoute === 'command'
+                ? 'Restricted Flight Deck • Gate A0 Admin Node'
+                : currentRoute === 'cab'
+                ? 'Crew In-Cab HUD • UK M1 & National Hubs'
+                : currentRoute === 'portal'
+                ? 'Retailer Dispatch Workspace'
+                : currentRoute === 'rate-card'
+                ? '2026 Enterprise B2B Rate Card'
+                : currentRoute === 'track'
+                ? 'Live Consumer Delivery Telemetry'
+                : 'UK Direct-to-Crew Logistics OS'}
+            </span>
           </button>
 
-          {/* ISOLATED ROUTE ACTIONS PER EXPERIENCE */}
+          {/* RIGHT: CLEAN TEXT LINKS + GHOST SIGN IN + PRIMARY BOOK DISPATCH */}
           {(currentRoute === 'landing' ||
             currentRoute === 'driver-waitlist' ||
             currentRoute === 'rate-card') && (
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => navigate('/')}
-                className={`min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
-                  currentRoute === 'landing'
-                    ? 'bg-[#004225] text-white shadow-sm'
-                    : 'text-slate-600 hover:text-[#0A0F0D] bg-transparent'
-                }`}
-              >
-                For Retailers
-              </button>
+            <div className="flex items-center gap-1 sm:gap-2">
               <button
                 type="button"
                 onClick={() => navigate('/rate-card')}
-                className={`min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   currentRoute === 'rate-card'
-                    ? 'bg-[#004225] text-white shadow-sm'
-                    : 'text-[#713F12] bg-[#FEFCE8] hover:bg-yellow-100 border border-[#004225]/30'
+                    ? 'text-[#004225] bg-[#F0F7F4]'
+                    : 'text-slate-600 hover:text-slate-950'
                 }`}
               >
-                2026 Rate Card
+                Rate Card
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/driver')}
-                className={`min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   currentRoute === 'driver-waitlist'
-                    ? 'bg-[#004225] text-white shadow-sm'
-                    : 'text-slate-600 hover:text-[#0A0F0D] bg-transparent'
+                    ? 'text-[#004225] bg-[#F0F7F4]'
+                    : 'text-slate-600 hover:text-slate-950'
                 }`}
               >
-                Apply as 2-Man Crew
+                Driver Network
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/track/mk-live-loop-884')}
+                className="hidden sm:inline-flex px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors"
+              >
+                Track Delivery
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/cab')}
-                className="hidden sm:inline-flex min-h-[40px] items-center px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-slate-700 hover:text-[#0A0F0D] border border-[#E2E8F0] bg-[#F8FAFC] hover:bg-slate-100 transition-all"
+                className="hidden sm:inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium text-slate-700 hover:text-slate-950 hover:bg-slate-100 transition-colors"
               >
-                👷 Crew In-Cab Login
+                Sign In
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/portal')}
-                className="min-h-[40px] px-4 py-1.5 rounded-xl text-xs font-extrabold bg-[#004225] hover:bg-[#005A34] text-white shadow-sm transition-all"
+                className="bg-[#004225] hover:bg-[#005A34] text-white rounded-lg px-4 py-2 text-sm font-medium transition-all shadow-sm inline-flex items-center gap-1.5"
               >
-                Retailer Portal →
+                <span>Book Dispatch</span>
               </button>
             </div>
           )}
 
           {currentRoute === 'portal' && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <button
                 type="button"
                 onClick={() => navigate('/rate-card')}
-                className="min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-extrabold text-[#713F12] bg-[#FEFCE8] hover:bg-yellow-100 border border-[#004225] transition-all"
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-950 hover:bg-slate-100 transition-all"
               >
-                📄 2026 Rate Card
+                Rate Card
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/')}
-                className="min-h-[40px] px-3 py-1.5 rounded-xl text-xs font-extrabold text-slate-600 hover:text-[#0F172A] border border-[#E2E8F0] bg-[#F8FAFC] transition-all"
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-950 border border-slate-200/80 bg-white transition-all"
               >
-                ← Public Site
+                Public Site
               </button>
               {session && (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 pl-2 border-l border-slate-200">
                   <div className="hidden sm:block text-right">
-                    <p className="text-[11px] text-slate-500 font-bold">
+                    <p className="text-[11px] text-slate-500 font-medium">
                       {session.user?.email || 'retailer@benlogistics.co.uk'}
                     </p>
-                    <p className="text-xs font-extrabold text-[#004225]">
-                      ● Verified Retailer Workspace
+                    <p className="text-[11px] font-semibold text-[#004225] inline-flex items-center gap-1.5 justify-end">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                      <span>Verified Workspace</span>
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={handleSignOut}
-                    className="min-h-[40px] bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-extrabold py-1.5 px-3.5 rounded-xl transition-all"
+                    className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all"
                   >
                     Sign Out
                   </button>
@@ -539,14 +550,15 @@ export default function App() {
 
           {currentRoute === 'cab' && (
             <div className="flex items-center gap-2.5">
-              <span className="hidden sm:inline-flex text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-[#F0F7F4] text-[#004225] border border-[#004225]/25">
-                📲 PWA Standalone Ready
+              <span className="hidden sm:inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-full bg-[#F0F7F4] text-[#004225]">
+                <Smartphone className="w-3.5 h-3.5" strokeWidth={1.75} />
+                <span>PWA Ready</span>
               </span>
               {session ? (
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="min-h-[40px] bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-extrabold py-1.5 px-3 rounded-xl transition-all"
+                  className="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all"
                 >
                   End Shift
                 </button>
@@ -554,9 +566,10 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => navigate('/driver')}
-                  className="min-h-[40px] bg-[#F8FAFC] hover:bg-slate-100 text-[#0A0F0D] border border-[#E2E8F0] text-xs font-extrabold py-1.5 px-3 rounded-xl transition-all"
+                  className="bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all inline-flex items-center gap-1"
                 >
-                  Crew Waitlist →
+                  <span>Crew Waitlist</span>
+                  <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.75} />
                 </button>
               )}
             </div>
@@ -564,8 +577,9 @@ export default function App() {
 
           {currentRoute === 'track' && (
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full">
-                🔒 Tokenized Consumer Receipt
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-3 py-1.5 rounded-full">
+                <Lock className="w-3.5 h-3.5" strokeWidth={1.75} />
+                <span>Tokenized Consumer Receipt</span>
               </span>
             </div>
           )}
@@ -574,13 +588,14 @@ export default function App() {
             <div className="flex items-center gap-3">
               {session && isAdminVerified && (
                 <>
-                  <span className="hidden sm:inline-block text-xs font-extrabold text-[#00F5D4]">
-                    ● Admin Verified ({session.user?.email})
+                  <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-[#00F5D4]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#00F5D4]" />
+                    <span>Admin Verified ({session.user?.email})</span>
                   </span>
                   <button
                     type="button"
                     onClick={handleSignOut}
-                    className="min-h-[40px] bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-500/40 text-xs font-extrabold py-1.5 px-3.5 rounded-xl transition-all"
+                    className="bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-500/40 text-xs font-semibold py-1.5 px-3 rounded-lg transition-all"
                   >
                     Lock Command Deck
                   </button>
@@ -597,421 +612,298 @@ export default function App() {
             ROUTE 1: / (PUBLIC B2B LANDING PAGE — NATIONAL UK LOGISTICS OS)
            ===================================================================== */}
         {currentRoute === 'landing' && (
-          <>
-            <div className="space-y-5 max-w-4xl">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-extrabold text-[#004225] uppercase tracking-widest bg-[#F0F7F4] border border-[#004225]/25 px-3 py-1 rounded-full tabular-nums">
-                  3.5t LWB, XLWB &amp; Luton 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs
-                </span>
-                <span className="text-xs font-extrabold text-[#713F12] uppercase tracking-widest bg-[#FEFCE8] border border-[#F6EB61] px-3 py-1 rounded-full tabular-nums">
-                  ● Hub 01 Live Active Zone: MK • Bedford • Northampton • Luton
-                </span>
+          <div className="space-y-12">
+            {/* ASYMMETRIC 12-COLUMN STRIPE / WISE HERO + INTERACTIVE ROUTE RATE CALCULATOR */}
+            <section className="ben-blueprint-grid py-2 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+              {/* LEFT 7 COLUMNS: FLUID HERO TYPOGRAPHY & DUAL CTAs */}
+              <div className="lg:col-span-7 space-y-6">
+                <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white border border-slate-200/80 shadow-sm">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
+                  </span>
+                  <span className="text-xs font-semibold text-slate-700 tabular-nums">
+                    Hub 01 Live — M1 Corridor &amp; National UK Network
+                  </span>
+                </div>
+
+                <h1 className="text-4xl lg:text-5xl font-bold tracking-[-0.035em] text-slate-950 leading-[1.08]">
+                  The UK’s Direct-to-Crew Logistics Operating System.
+                </h1>
+
+                <p className="text-slate-600 text-lg leading-relaxed max-w-2xl">
+                  Connect commercial shippers straight to vetted 3.5t LWB, XLWB &amp; Luton 2-man delivery crews. Zero 3PL middlemen, driver-first routing, and instant photographic Proof of Delivery.
+                </p>
+
+                <div className="flex flex-wrap items-center gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/portal')}
+                    className="min-h-[48px] bg-[#004225] hover:bg-[#005A34] text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-sm inline-flex items-center gap-2 text-sm"
+                  >
+                    <span>Book Dispatch</span>
+                    <ArrowRight className="w-4 h-4" strokeWidth={1.75} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/driver')}
+                    className="min-h-[48px] bg-white hover:bg-slate-50 text-slate-900 border border-slate-200/80 font-semibold py-3 px-6 rounded-xl transition-all shadow-sm inline-flex items-center gap-2 text-sm"
+                  >
+                    <span>Join Driver Network</span>
+                    <ArrowRight className="w-4 h-4 text-slate-500" strokeWidth={1.75} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/rate-card')}
+                    className="min-h-[48px] px-4 py-3 text-sm font-semibold text-[#004225] hover:text-[#005A34] inline-flex items-center gap-1.5 transition-colors"
+                  >
+                    <span>View 2026 Rate Card</span>
+                    <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.75} />
+                  </button>
+                </div>
               </div>
 
-              <h1 className="text-4xl font-extrabold tracking-tight text-[#0A0F0D] sm:text-5xl leading-tight">
-                The UK’s Direct-to-Crew Logistics Operating System.
-              </h1>
-
-              <p className="text-slate-600 text-lg leading-relaxed max-w-3xl">
-                Connecting retailers and commercial shippers directly with vetted 3.5t LWB, XLWB &amp; Luton 2-man crews. Zero 3PL middlemen. Driver-first routing. Instant photographic Proof of Delivery.
-              </p>
-
-              {/* CLEAR PRIMARY & SECONDARY CTAs */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => navigate('/portal')}
-                  className="min-h-[52px] bg-[#004225] hover:bg-[#005A34] text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-md shadow-[#004225]/20 text-sm"
-                >
-                  🏢 Launch Retailer Dispatch OS (/portal) →
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/driver')}
-                  className="min-h-[52px] bg-[#0A0F0D] hover:bg-slate-800 text-white font-extrabold py-3.5 px-6 rounded-xl transition-all shadow-sm text-sm"
-                >
-                  🚛 Register 3.5t Van / 2-Man Crew (/driver) →
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/rate-card')}
-                  className="min-h-[52px] bg-[#FEFCE8] hover:bg-yellow-100 text-[#0A0F0D] border border-[#004225] font-extrabold py-3.5 px-5 rounded-xl transition-all shadow-sm text-xs"
-                >
-                  📄 2026 Printable B2B Rate Card (/rate-card)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/track/mk-live-loop-884')}
-                  className="min-h-[52px] bg-white hover:bg-slate-50 text-[#0A0F0D] border border-[#E2E8F0] font-extrabold py-3.5 px-5 rounded-xl transition-all shadow-sm text-xs"
-                >
-                  📍 Inspect Sample Consumer Tracker
-                </button>
-              </div>
-            </div>
-
-            {/* GOOGLE POMELLI CAMPAIGN 01 — 3 CORE VALUE PILLAR CARDS */}
-            <section className="ben-blueprint-grid bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-6 md:p-8 shadow-sm space-y-5">
-              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#E2E8F0] pb-4">
-                <div className="space-y-1.5">
-                  <div className="ben-Accent-Bar" />
-                  <div className="flex items-center gap-2">
-                    <BenLogo variant="light" size="sm" />
-                    <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#004225]">
-                      DIRECT UK DISPATCH. NO 3PL MIDDLEMEN.
+              {/* RIGHT 5 COLUMNS: UNIFIED INTERACTIVE ROUTE RATE & SPLIT CALCULATOR */}
+              <div className="lg:col-span-5 rounded-2xl bg-white border border-slate-200/80 shadow-xl shadow-slate-900/5 overflow-hidden">
+                <div className="p-6 space-y-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-[#004225] block">
+                        2026 Live Rate Calculator
+                      </span>
+                      <h2 className="text-base font-bold text-slate-950 mt-0.5">
+                        Flat-Rate Loop &amp; Crew Split
+                      </h2>
+                    </div>
+                    <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md tabular-nums">
+                      {currentTier.targetVolume}
                     </span>
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-extrabold text-[#0A0F0D] tracking-tight">
-                    Direct-to-Crew 2-Man Logistics Built for Commercial Shippers
-                  </h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => navigate('/rate-card')}
-                  className="text-xs font-extrabold text-[#004225] hover:underline self-start sm:self-end"
-                >
-                  Open Printable A4 Rate Card (/rate-card) →
-                </button>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {/* PILLAR 1: DIRECT-TO-CREW UK LOGISTICS */}
-                <div className="ben-callout-left ben-card-offset-green rounded-xl p-5 space-y-2.5">
-                  <div className="ben-Accent-Bar" />
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#004225] block">
-                    Pillar 01 • Direct UK Dispatch
-                  </span>
-                  <h3 className="text-base font-extrabold text-[#0A0F0D] uppercase tracking-tight">
+                  {/* Segmented Pill Selector: Vehicle Setup */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 block">
+                      Fleet Setup
+                    </label>
+                    <div className="grid grid-cols-2 bg-slate-100/90 p-1 rounded-xl">
+                      <button
+                        type="button"
+                        onClick={() => setVehicleSetup('independent')}
+                        className={`py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
+                          vehicleSetup === 'independent'
+                            ? 'bg-white text-slate-950 shadow-sm'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Independent 3.5t Van
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setVehicleSetup('clientVehicle')}
+                        className={`py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
+                          vehicleSetup === 'clientVehicle'
+                            ? 'bg-white text-slate-950 shadow-sm'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Client Vehicle Pod
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Segmented Pill Selector: Route Profile */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 block">
+                      Service Tier
+                    </label>
+                    <div className="grid grid-cols-3 bg-slate-100/90 p-1 rounded-xl gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setLoopProfile('roc')}
+                        className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
+                          loopProfile === 'roc'
+                            ? 'bg-white text-slate-950 shadow-sm'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Standard ROC
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLoopProfile('assembly')}
+                        className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
+                          loopProfile === 'assembly'
+                            ? 'bg-white text-slate-950 shadow-sm'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        White-Glove
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLoopProfile('overflow')}
+                        className={`py-2 px-2 rounded-lg text-xs font-semibold transition-all ${
+                          loopProfile === 'overflow'
+                            ? 'bg-white text-slate-950 shadow-sm'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Mini-Loop
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 tabular-nums">
+                    <span>{currentTier.shiftCap}</span>
+                    <span>Platform OS Fee (12.5%): £{currentTier.platformFee.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                {/* Clean Bottom Summary Bar in #004225 */}
+                <div className="bg-[#004225] text-white px-6 py-4 flex items-center justify-between tabular-nums">
+                  <div>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-[#F6EB61] block">
+                      Flat Daily Route Rate
+                    </span>
+                    <div className="text-2xl font-bold mt-0.5">
+                      £{currentTier.grossFee.toFixed(0)}
+                      <span className="text-xs font-normal text-emerald-100/80 ml-1">
+                        / loop
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-100/80 block">
+                      87.5% Direct to Crew
+                    </span>
+                    <div className="text-lg font-bold text-[#F6EB61] mt-0.5">
+                      £{currentTier.netPool.toFixed(2)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* THE 3 VALUE PILLARS — SEAMLESS 3-COLUMN EDITORIAL STRIP */}
+            <section className="border-y border-slate-200/80 bg-white rounded-2xl border overflow-hidden">
+              <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200/70">
+                <div className="p-6 md:p-8 space-y-3">
+                  <div className="w-9 h-9 rounded-lg bg-[#004225]/5 text-[#004225] flex items-center justify-center">
+                    <Route className="w-[18px] h-[18px]" strokeWidth={1.75} />
+                  </div>
+                  <h3 className="text-base font-bold text-slate-950">
                     Direct-to-Crew UK Logistics
                   </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Connect commercial shippers straight to vetted 2-man delivery crews nationwide. Discover how direct-to-crew 2-man logistics cuts your supply chain costs instantly.
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    Connect commercial shippers straight to vetted 2-man delivery crews nationwide. Cut 3PL middleman layers out of your supply chain instantly.
                   </p>
                 </div>
 
-                {/* PILLAR 2: ZERO BROKER MARKUPS */}
-                <div className="ben-callout-left ben-card-offset-yellow rounded-xl p-5 space-y-2.5">
-                  <div className="ben-Accent-Bar" />
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#713F12] block">
-                    Pillar 02 • 87.5% Direct to Crew
-                  </span>
-                  <h3 className="text-base font-extrabold text-[#0A0F0D]">
+                <div className="p-6 md:p-8 space-y-3">
+                  <div className="w-9 h-9 rounded-lg bg-[#004225]/5 text-[#004225] flex items-center justify-center">
+                    <Percent className="w-[18px] h-[18px]" strokeWidth={1.75} />
+                  </div>
+                  <h3 className="text-base font-bold text-slate-950">
                     Zero Broker Markups
                   </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Lock in transparent flat-rate loops across your UK supply chain with total clarity.
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    Lock in transparent flat-rate loops across your UK supply chain with total clarity—87.5% flows directly to the operating crew.
                   </p>
                 </div>
 
-                {/* PILLAR 3: INSTANT DIGITAL PROOF OF DELIVERY */}
-                <div className="ben-callout-left ben-card-offset-green rounded-xl p-5 space-y-2.5">
-                  <div className="ben-Accent-Bar" />
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#004225] block">
-                    Pillar 03 • Damage-Shield Telemetry
-                  </span>
-                  <h3 className="text-base font-extrabold text-[#0A0F0D]">
+                <div className="p-6 md:p-8 space-y-3">
+                  <div className="w-9 h-9 rounded-lg bg-[#004225]/5 text-[#004225] flex items-center justify-center">
+                    <ShieldCheck className="w-[18px] h-[18px]" strokeWidth={1.75} />
+                  </div>
+                  <h3 className="text-base font-bold text-slate-950">
                     Instant Digital Proof of Delivery
                   </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    Track live updates and receive instant digital sign-offs right from the warehouse floor.
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    Track live updates and receive side-by-side Condition Gate photo sign-offs and customer e-signatures right from the warehouse floor.
                   </p>
                 </div>
               </div>
             </section>
 
-            {/* NATIONAL UK HUB ARCHITECTURE STRIP */}
-            <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-5 shadow-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3.5 mb-3.5 border-b border-[#E2E8F0]">
+            {/* REGIONAL DENSITY HUB ARCHITECTURE — HAIRLINE DIVIDED STRIP */}
+            <section className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#004225] block">
-                    Regional Density Hub Architecture
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#004225] block">
+                    National UK Hub Architecture
                   </span>
-                  <h2 className="text-base font-extrabold text-[#0A0F0D]">
-                    UK M1 Corridor (Hub 01 Live) &amp; National Regional Expansion Hubs
+                  <h2 className="text-base font-bold text-slate-950">
+                    Hub 01 Live (M1 Corridor) &amp; Regional Expansion Zones
                   </h2>
                 </div>
                 <button
                   type="button"
                   onClick={() => navigate('/driver')}
-                  className="text-xs font-extrabold text-[#004225] hover:underline self-start sm:self-center"
+                  className="text-xs font-semibold text-[#004225] hover:underline inline-flex items-center gap-1 self-start sm:self-center"
                 >
-                  Register Fleet or Showroom for Your UK Hub →
+                  <span>Register Fleet for Your Hub</span>
+                  <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.75} />
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="p-3.5 rounded-xl bg-[#F0F7F4] border border-[#004225]/30 space-y-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-200/70">
+                <div className="p-5 space-y-1.5 bg-[#F0F7F4]/40">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-[#004225]">Hub 01 • M1 Corridor</span>
-                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-[#FEFCE8] text-[#713F12] border border-[#F6EB61]">
-                      ● Live Active Zone
+                    <span className="text-xs font-bold text-[#004225]">Hub 01 • M1 Corridor</span>
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#713F12] bg-[#FEFCE8] px-2 py-0.5 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                      <span>Live</span>
                     </span>
                   </div>
-                  <p className="text-xs font-bold text-[#0A0F0D]">
+                  <p className="text-xs font-semibold text-slate-900">
                     MK • Bedford • Northampton • Luton
                   </p>
-                  <p className="text-[11px] text-slate-600">
-                    Instant daily multi-drop &amp; 2-man bulky dispatch active now.
+                  <p className="text-xs text-slate-500">
+                    Daily multi-drop &amp; 2-man bulky dispatch active now.
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
+                <div className="p-5 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-[#0A0F0D]">Hub 02 • London &amp; M25</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white text-slate-700 border border-[#E2E8F0]">
-                      Onboarding Open
-                    </span>
+                    <span className="text-xs font-bold text-slate-900">Hub 02 • London &amp; M25</span>
+                    <span className="text-[11px] font-medium text-slate-500">Onboarding</span>
                   </div>
-                  <p className="text-xs font-bold text-[#0A0F0D]">
+                  <p className="text-xs font-semibold text-slate-800">
                     Greater London • Watford • Slough
                   </p>
-                  <p className="text-[11px] text-slate-600">
-                    ULEZ-compliant 3.5t LWB, XLWB, EV &amp; Luton 2-man crews.
+                  <p className="text-xs text-slate-500">
+                    ULEZ-compliant 3.5t LWB, XLWB, EV &amp; Luton crews.
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
+                <div className="p-5 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-[#0A0F0D]">Hub 03 • Midlands</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white text-slate-700 border border-[#E2E8F0]">
-                      Onboarding Open
-                    </span>
+                    <span className="text-xs font-bold text-slate-900">Hub 03 • Midlands</span>
+                    <span className="text-[11px] font-medium text-slate-500">Onboarding</span>
                   </div>
-                  <p className="text-xs font-bold text-[#0A0F0D]">
+                  <p className="text-xs font-semibold text-slate-800">
                     Birmingham • Coventry • Leicester
                   </p>
-                  <p className="text-[11px] text-slate-600">
-                    Golden Triangle warehouse-to-room-of-choice direct dispatch.
+                  <p className="text-xs text-slate-500">
+                    Golden Triangle direct room-of-choice dispatch.
                   </p>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
+                <div className="p-5 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-[#0A0F0D]">Hub 04 • North</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white text-slate-700 border border-[#E2E8F0]">
-                      Onboarding Open
-                    </span>
+                    <span className="text-xs font-bold text-slate-900">Hub 04 • North</span>
+                    <span className="text-[11px] font-medium text-slate-500">Onboarding</span>
                   </div>
-                  <p className="text-xs font-bold text-[#0A0F0D]">
+                  <p className="text-xs font-semibold text-slate-800">
                     Manchester • Leeds • Warrington
                   </p>
-                  <p className="text-[11px] text-slate-600">
-                    M62 corridor commercial shippers &amp; 2-man bulky specialists.
+                  <p className="text-xs text-slate-500">
+                    M62 corridor commercial shippers &amp; 2-man teams.
                   </p>
                 </div>
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-              {/* LEFT: 2026 Interactive Flat-Rate Loop Pricing Calculator */}
-              <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-6 md:p-8 shadow-sm flex flex-col space-y-6">
-                <div>
-                  <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#004225] block mb-1">
-                    Transparent 2026 Rate Card • 87.5% Direct to Crew
-                  </span>
-                  <h2 className="text-xl font-extrabold text-[#0A0F0D]">
-                    Live Loop Pricing &amp; Escrow Split Calculator
-                  </h2>
-                </div>
-
-                <div>
-                  <label className="text-xs font-extrabold uppercase text-slate-600 tracking-wider block mb-2">
-                    Vehicle Assets Operational Setup
-                  </label>
-                  <div className="grid grid-cols-2 bg-[#F8FAFC] p-1 rounded-xl border border-[#E2E8F0]">
-                    <button
-                      type="button"
-                      onClick={() => setVehicleSetup('independent')}
-                      className={`min-h-[48px] py-2 px-3 rounded-lg text-sm font-extrabold transition-all ${
-                        vehicleSetup === 'independent'
-                          ? 'bg-[#FFFFFF] text-[#0A0F0D] shadow-sm border border-[#E2E8F0]'
-                          : 'text-slate-600 hover:text-[#0A0F0D]'
-                      }`}
-                    >
-                      Independent 3.5t LWB / Luton
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setVehicleSetup('clientVehicle')}
-                      className={`min-h-[48px] py-2 px-3 rounded-lg text-sm font-extrabold transition-all ${
-                        vehicleSetup === 'clientVehicle'
-                          ? 'bg-[#FFFFFF] text-[#0A0F0D] shadow-sm border border-[#E2E8F0]'
-                          : 'text-slate-600 hover:text-[#0A0F0D]'
-                      }`}
-                    >
-                      Client Vehicle (2-Man Pod)
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-xs font-extrabold uppercase text-slate-600 tracking-wider block mb-2">
-                    Route Manifest Classification
-                  </label>
-                  <div className="grid grid-cols-3 bg-[#F8FAFC] p-1 rounded-xl border border-[#E2E8F0] gap-1">
-                    <button
-                      type="button"
-                      onClick={() => setLoopProfile('roc')}
-                      className={`min-h-[48px] py-2 px-2 rounded-lg text-xs font-extrabold transition-all ${
-                        loopProfile === 'roc'
-                          ? 'bg-[#FFFFFF] text-[#0A0F0D] shadow-sm border border-[#E2E8F0]'
-                          : 'text-slate-600 hover:text-[#0A0F0D]'
-                      }`}
-                    >
-                      Standard ROC
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLoopProfile('assembly')}
-                      className={`min-h-[48px] py-2 px-2 rounded-lg text-xs font-extrabold transition-all ${
-                        loopProfile === 'assembly'
-                          ? 'bg-[#FFFFFF] text-[#0A0F0D] shadow-sm border border-[#E2E8F0]'
-                          : 'text-slate-600 hover:text-[#0A0F0D]'
-                      }`}
-                    >
-                      Delivery &amp; Assembly
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLoopProfile('overflow')}
-                      className={`min-h-[48px] py-2 px-2 rounded-lg text-xs font-extrabold transition-all ${
-                        loopProfile === 'overflow'
-                          ? 'bg-[#FFFFFF] text-[#0A0F0D] shadow-sm border border-[#E2E8F0]'
-                          : 'text-slate-600 hover:text-[#0A0F0D]'
-                      }`}
-                    >
-                      Commercial Multi-Drop
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex justify-between items-center bg-[#F8FAFC] p-4 rounded-xl border border-[#E2E8F0]">
-                  <div>
-                    <span className="text-xs font-extrabold uppercase text-[#0A0F0D] block">
-                      Fair-Use Route Capacity
-                    </span>
-                    <span className="text-[11px] text-slate-600 tabular-nums">
-                      {currentTier.shiftCap}
-                    </span>
-                  </div>
-                  <span className="text-sm font-extrabold text-[#004225] bg-[#F0F7F4] border border-[#004225]/25 px-3 py-1 rounded-md tabular-nums">
-                    {currentTier.targetVolume}
-                  </span>
-                </div>
-
-                <div className="bg-[#FFFFFF] p-5 rounded-xl border border-[#E2E8F0] shadow-sm flex flex-col gap-3 tabular-nums">
-                  <div className="flex justify-between text-sm border-b border-[#E2E8F0] pb-2 text-slate-700">
-                    <span className="font-bold">2026 Flat Route Booking Fee</span>
-                    <span className="font-extrabold text-[#0A0F0D]">
-                      £{currentTier.grossFee.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-xs text-slate-600 border-b border-[#E2E8F0] pb-2">
-                    <span>Ben OS Marketplace Fee (12.5%)</span>
-                    <span>- £{currentTier.platformFee.toFixed(2)}</span>
-                  </div>
-
-                  <div className="bg-[#F0F7F4] border border-[#004225]/25 p-4 rounded-xl mt-2 text-left">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <span className="text-xs font-extrabold uppercase text-[#004225] block">
-                          Net Dispatched Crew Pool (87.5%)
-                        </span>
-                        <p className="text-slate-700 text-[10px] mt-1 leading-relaxed max-w-[220px]">
-                          Paid after 48-hr PoD SLA. Includes up to 2nd-floor walk-up; 3rd floor+ no lift adds £25 (100% to crew).
-                        </p>
-                      </div>
-                      <span className="text-3xl font-extrabold text-[#004225] tabular-nums">
-                        £{currentTier.netPool.toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 text-xs text-slate-700 space-y-1.5">
-                  <div className="font-extrabold text-[#0A0F0D] uppercase tracking-wider text-[11px]">
-                    🛡 Hub 01 (M1 Corridor) Guardrails &amp; &ldquo;Pay on Success&rdquo; Pilot
-                  </div>
-                  <p>
-                    • <strong>Pay on Success Pilot:</strong> First 3 routes per showroom (14-day window) billed{' '}
-                    <strong>only upon verified photo PoD</strong> (£0.00 if failed due to crew/platform fault).
-                  </p>
-                  <p>
-                    • <strong>Active Hub 01 Radius:</strong> ≤35 miles across MK • Bedford • Northampton • Luton | £2.20/mi out-of-zone.
-                  </p>
-                  <p>
-                    • <strong>Shift &amp; Payload Cap:</strong> ≤9 hrs (£50/hr OT) | ≤1,200 kg total / 110 kg max single item.
-                  </p>
-                </div>
-              </div>
-
-              {/* RIGHT: B2B Showroom Value Proposition & Pilot Onboarding Card */}
-              <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-6 md:p-8 shadow-sm flex flex-col justify-between space-y-6">
-                <div className="space-y-5">
-                  <div className="border-b border-[#E2E8F0] pb-4">
-                    <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#004225] block">
-                      3.5t LWB, XLWB &amp; Luton 2-Man Specialist Network — UK M1 Corridor &amp; National Hubs
-                    </span>
-                    <h3 className="text-2xl font-extrabold text-[#0A0F0D] mt-1 flex flex-wrap items-baseline gap-1.5">
-                      <span>Why UK Retailers &amp; Commercial Shippers Switch to</span>
-                      <BenWordmark variant="light" size="md" />
-                    </h3>
-                    <p className="text-slate-600 text-sm mt-1">
-                      Replace fragmented man-and-van subcontractors and rigid 3PL middlemen with a governed, direct-to-crew logistics operating system.
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                      <div className="text-sm font-extrabold text-[#0A0F0D]">
-                        1. Inclusive UK 3.5t Commercial Fleet &amp; Tail-Lift Taxonomy
-                      </div>
-                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                        Make-and-model agnostic matching across LWB/XLWB High-Roof panel vans (Sprinter, Transit Jumbo, Crafter, Master), 3.5t Luton/Low-Loader box vans with tail-lift, MWB/EV urban vans, and 7.5t commercial box trucks.
-                      </p>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                      <div className="text-sm font-extrabold text-[#0A0F0D]">
-                        2. Strict Gate A6 Insurance &amp; Side-by-Side AI Condition Gate PoD
-                      </div>
-                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                        Every route is cryptographically locked to crews holding verified Goods in Transit (£20k–£50k+), Public Liability (£1m+ covering Driver &amp; Porter), and Hire &amp; Reward cover, with pre-load strapping matched against room-of-choice photo PoD.
-                      </p>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                      <div className="text-sm font-extrabold text-[#0A0F0D]">
-                        3. Instant Manifest Paste &amp; Tokenized Customer Tracking
-                      </div>
-                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                        Paste raw dispatch notes into the Retailer Portal to auto-calculate shift hours, LIFO van-bay loading zones, and shareable read-only consumer tracking links.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-[#E2E8F0] space-y-3">
-                  <button
-                    type="button"
-                    onClick={() => navigate('/portal')}
-                    className="min-h-[52px] w-full bg-[#004225] hover:bg-[#005A34] text-white font-extrabold py-3.5 px-4 rounded-xl transition-all shadow-md shadow-[#004225]/20 text-sm"
-                  >
-                    Launch Retailer Dispatch Workspace (/portal) →
-                  </button>
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-600 pt-1">
-                    <span>Operate a 3.5t LWB/XLWB Van, Luton Tail-Lift, or 2-Man Crew?</span>
-                    <button
-                      type="button"
-                      onClick={() => navigate('/driver')}
-                      className="text-[#004225] font-extrabold hover:underline"
-                    >
-                      Apply at /driver →
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
+            </section>
+          </div>
         )}
 
         {/* =====================================================================
@@ -1041,8 +933,10 @@ export default function App() {
               <div className="lg:col-span-7 bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-6 md:p-8 shadow-sm">
                 {waitlistSubmitted ? (
                   <div className="text-center py-10 space-y-4">
-                    <span className="text-5xl">✅</span>
-                    <h3 className="text-2xl font-extrabold text-[#0A0F0D]">
+                    <div className="w-12 h-12 rounded-2xl bg-[#F0F7F4] text-[#004225] flex items-center justify-center mx-auto">
+                      <CheckCircle2 className="w-6 h-6" strokeWidth={1.75} />
+                    </div>
+                    <h3 className="text-2xl font-bold text-[#0A0F0D]">
                       Crew Capability Profile Logged.
                     </h3>
                     <p className="text-slate-600 text-sm leading-relaxed px-4">
@@ -1228,9 +1122,11 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => navigate('/cab')}
-                    className="min-h-[48px] w-full bg-[#004225] hover:bg-[#005A34] text-white font-extrabold py-3 px-4 rounded-xl transition-all text-xs uppercase tracking-wider shadow-sm"
+                    className="min-h-[48px] w-full bg-[#004225] hover:bg-[#005A34] text-white font-semibold py-3 px-4 rounded-xl transition-all text-xs uppercase tracking-wider shadow-sm inline-flex items-center justify-center gap-2"
                   >
-                    📲 Open ben. Crew In-Cab App (/cab) →
+                    <Smartphone className="w-4 h-4" strokeWidth={1.75} />
+                    <span>Open ben. Crew In-Cab App (/cab)</span>
+                    <ArrowRight className="w-3.5 h-3.5" strokeWidth={1.75} />
                   </button>
                 </div>
 
@@ -1287,8 +1183,9 @@ export default function App() {
                     </div>
 
                     {authError && (
-                      <p className="text-red-700 text-xs font-bold bg-red-50 p-3 rounded-lg border border-red-200">
-                        ⚠️ {authError}
+                      <p className="text-red-700 text-xs font-semibold bg-red-50 p-3 rounded-lg border border-red-200 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0" strokeWidth={1.75} />
+                        <span>{authError}</span>
                       </p>
                     )}
 
@@ -1329,9 +1226,10 @@ export default function App() {
                         type="button"
                         disabled={authLoading}
                         onClick={() => handleQuickPilotLogin('retailer')}
-                        className="min-h-[44px] w-full bg-[#0A0F0D] hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-extrabold py-2.5 px-3 rounded-xl transition-all shadow-sm"
+                        className="min-h-[44px] w-full bg-[#0A0F0D] hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-semibold py-2.5 px-3 rounded-xl transition-all shadow-sm inline-flex items-center justify-center gap-2"
                       >
-                        🧪 Demo Retailer Sign-In (retailer@benlogistics.co.uk)
+                        <FlaskConical className="w-3.5 h-3.5" strokeWidth={1.75} />
+                        <span>Demo Retailer Sign-In (retailer@benlogistics.co.uk)</span>
                       </button>
                     </div>
 
@@ -1392,8 +1290,9 @@ export default function App() {
                       <span className="text-[10px] font-extrabold uppercase tracking-widest bg-emerald-100 text-emerald-900 border border-emerald-300 px-2.5 py-1 rounded-full">
                         Mobile In-Cab HUD • /cab
                       </span>
-                      <h2 className="text-2xl font-extrabold text-[#0F172A] mt-2">
-                        👷 Ben Crew Sign-In
+                      <h2 className="text-2xl font-bold text-[#0F172A] mt-2 flex items-center gap-2">
+                        <Truck className="w-5 h-5 text-[#004225]" strokeWidth={1.75} />
+                        <span>Ben Crew Sign-In</span>
                       </h2>
                       <p className="text-xs text-slate-500 mt-1">
                         Authenticate your 2-Man Crew profile to access Gate A6 compliance, LIFO load sheets, 3-Mode routing, and Camera/Canvas PoD.
@@ -1401,8 +1300,9 @@ export default function App() {
                     </div>
 
                     {authError && (
-                      <p className="text-red-700 text-xs font-bold bg-red-50 p-3 rounded-lg border border-red-200">
-                        ⚠️ {authError}
+                      <p className="text-red-700 text-xs font-semibold bg-red-50 p-3 rounded-lg border border-red-200 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0" strokeWidth={1.75} />
+                        <span>{authError}</span>
                       </p>
                     )}
 
@@ -1443,15 +1343,17 @@ export default function App() {
                         type="button"
                         disabled={authLoading}
                         onClick={() => handleQuickPilotLogin('driver')}
-                        className="min-h-[46px] w-full bg-[#FEFCE8] hover:bg-yellow-100 disabled:opacity-50 text-[#713F12] border border-[#F6EB61] text-xs font-extrabold py-2.5 px-3 rounded-xl transition-all shadow-sm"
+                        className="min-h-[46px] w-full bg-[#FEFCE8] hover:bg-yellow-100 disabled:opacity-50 text-[#713F12] border border-[#F6EB61] text-xs font-semibold py-2.5 px-3 rounded-xl transition-all shadow-sm inline-flex items-center justify-center gap-2"
                       >
-                        🚚 Demo Driver Sign-In (driver@benlogistics.co.uk)
+                        <Truck className="w-4 h-4" strokeWidth={1.75} />
+                        <span>Demo Driver Sign-In (driver@benlogistics.co.uk)</span>
                       </button>
                     </div>
 
                     <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-3.5 text-[11px] text-slate-600 space-y-1">
-                      <div className="font-extrabold text-[#0F172A]">
-                        📲 Install &ldquo;Ben Crew&rdquo; to Your Phone Home Screen
+                      <div className="font-semibold text-[#0F172A] flex items-center gap-1.5">
+                        <Smartphone className="w-3.5 h-3.5 text-[#004225]" strokeWidth={1.75} />
+                        <span>Install &ldquo;Ben Crew&rdquo; to Your Phone Home Screen</span>
                       </div>
                       <p>
                         In Safari (iOS) tap <strong>Share → Add to Home Screen</strong>, or in Chrome (Android) tap <strong>Install App</strong> to launch <code>/cab</code> full-screen without an App Store download.
@@ -1464,8 +1366,9 @@ export default function App() {
               <div className="bg-[#FFFFFF] border border-[#E2E8F0] rounded-2xl p-6 md:p-8 shadow-sm">
                 <div className="border-b border-[#E2E8F0] pb-4 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div>
-                    <h2 className="text-2xl font-extrabold text-[#0F172A]">
-                      👷 Ben Crew In-Cab HUD
+                    <h2 className="text-2xl font-bold text-[#0F172A] flex items-center gap-2">
+                      <Truck className="w-5 h-5 text-[#004225]" strokeWidth={1.75} />
+                      <span>Ben Crew In-Cab HUD</span>
                     </h2>
                     <p className="text-slate-600 text-sm mt-1">
                       Gate A6 Compliance, 3-Mode Driver-First Routing, LIFO Van-Bay Load Sheet, and Side-by-Side AI Damage-Shield PoD.
@@ -1527,8 +1430,9 @@ export default function App() {
                     className="flex flex-col space-y-5"
                   >
                     <div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-widest bg-[#00F5D4]/15 text-[#00F5D4] border border-[#00F5D4]/40 px-2.5 py-1 rounded-full">
-                        🔒 Restricted Executive Node • /command
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest bg-[#00F5D4]/15 text-[#00F5D4] border border-[#00F5D4]/40 px-2.5 py-1 rounded-full">
+                        <Lock className="w-3 h-3" strokeWidth={1.75} />
+                        <span>Restricted Executive Node • /command</span>
                       </span>
                       <h2 className="text-2xl font-extrabold text-white mt-2.5">
                         Admin Command Center Gate
@@ -1540,14 +1444,18 @@ export default function App() {
                     </div>
 
                     {session && !isAdminVerified && (
-                      <div className="bg-amber-500/15 border border-amber-400/40 text-amber-200 text-xs font-bold p-3 rounded-xl">
-                        ⚠️ Current session ({session.user?.email}) does not hold Admin Command clearance. Authenticate with an Admin Operator credential below.
+                      <div className="bg-amber-500/15 border border-amber-400/40 text-amber-200 text-xs font-semibold p-3 rounded-xl flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" strokeWidth={1.75} />
+                        <span>
+                          Current session ({session.user?.email}) does not hold Admin Command clearance. Authenticate with an Admin Operator credential below.
+                        </span>
                       </div>
                     )}
 
                     {authError && (
-                      <p className="text-red-300 text-xs font-bold bg-red-950/60 p-3 rounded-lg border border-red-500/40">
-                        ⚠️ {authError}
+                      <p className="text-red-300 text-xs font-semibold bg-red-950/60 p-3 rounded-lg border border-red-500/40 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0" strokeWidth={1.75} />
+                        <span>{authError}</span>
                       </p>
                     )}
 
@@ -1586,9 +1494,10 @@ export default function App() {
                         type="button"
                         disabled={authLoading}
                         onClick={() => handleQuickPilotLogin('admin')}
-                        className="min-h-[44px] w-full bg-slate-900 hover:bg-slate-800 border border-[#00F5D4]/40 text-[#00F5D4] text-xs font-extrabold py-2.5 px-3 rounded-xl transition-all"
+                        className="min-h-[44px] w-full bg-slate-900 hover:bg-slate-800 border border-[#00F5D4]/40 text-[#00F5D4] text-xs font-semibold py-2.5 px-3 rounded-xl transition-all inline-flex items-center justify-center gap-2"
                       >
-                        🔐 Authenticate Pilot Admin Session
+                        <KeyRound className="w-3.5 h-3.5" strokeWidth={1.75} />
+                        <span>Authenticate Pilot Admin Session</span>
                       </button>
                     </div>
                   </form>

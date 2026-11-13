@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { X, FileText } from 'lucide-react'
 import { supabase } from '../../config/supabaseClient'
 import type { ComplianceCredentialItem, ComplianceDocType } from '../../types/logistics'
 
@@ -67,9 +68,10 @@ export function ComplianceUploadModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+            className="text-slate-400 hover:text-slate-600 p-1"
+            aria-label="Close modal"
           >
-            ✕
+            <X className="w-4 h-4" strokeWidth={1.75} />
           </button>
         </div>
 
@@ -94,7 +96,7 @@ export function ComplianceUploadModal({
               Certificate Document (PDF or Camera Photo)
             </label>
             <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-5 cursor-pointer bg-slate-50 transition-all text-center">
-              <span className="text-2xl mb-1">📄</span>
+              <FileText className="w-6 h-6 text-slate-400 mb-1.5" strokeWidth={1.75} />
               <span className="text-xs font-bold text-slate-700">
                 {selectedFile ? selectedFile.name : 'Click to select PDF or snap Insurance Certificate'}
               </span>

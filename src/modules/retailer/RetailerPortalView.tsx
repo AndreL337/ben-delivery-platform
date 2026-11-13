@@ -1,4 +1,21 @@
 import React, { useState, useMemo } from 'react'
+import {
+  Building2,
+  FileText,
+  Plus,
+  CheckCircle2,
+  Clock,
+  Truck,
+  ShieldCheck,
+  Camera,
+  PenTool,
+  AlertCircle,
+  Star,
+  ArrowUpRight,
+  X,
+  Copy,
+  Printer
+} from 'lucide-react'
 import { supabase } from '../../config/supabaseClient'
 import { PRICING_MATRIX, parseManifestDrops } from '../../config/pricingMatrix2026'
 import {
@@ -301,8 +318,8 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
             </span>
           </div>
 
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-xs font-semibold text-slate-700">
-            <span>🏢</span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200/80 text-xs font-semibold text-slate-700">
+            <Building2 className="w-3.5 h-3.5 text-slate-500" strokeWidth={1.75} />
             <span>{retailerName}</span>
             {retailerId ? (
               <span className="text-[10px] font-mono text-[#004225] bg-[#F0F7F4] px-1.5 py-0.5 rounded border border-[#004225]/20">
@@ -324,9 +341,10 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
               window.history.pushState({}, '', '/rate-card')
               window.dispatchEvent(new PopStateEvent('popstate'))
             }}
-            className="min-h-[40px] px-3.5 py-2 rounded-lg bg-[#FEFCE8] hover:bg-yellow-100 text-[#713F12] border border-[#004225] text-xs font-extrabold transition-all flex items-center gap-1.5"
+            className="min-h-[40px] px-3.5 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/80 text-xs font-semibold transition-all inline-flex items-center gap-1.5"
           >
-            <span>📄 2026 Rate Card</span>
+            <FileText className="w-3.5 h-3.5 text-[#004225]" strokeWidth={1.75} />
+            <span>2026 Rate Card</span>
           </a>
 
           <button
@@ -335,9 +353,10 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
               setDrawerError(null)
               setIsDrawerOpen(true)
             }}
-            className="min-h-[40px] px-4 py-2 rounded-lg bg-[#004225] hover:bg-[#005A34] text-white text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+            className="min-h-[40px] px-4 py-2 rounded-lg bg-[#004225] hover:bg-[#005A34] text-white text-xs font-semibold transition-all shadow-sm inline-flex items-center gap-1.5"
           >
-            <span>+ Book New Run</span>
+            <Plus className="w-3.5 h-3.5" strokeWidth={2} />
+            <span>Book New Run</span>
           </button>
 
           {retailerId && onSignOut ? (
@@ -365,72 +384,73 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
       {/* TOAST NOTIFICATION */}
       {toastBanner && (
         <div className="mx-6 mt-4 px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center justify-between">
-          <span>✅ {toastBanner}</span>
+          <span className="inline-flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" strokeWidth={1.75} />
+            <span>{toastBanner}</span>
+          </span>
           <button
             type="button"
             onClick={() => setToastBanner(null)}
-            className="text-emerald-700 hover:text-emerald-950 font-bold ml-4"
+            className="text-emerald-700 hover:text-emerald-950 font-bold ml-4 p-1"
+            aria-label="Dismiss notification"
           >
-            ✕
+            <X className="w-3.5 h-3.5" strokeWidth={1.75} />
           </button>
         </div>
       )}
 
       <div className="p-6 space-y-6">
-        {/* 2. KPI STRIP (4 STAT CARDS) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 block">
-              Total Manifests Dispatched
-            </span>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-2xl font-extrabold text-[#0A0F0D] tabular-nums">
+        {/* 2. LINEAR-STYLE INLINE TELEMETRY RIBBON */}
+        <div className="bg-white border border-slate-200/80 rounded-xl px-6 py-3.5 grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-slate-200/70">
+          <div className="py-1.5 lg:py-0 lg:pr-6 flex items-baseline justify-between gap-2">
+            <div>
+              <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400 block">
+                Total Dispatched
+              </span>
+              <span className="text-xl font-bold text-slate-950 tabular-nums mt-0.5 block">
                 {kpiStats.total}
               </span>
-              <span className="text-[11px] font-medium text-slate-500">Hub 01 (M1)</span>
             </div>
+            <span className="text-[11px] font-medium text-slate-500">Hub 01 (M1)</span>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 block">
-              Active on Road
-            </span>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-2xl font-extrabold text-[#004225] tabular-nums">
+          <div className="py-1.5 lg:py-0 lg:px-6 flex items-baseline justify-between gap-2">
+            <div>
+              <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400 block">
+                Active on Road
+              </span>
+              <span className="text-xl font-bold text-[#004225] tabular-nums mt-0.5 block">
                 {kpiStats.activeOnRoad}
               </span>
-              <span className="text-[11px] font-semibold text-[#713F12] bg-[#FEFCE8] px-2 py-0.5 rounded border border-[#F6EB61]">
-                In Transit
-              </span>
             </div>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#713F12] bg-[#FEFCE8] px-2 py-0.5 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              <span>In Transit</span>
+            </span>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 block">
-              Awaiting Crew Claim
-            </span>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-2xl font-extrabold text-amber-700 tabular-nums">
+          <div className="py-1.5 lg:py-0 lg:px-6 flex items-baseline justify-between gap-2">
+            <div>
+              <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400 block">
+                Awaiting Claim
+              </span>
+              <span className="text-xl font-bold text-amber-700 tabular-nums mt-0.5 block">
                 {kpiStats.awaitingClaim}
               </span>
-              <span className="text-[11px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                Open Board
-              </span>
             </div>
+            <span className="text-[11px] font-medium text-slate-500">Open Board</span>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 block">
-              Delivered &amp; Verified PoD
-            </span>
-            <div className="mt-2 flex items-baseline justify-between">
-              <span className="text-2xl font-extrabold text-emerald-700 tabular-nums">
+          <div className="py-1.5 lg:py-0 lg:pl-6 flex items-baseline justify-between gap-2">
+            <div>
+              <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400 block">
+                Verified PoD
+              </span>
+              <span className="text-xl font-bold text-emerald-700 tabular-nums mt-0.5 block">
                 {kpiStats.completedPod}
               </span>
-              <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                SLA Settled
-              </span>
             </div>
+            <span className="text-[11px] font-medium text-emerald-700">SLA Settled</span>
           </div>
         </div>
 
@@ -608,16 +628,19 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                         </td>
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           {isCompleted ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#F0F7F4] text-[#004225] border border-[#004225]/25 text-[11px] font-bold tabular-nums">
-                              ✓ Completed ({drops.length}/{drops.length})
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#F0F7F4] text-[#004225] text-[11px] font-semibold tabular-nums">
+                              <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.75} />
+                              <span>Completed ({drops.length}/{drops.length})</span>
                             </span>
                           ) : isAssigned ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FEFCE8] text-[#713F12] border border-[#F6EB61] text-[11px] font-bold tabular-nums">
-                              ● In Transit ({doneCount}/{drops.length})
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FEFCE8] text-[#713F12] text-[11px] font-semibold tabular-nums">
+                              <Truck className="w-3.5 h-3.5" strokeWidth={1.75} />
+                              <span>In Transit ({doneCount}/{drops.length})</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[11px] font-bold tabular-nums">
-                              ⏳ Awaiting Claim (0/{drops.length})
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 text-[11px] font-semibold tabular-nums">
+                              <Clock className="w-3.5 h-3.5" strokeWidth={1.75} />
+                              <span>Awaiting Claim (0/{drops.length})</span>
                             </span>
                           )}
                         </td>
@@ -655,10 +678,11 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => setRatingJob(job)}
-                                  className="px-2 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-[11px] font-semibold"
+                                  className="px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-slate-100 text-slate-600 text-[11px] font-semibold inline-flex items-center gap-1"
                                   title="Rate 2-Man Crew"
                                 >
-                                  ★ Rate
+                                  <Star className="w-3 h-3" strokeWidth={1.75} />
+                                  <span>Rate</span>
                                 </button>
                               </>
                             ) : (
@@ -669,15 +693,16 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                                     onOpenConsumerTracker(String(job.id))
                                   }
                                 }}
-                                className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-[#0f172a] border border-slate-200 text-xs font-bold transition-all shadow-sm"
+                                className="px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-slate-100 text-slate-800 text-xs font-semibold transition-all inline-flex items-center gap-1"
                               >
-                                Live Map ↗
+                                <span>Live Map</span>
+                                <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={1.75} />
                               </button>
                             )}
                             <button
                               type="button"
                               onClick={() => setDisputeJob(job)}
-                              className="px-2 py-1.5 rounded-lg bg-white hover:bg-red-50 text-slate-500 hover:text-red-700 border border-slate-200 text-[11px] font-semibold"
+                              className="px-2 py-1.5 rounded-lg bg-transparent hover:bg-red-50 text-slate-500 hover:text-red-700 text-[11px] font-semibold"
                               title="Log Exception / Issue"
                             >
                               Issue
@@ -713,15 +738,16 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsDrawerOpen(false)}
-                    className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm"
+                    className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center"
                   >
-                    ✕
+                    <X className="w-4 h-4" strokeWidth={1.75} />
                   </button>
                 </div>
 
                 {drawerError && (
-                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 text-xs font-semibold">
-                    ⚠️ {drawerError}
+                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-800 text-xs font-semibold flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" strokeWidth={1.75} />
+                    <span>{drawerError}</span>
                   </div>
                 )}
 
@@ -925,7 +951,7 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                     <span>Included Stops ({dropCount} parsed)</span>
                     <span>
                       {dropCount > pricingTier.maxDrops
-                        ? `⚠️ Exceeds ${pricingTier.maxDrops}-drop cap`
+                        ? `Exceeds ${pricingTier.maxDrops}-drop cap`
                         : 'Within Fair-Use Cap'}
                     </span>
                   </div>
@@ -998,10 +1024,11 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
           <div className="bg-white border border-slate-200 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-5">
             <div className="flex items-start justify-between border-b border-slate-200 pb-4">
               <div>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold">
-                  🛡️ Ben Damage-Shield Certificate Verified
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-semibold">
+                  <ShieldCheck className="w-3.5 h-3.5" strokeWidth={1.75} />
+                  <span>Ben Damage-Shield Certificate Verified</span>
                 </span>
-                <h3 className="text-lg font-extrabold text-[#0f172a] mt-1.5">
+                <h3 className="text-lg font-bold text-[#0f172a] mt-1.5">
                   Proof of Delivery — Manifest #MK-{String(selectedJobForPoD.id)}
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
@@ -1011,9 +1038,9 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedJobForPoD(null)}
-                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm"
+                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center"
               >
-                ✕
+                <X className="w-4 h-4" strokeWidth={1.75} />
               </button>
             </div>
 
@@ -1031,7 +1058,7 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                   />
                 ) : (
                   <div className="w-full h-48 rounded-lg border border-dashed border-slate-300 bg-white flex flex-col items-center justify-center p-4 text-center">
-                    <span className="text-2xl mb-1">📷</span>
+                    <Camera className="w-6 h-6 text-slate-400 mb-1.5" strokeWidth={1.75} />
                     <span className="text-xs font-bold text-slate-700">
                       Condition Gate Photo Verified
                     </span>
@@ -1040,8 +1067,9 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                     </span>
                   </div>
                 )}
-                <span className="text-[11px] text-emerald-700 font-semibold">
-                  ✓ Matched against morning depot pre-load inspection
+                <span className="text-[11px] text-emerald-700 font-semibold inline-flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" strokeWidth={1.75} />
+                  <span>Matched against morning depot pre-load inspection</span>
                 </span>
               </div>
 
@@ -1060,7 +1088,7 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                   </div>
                 ) : (
                   <div className="w-full h-48 rounded-lg border border-dashed border-slate-300 bg-white flex flex-col items-center justify-center p-4 text-center">
-                    <span className="text-2xl mb-1">✍️</span>
+                    <PenTool className="w-6 h-6 text-slate-400 mb-1.5" strokeWidth={1.75} />
                     <span className="text-xs font-bold text-slate-700">
                       Signed &amp; Accepted at Room of Choice
                     </span>
@@ -1142,9 +1170,9 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setSelectedJobForInvoice(null)}
-                  className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm"
+                  className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center"
                 >
-                  ✕
+                  <X className="w-4 h-4" strokeWidth={1.75} />
                 </button>
               </div>
 
@@ -1205,16 +1233,18 @@ export const RetailerPortalView: React.FC<RetailerPortalViewProps> = ({
                     navigator.clipboard?.writeText(summaryText)
                     setInvoiceCopied(true)
                   }}
-                  className="px-4 py-2 rounded-lg bg-white hover:bg-slate-50 text-[#0f172a] border border-slate-200 text-xs font-bold"
+                  className="px-4 py-2 rounded-lg bg-white hover:bg-slate-50 text-[#0f172a] border border-slate-200 text-xs font-semibold inline-flex items-center gap-1.5"
                 >
-                  {invoiceCopied ? '✓ Copied to Clipboard' : '📋 Copy Summary'}
+                  <Copy className="w-3.5 h-3.5" strokeWidth={1.75} />
+                  <span>{invoiceCopied ? 'Copied to Clipboard' : 'Copy Summary'}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-4 py-2 rounded-lg bg-[#004225] hover:bg-[#005A34] text-white text-xs font-bold shadow-sm"
+                  className="px-4 py-2 rounded-lg bg-[#004225] hover:bg-[#005A34] text-white text-xs font-semibold shadow-sm inline-flex items-center gap-1.5"
                 >
-                  🖨 Print / Save PDF
+                  <Printer className="w-3.5 h-3.5" strokeWidth={1.75} />
+                  <span>Print / Save PDF</span>
                 </button>
                 <button
                   type="button"

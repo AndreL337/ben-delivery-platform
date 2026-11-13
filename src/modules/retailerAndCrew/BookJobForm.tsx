@@ -1,4 +1,19 @@
 import { useState, useEffect, useRef } from 'react'
+import {
+  ShieldCheck,
+  AlertTriangle,
+  Lock,
+  FileText,
+  Paperclip,
+  Upload,
+  MapPin,
+  Wrench,
+  Navigation,
+  Compass,
+  Camera,
+  Check,
+  X
+} from 'lucide-react'
 import { supabase } from '../../config/supabaseClient'
 import { parseManifestDrops } from '../../config/pricingMatrix2026'
 import type {
@@ -360,7 +375,7 @@ export function BookJobForm({
       }
 
       setPodMessage(
-        '🛡️ Ben Damage-Shield Certificate Issued: Pre-Load matched to Room-of-Choice PoD & e-Signature verified!'
+        'Ben Damage-Shield Certificate Issued: Pre-Load matched to Room-of-Choice PoD & e-Signature verified.'
       )
       setSignatureSvg('')
       const { data: updatedJobs } = await supabase.from('jobs').select('*').eq('id', jobId)
@@ -369,7 +384,7 @@ export function BookJobForm({
     } catch (err: any) {
       console.error('[Ben PoD Upload/Sync Failure]', err)
       setPodMessage(
-        `⚠️ Signal interrupted (${err.message}). Do NOT close this tab — tap Capture again once 4G signal returns.`
+        `Signal interrupted (${err.message}). Do NOT close this tab — tap Capture again once 4G signal returns.`
       )
     } finally {
       setPodUploading(false)
@@ -518,7 +533,7 @@ export function BookJobForm({
           text:
             rpcErr?.message ||
             error?.message ||
-            '⚠️ Route already claimed by another crew or compliance gate not met.'
+            'Route already claimed by another crew or compliance gate not met.'
         })
         await fetchLogisticsData()
         return
@@ -569,15 +584,16 @@ export function BookJobForm({
   return (
     <div className="w-full text-[#0F172A]">
       {mode === 'driver' && !activeUserId && (
-        <div className="mb-5 p-4 rounded-xl border border-amber-300 bg-amber-50 text-amber-950 text-xs font-extrabold flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <span>
-            🔐 Operator Session Required: Sign in to your 2-Man Crew account to claim live Milton Keynes routes.
+        <div className="mb-5 p-4 rounded-xl border border-amber-300 bg-amber-50 text-amber-950 text-xs font-semibold flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <span className="inline-flex items-center gap-2">
+            <Lock className="w-4 h-4 shrink-0" strokeWidth={1.75} />
+            <span>Operator Session Required: Sign in to your 2-Man Crew account to claim live Milton Keynes routes.</span>
           </span>
           {onRequireAuth && (
             <button
               type="button"
               onClick={onRequireAuth}
-              className="min-h-[38px] px-4 py-2 rounded-lg bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-extrabold shrink-0"
+              className="min-h-[38px] px-4 py-2 rounded-lg bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-bold shrink-0"
             >
               Sign In / Create Account →
             </button>
@@ -586,7 +602,7 @@ export function BookJobForm({
       )}
       {bookingBanner && (
         <div
-          className={`mb-5 p-4 rounded-xl border text-xs font-extrabold flex items-center justify-between ${
+          className={`mb-5 p-4 rounded-xl border text-xs font-semibold flex items-center justify-between ${
             bookingBanner.type === 'success'
               ? 'bg-emerald-50 border-emerald-300 text-emerald-950'
               : 'bg-red-50 border-red-300 text-red-900'
@@ -596,9 +612,9 @@ export function BookJobForm({
           <button
             type="button"
             onClick={() => setBookingBanner(null)}
-            className="ml-3 text-slate-500 hover:text-[#0F172A]"
+            className="ml-3 text-slate-500 hover:text-[#0F172A] p-0.5"
           >
-            ✕
+            <X className="w-4 h-4" strokeWidth={1.75} />
           </button>
         </div>
       )}
@@ -617,11 +633,12 @@ export function BookJobForm({
         /* GATE A6: STRENGTHENED UK COMPLIANCE GATE IN CREW PORTAL */
         <div className="bg-red-50 border border-red-200 rounded-xl p-6 space-y-5">
           <div>
-            <span className="text-[10px] font-extrabold uppercase tracking-widest bg-red-100 text-red-800 px-2.5 py-1 rounded-full border border-red-200">
+            <span className="text-[10px] font-bold uppercase tracking-widest bg-red-100 text-red-800 px-2.5 py-1 rounded-full border border-red-200">
               Gate A6 Audit • Version v1.0-pilot-outside-ir35
             </span>
-            <h3 className="text-red-800 text-lg font-extrabold mt-2 flex items-center">
-              ⚠️ Independent Contractor Agreement & Insurance Verification
+            <h3 className="text-red-800 text-lg font-bold mt-2 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 shrink-0" strokeWidth={1.75} />
+              <span>Independent Contractor Agreement &amp; Insurance Verification</span>
             </h3>
             <p className="text-xs text-red-700 mt-1">
               Ben Logistics acts strictly as a technology marketplace agent connecting Retailers and Independent Contractor Crews (not a carrier or employer). Signing logs a permanent Gate A6 audit record to `public.contractor_agreements`.
@@ -693,8 +710,9 @@ export function BookJobForm({
           </div>
 
           <div className="bg-white p-4 rounded-xl border border-red-200 space-y-3">
-            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
-              📄 Crew Insurance Certificate Details (Required to Unlock Board)
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5 text-slate-600" strokeWidth={1.75} />
+              <span>Crew Insurance Certificate Details (Required to Unlock Board)</span>
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input
@@ -720,10 +738,15 @@ export function BookJobForm({
               className="w-full bg-slate-50 border border-slate-300 rounded-lg py-2 px-3 text-xs outline-none focus:border-emerald-500"
             />
             <div className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-lg border border-slate-200">
-              <span className="text-xs text-slate-600 truncate">
-                {certificateFileName
-                  ? `📎 Attached: ${certificateFileName}`
-                  : 'Or upload GIT / Public Liability Certificate (PDF/JPG):'}
+              <span className="text-xs text-slate-600 truncate inline-flex items-center gap-1.5">
+                {certificateFileName ? (
+                  <>
+                    <Paperclip className="w-3.5 h-3.5 shrink-0" strokeWidth={1.75} />
+                    <span>Attached: {certificateFileName}</span>
+                  </>
+                ) : (
+                  <span>Or upload GIT / Public Liability Certificate (PDF/JPG):</span>
+                )}
               </span>
               <label className="cursor-pointer bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-bold px-3 py-2 rounded-lg transition-all">
                 Upload Certificate
@@ -764,17 +787,19 @@ export function BookJobForm({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E8F0] pb-3">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-base font-extrabold text-[#0F172A]">
-                    🔐 Crew Compliance Locker (Document Vault)
+                  <h3 className="text-base font-bold text-[#0F172A] flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-[#004225]" strokeWidth={1.75} />
+                    <span>Crew Compliance Locker (Document Vault)</span>
                   </h3>
                   {agreementSignedAt && (
-                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
-                      ✓ Gate A6 Persisted (`v1.0-pilot-outside-ir35`)
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      <Check className="w-3 h-3" strokeWidth={2} />
+                      <span>Gate A6 Persisted (`v1.0-pilot-outside-ir35`)</span>
                     </span>
                   )}
                 </div>
                 <p className="text-xs text-slate-600 mt-0.5">
-                  Upload your mandatory UK commercial policies to `compliance-docs` for Supply & Compliance Agent verification.
+                  Upload your mandatory UK commercial policies to `compliance-docs` for Supply &amp; Compliance Agent verification.
                 </p>
               </div>
 
@@ -783,15 +808,20 @@ export function BookJobForm({
                 <button
                   type="button"
                   onClick={() => setCrewHasTailLiftLuton(!crewHasTailLiftLuton)}
-                  className={`min-h-[38px] text-[11px] font-extrabold px-3 py-1 rounded-lg transition-all ${
+                  className={`min-h-[38px] text-[11px] font-semibold px-3 py-1 rounded-lg transition-all inline-flex items-center gap-1 ${
                     crewHasTailLiftLuton
                       ? 'bg-[#004225] text-white'
                       : 'bg-[#FEFCE8] text-[#713F12] border border-[#F6EB61]'
                   }`}
                 >
-                  {crewHasTailLiftLuton
-                    ? '✓ 3.5t Luton / Low-Loader + Tail-Lift'
-                    : 'LWB / XLWB High-Roof Panel Van (3.5t)'}
+                  {crewHasTailLiftLuton ? (
+                    <>
+                      <Check className="w-3 h-3" strokeWidth={2} />
+                      <span>3.5t Luton / Low-Loader + Tail-Lift</span>
+                    </>
+                  ) : (
+                    <span>LWB / XLWB High-Roof Panel Van (3.5t)</span>
+                  )}
                 </button>
               </div>
             </div>
@@ -824,11 +854,12 @@ export function BookJobForm({
                   <button
                     type="button"
                     onClick={() => setActiveUploadCredential(cred)}
-                    className="min-h-[48px] w-full py-2 px-3 rounded-xl border border-[#E2E8F0] hover:border-emerald-500 hover:bg-emerald-50/50 text-[#0F172A] text-xs font-extrabold transition-all"
+                    className="min-h-[48px] w-full py-2 px-3 rounded-xl border border-[#E2E8F0] hover:border-emerald-500 hover:bg-emerald-50/50 text-[#0F172A] text-xs font-semibold transition-all inline-flex items-center justify-center gap-1.5"
                   >
-                    {cred.status === 'Action Required'
-                      ? '📤 Upload Certificate'
-                      : '↻ Update Certificate'}
+                    <Upload className="w-3.5 h-3.5" strokeWidth={1.75} />
+                    <span>
+                      {cred.status === 'Action Required' ? 'Upload Certificate' : 'Update Certificate'}
+                    </span>
                   </button>
                 </div>
               ))}
@@ -895,7 +926,7 @@ export function BookJobForm({
 
                         if (!error) {
                           setPodMessage(
-                            '🛡️ Ben Damage-Shield Certificate Issued: Route marked Completed & e-Signature verified!'
+                            'Ben Damage-Shield Certificate Issued: Route marked Completed & e-Signature verified.'
                           )
                           setSignatureSvg('')
                           const { data: updatedJobs } = await supabase
@@ -928,23 +959,26 @@ export function BookJobForm({
                       <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300">
                         Morning Depot Pre-Load &amp; LIFO Sequencing
                       </span>
-                      <h3 className="text-lg font-extrabold text-[#0F172A] mt-1.5 mb-1 tabular-nums">
-                        📍 Active Loop #{String(activeDriverJob.id)}: {activeDriverJob.pickup_address}
+                      <h3 className="text-lg font-bold text-[#0F172A] mt-1.5 mb-1 tabular-nums flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-[#004225] shrink-0" strokeWidth={1.75} />
+                        <span>Active Loop #{String(activeDriverJob.id)}: {activeDriverJob.pickup_address}</span>
                       </h3>
                       <div className="flex flex-wrap items-center gap-2 tabular-nums">
-                        <span className="text-xs font-extrabold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                        <span className="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
                           Status: {activeDriverJob.status} • Net Crew Pool: £
                           {Number(activeDriverJob.net_pool ?? 385).toFixed(2)}
                         </span>
                         {activeDriverJob.requires_tail_lift && (
-                          <span className="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300">
-                            ⚠️ Tail-Lift Van Required
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300">
+                            <AlertTriangle className="w-3.5 h-3.5" strokeWidth={1.75} />
+                            <span>Tail-Lift Van Required</span>
                           </span>
                         )}
                         {(activeDriverJob.requires_assembly ||
                           activeDriverJob.loop_profile === 'assembly') && (
-                          <span className="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-blue-100 text-blue-900 border border-blue-300">
-                            🔧 Tools &amp; Assembly Required
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-blue-100 text-blue-900 border border-blue-300">
+                            <Wrench className="w-3.5 h-3.5" strokeWidth={1.75} />
+                            <span>Tools &amp; Assembly Required</span>
                           </span>
                         )}
                       </div>
@@ -954,17 +988,19 @@ export function BookJobForm({
                       <button
                         type="button"
                         onClick={() => setInCabRouteStarted(true)}
-                        className="min-h-[48px] text-xs font-extrabold px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm"
+                        className="min-h-[48px] text-xs font-bold px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm inline-flex items-center gap-1.5"
                       >
-                        🚀 Full-Screen In-Cab HUD
+                        <Navigation className="w-3.5 h-3.5" strokeWidth={1.75} />
+                        <span>Full-Screen In-Cab HUD</span>
                       </button>
                       {onOpenConsumerTracker && (
                         <button
                           type="button"
                           onClick={() => onOpenConsumerTracker(String(activeDriverJob.id))}
-                          className="min-h-[48px] text-xs font-extrabold px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white"
+                          className="min-h-[48px] text-xs font-bold px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white inline-flex items-center gap-1.5"
                         >
-                          📍 View Customer Tracker
+                          <MapPin className="w-3.5 h-3.5" strokeWidth={1.75} />
+                          <span>View Customer Tracker</span>
                         </button>
                       )}
                     </div>
@@ -975,17 +1011,19 @@ export function BookJobForm({
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#0F172A] text-white">
-                            🧭 Driver-First Routing Engine
+                          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#0F172A] text-white">
+                            <Compass className="w-3 h-3" strokeWidth={1.75} />
+                            <span>Driver-First Routing Engine</span>
                           </span>
                           {syncingRoute && (
                             <span className="text-[10px] font-bold text-emerald-700">
-                              ↻ Syncing LIFO Plan...
+                              Syncing LIFO Plan...
                             </span>
                           )}
                           {preLoadInspected && (
-                            <span className="text-[10px] font-extrabold text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
-                              🔒 Locked by Pre-Load Gate
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
+                              <Lock className="w-3 h-3" strokeWidth={1.75} />
+                              <span>Locked by Pre-Load Gate</span>
                             </span>
                           )}
                         </div>
@@ -1080,15 +1118,23 @@ export function BookJobForm({
                   <div className="bg-emerald-50/70 border border-emerald-300 rounded-2xl p-5 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-200 pb-3">
                       <div>
-                        <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-950 block">
-                          🛡️ Step A • Depot Pre-Load &amp; Reverse-Load (LIFO) Bay Sheet
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-950 flex items-center gap-1.5">
+                          <ShieldCheck className="w-3.5 h-3.5 text-[#004225]" strokeWidth={1.75} />
+                          <span>Step A • Depot Pre-Load &amp; Reverse-Load (LIFO) Bay Sheet</span>
                         </span>
                         <p className="text-xs text-emerald-900 mt-0.5">
                           Load items from Zone A (Bulkhead) to Zone D (Tail-Lift), inspect carton corners, and tap Start Route to launch the mobile In-Cab View.
                         </p>
                       </div>
-                      <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-emerald-600 text-white self-start sm:self-center">
-                        {preLoadInspected ? '✓ Pre-Load & LIFO Locked' : 'Ready to Load'}
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-600 text-white self-start sm:self-center">
+                        {preLoadInspected ? (
+                          <>
+                            <Check className="w-3 h-3" strokeWidth={2} />
+                            <span>Pre-Load &amp; LIFO Locked</span>
+                          </>
+                        ) : (
+                          <span>Ready to Load</span>
+                        )}
                       </span>
                     </div>
 
@@ -1142,8 +1188,11 @@ export function BookJobForm({
                         </span>
                       </label>
 
-                      <label className="min-h-[48px] cursor-pointer bg-[#F8FAFC] hover:bg-slate-100 border border-[#E2E8F0] rounded-xl px-3 py-2 flex items-center justify-between text-xs font-extrabold text-[#0F172A]">
-                        <span className="truncate">📷 {preLoadPhotoName}</span>
+                      <label className="min-h-[48px] cursor-pointer bg-[#F8FAFC] hover:bg-slate-100 border border-[#E2E8F0] rounded-xl px-3 py-2 flex items-center justify-between text-xs font-semibold text-[#0F172A]">
+                        <span className="truncate inline-flex items-center gap-1.5">
+                          <Camera className="w-3.5 h-3.5 text-slate-500 shrink-0" strokeWidth={1.75} />
+                          <span>{preLoadPhotoName}</span>
+                        </span>
                         <span className="text-emerald-700 shrink-0 ml-2">Update Pre-Load Photo</span>
                         <input
                           type="file"
@@ -1173,9 +1222,10 @@ export function BookJobForm({
                           })
                           .eq('id', activeDriverJob.id)
                       }}
-                      className="min-h-[56px] w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl py-3.5 px-5 text-base tracking-wide uppercase shadow-lg shadow-emerald-600/25 transition-all"
+                      className="min-h-[56px] w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl py-3.5 px-5 text-base tracking-wide uppercase shadow-lg shadow-emerald-600/25 transition-all inline-flex items-center justify-center gap-2"
                     >
-                      🚀 Lock LIFO Load &amp; Start Route (In-Cab HUD) →
+                      <Navigation className="w-4 h-4" strokeWidth={1.75} />
+                      <span>Lock LIFO Load &amp; Start Route (In-Cab HUD) →</span>
                     </button>
                   </div>
                 </div>
@@ -1184,12 +1234,13 @@ export function BookJobForm({
           ) : (
             <div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 border-b border-[#E2E8F0] pb-2">
-                <h3 className="text-lg font-extrabold text-[#0F172A]">
+                <h3 className="text-lg font-bold text-[#0F172A]">
                   Open Freight Board (87.5% Net Crew Pool)
                 </h3>
                 {!isCrewComplianceVerified && (
-                  <span className="text-[11px] font-extrabold px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-                    🔒 Upload & Verify All 3 Unexpired Policies Above to Claim Routes
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                    <Lock className="w-3 h-3" strokeWidth={1.75} />
+                    <span>Upload &amp; Verify All 3 Unexpired Policies Above to Claim Routes</span>
                   </span>
                 )}
               </div>
@@ -1212,22 +1263,24 @@ export function BookJobForm({
                         className="bg-[#FFFFFF] border border-[#E2E8F0] p-4 rounded-xl flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 shadow-sm"
                       >
                         <div className="space-y-1.5">
-                          <span className="font-extrabold text-[#0F172A] block tabular-nums">
+                          <span className="font-bold text-[#0F172A] block tabular-nums">
                             Route #{String(j.id)} • {j.pickup_address}
                           </span>
-                          <span className="text-xs font-extrabold text-emerald-700 block tabular-nums">
+                          <span className="text-xs font-bold text-emerald-700 block tabular-nums">
                             2-Man Crew Net Pool (87.5%): £{Number(j.net_pool ?? 385).toFixed(2)} •{' '}
                             {stops.length} Drops
                           </span>
                           <div className="flex flex-wrap gap-1.5 pt-0.5">
                             {j.requires_tail_lift && (
-                              <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300">
-                                ⚠️ Tail-Lift Van Required
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300">
+                                <AlertTriangle className="w-3 h-3" strokeWidth={1.75} />
+                                <span>Tail-Lift Van Required</span>
                               </span>
                             )}
                             {(j.requires_assembly || j.loop_profile === 'assembly') && (
-                              <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-md bg-blue-100 text-blue-900 border border-blue-300">
-                                🔧 Tools & Assembly Required
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-blue-100 text-blue-900 border border-blue-300">
+                                <Wrench className="w-3 h-3" strokeWidth={1.75} />
+                                <span>Tools &amp; Assembly Required</span>
                               </span>
                             )}
                           </div>
@@ -1237,17 +1290,20 @@ export function BookJobForm({
                           <button
                             disabled={claimBlocked}
                             onClick={() => handleClaimRoute(String(j.id))}
-                            className={`min-h-[48px] text-xs font-extrabold py-2.5 px-5 rounded-xl transition-all shadow-sm ${
+                            className={`min-h-[48px] text-xs font-bold py-2.5 px-5 rounded-xl transition-all shadow-sm inline-flex items-center gap-1.5 ${
                               claimBlocked
                                 ? 'bg-slate-200 text-slate-500 cursor-not-allowed'
                                 : 'bg-emerald-600 hover:bg-emerald-700 text-white'
                             }`}
                           >
-                            {tailLiftRestricted
-                              ? '🔒 Requires 3.5t Tail-Lift Asset'
-                              : !isCrewComplianceVerified
-                              ? '🔒 Insurance Verification Required'
-                              : 'Claim Route'}
+                            {claimBlocked && <Lock className="w-3.5 h-3.5" strokeWidth={1.75} />}
+                            <span>
+                              {tailLiftRestricted
+                                ? 'Requires 3.5t Tail-Lift Asset'
+                                : !isCrewComplianceVerified
+                                ? 'Insurance Verification Required'
+                                : 'Claim Route'}
+                            </span>
                           </button>
                           {tailLiftRestricted && (
                             <span className="text-[10px] text-amber-800 font-bold">

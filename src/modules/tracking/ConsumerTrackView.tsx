@@ -1,4 +1,14 @@
 import { useState, useEffect } from 'react'
+import {
+  ShieldCheck,
+  MapPin,
+  Check,
+  Wrench,
+  Home,
+  AlertTriangle,
+  UserCheck,
+  PenTool
+} from 'lucide-react'
 import { supabase } from '../../config/supabaseClient'
 import { parseManifestDrops } from '../../config/pricingMatrix2026'
 import type { JobRecord } from '../../types/logistics'
@@ -144,12 +154,14 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
               <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#004225] tabular-nums">
                 High-Contrast Daylight Tracker • Route #{String(activeJob.id)}
               </span>
-              <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-[#F0F7F4] text-[#004225] border border-[#004225]/25">
-                🛡️ AI Damage Shield Active
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full bg-[#F0F7F4] text-[#004225] border border-[#004225]/25">
+                <ShieldCheck className="w-3 h-3" strokeWidth={1.75} />
+                <span>AI Damage Shield Active</span>
               </span>
             </div>
-            <h2 className="text-2xl font-extrabold text-[#0F172A] mt-1">
-              📍 Live 2-Man Bulky Delivery Tracker
+            <h2 className="text-2xl font-bold text-[#0F172A] mt-1.5 flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-[#004225]" strokeWidth={1.75} />
+              <span>Live 2-Man Bulky Delivery Tracker</span>
             </h2>
             <p className="text-xs text-slate-600 mt-0.5">
               Origin Showroom: <strong className="text-[#0F172A]">{activeJob.pickup_address}</strong>
@@ -214,7 +226,10 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
                       : 'bg-white text-[#0F172A] border-[#E2E8F0] hover:border-slate-400'
                   }`}
                 >
-                  {done ? '✓ ' : ''}Stop #{idx + 1}: {addr.split(',')[0]}
+                  <span className="inline-flex items-center gap-1">
+                    {done && <Check className="w-3.5 h-3.5" strokeWidth={2} />}
+                    <span>Stop #{idx + 1}: {addr.split(',')[0]}</span>
+                  </span>
                 </button>
               )
             })}
@@ -224,16 +239,24 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
         {/* LIVE ETA HERO CARD */}
         <div className="bg-[#0F172A] text-white rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-md">
           <div className="space-y-1.5">
-            <span className="text-[10px] font-extrabold uppercase tracking-widest bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-400/30 tabular-nums">
+            <span className="text-[10px] font-bold uppercase tracking-widest bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-400/30 tabular-nums">
               Stop #{selectedStopIndex + 1} Destination
             </span>
-            <h3 className="text-lg font-extrabold text-white pt-1">
+            <h3 className="text-lg font-bold text-white pt-1">
               {drops[selectedStopIndex] || 'Milton Keynes Customer Address'}
             </h3>
-            <p className="text-xs text-emerald-200">
-              {activeJob.requires_assembly || activeJob.loop_profile === 'assembly'
-                ? '🔧 Includes Two-Man White-Glove Room-of-Choice Assembly & Packaging Removal'
-                : '🛋 Includes Two-Man Room-of-Choice Placement (Up to 2nd Floor)'}
+            <p className="text-xs text-emerald-200 flex items-center gap-1.5">
+              {activeJob.requires_assembly || activeJob.loop_profile === 'assembly' ? (
+                <>
+                  <Wrench className="w-3.5 h-3.5 shrink-0" strokeWidth={1.75} />
+                  <span>Includes Two-Man White-Glove Room-of-Choice Assembly &amp; Packaging Removal</span>
+                </>
+              ) : (
+                <>
+                  <Home className="w-3.5 h-3.5 shrink-0" strokeWidth={1.75} />
+                  <span>Includes Two-Man Room-of-Choice Placement (Up to 2nd Floor)</span>
+                </>
+              )}
             </p>
           </div>
 
@@ -241,9 +264,9 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
             <span className="text-[10px] uppercase tracking-widest text-emerald-300 font-bold block">
               {currentStage === 5 ? 'Delivery Status' : 'Estimated Arrival'}
             </span>
-            <span className="text-2xl font-extrabold text-white block tabular-nums">
+            <span className="text-2xl font-bold text-white block tabular-nums">
               {currentStage === 5
-                ? 'Delivered ✓'
+                ? 'Delivered'
                 : stopsAway === 0
                 ? '15–25 Mins'
                 : `~${stopsAway * 35 + 20} Mins`}
@@ -286,7 +309,7 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
                           : 'bg-slate-200 text-slate-700'
                       }`}
                     >
-                      {reached ? '✓' : s.step}
+                      {reached ? <Check className="w-3.5 h-3.5" strokeWidth={2.5} /> : s.step}
                     </span>
                     {isCurrent && (
                       <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-600 text-white">
@@ -308,18 +331,21 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
         <div className="bg-emerald-50/70 border border-emerald-300 rounded-2xl p-5 space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-emerald-200 pb-3">
             <div className="flex items-center gap-2.5">
-              <span className="text-xl">🛡️</span>
+              <div className="w-9 h-9 rounded-lg bg-emerald-100 text-[#004225] flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-5 h-5" strokeWidth={1.75} />
+              </div>
               <div>
-                <h4 className="text-sm font-extrabold text-emerald-950">
-                  🛡️ Ben Damage-Shield Certificate: Zero Transit Damage Verified (Pre-Load Matched to Room-of-Choice POD)
+                <h4 className="text-sm font-bold text-emerald-950">
+                  Ben Damage-Shield Certificate: Zero Transit Damage Verified (Pre-Load Matched to Room-of-Choice POD)
                 </h4>
                 <p className="text-xs text-emerald-800 mt-0.5">
                   Side-by-side AI Condition Gate protecting Retailer, Customer, and 2-Man Crew against transit damage disputes.
                 </p>
               </div>
             </div>
-            <span className="text-[11px] font-extrabold uppercase px-3 py-1 rounded-full bg-emerald-600 text-white shrink-0 self-start sm:self-center">
-              ✓ 100% Condition Match
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase px-3 py-1 rounded-full bg-emerald-600 text-white shrink-0 self-start sm:self-center">
+              <Check className="w-3.5 h-3.5" strokeWidth={2} />
+              <span>100% Condition Match</span>
             </span>
           </div>
 
@@ -327,31 +353,40 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
             {/* STEP A: DEPOT PRE-LOAD */}
             <div className="bg-white border border-emerald-200 rounded-xl p-4 space-y-2 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700">
                   Step A • Depot Pre-Load Gate
                 </span>
-                <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                  ✓ Verified at Origin
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  <Check className="w-3 h-3" strokeWidth={2} />
+                  <span>Verified at Origin</span>
                 </span>
               </div>
               <p className="text-xs font-bold text-[#0F172A]">
                 Origin: {activeJob.pickup_address}
               </p>
               <p className="text-[11px] text-slate-600 leading-relaxed">
-                Carton corners intact, protective blankets & 3.5t Luton ratchet strapping logged prior to departure.
+                Carton corners intact, protective blankets &amp; 3.5t Luton ratchet strapping logged prior to departure.
               </p>
             </div>
 
             {/* STEP B: DOORSTEP POD */}
             <div className="bg-white border border-emerald-200 rounded-xl p-4 space-y-2 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-700">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700">
                   Step B • Doorstep Room-of-Choice POD
                 </span>
-                <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                  {activeJob.pod_image_url || currentStage === 5
-                    ? '✓ Photo PoD Matched'
-                    : '● Armed for Drop'}
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  {activeJob.pod_image_url || currentStage === 5 ? (
+                    <>
+                      <Check className="w-3 h-3" strokeWidth={2} />
+                      <span>Photo PoD Matched</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                      <span>Armed for Drop</span>
+                    </>
+                  )}
                 </span>
               </div>
               <p className="text-xs font-bold text-[#0F172A]">
@@ -367,19 +402,20 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
         </div>
 
         {activeJob.exception_notes && (
-          <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 text-xs text-amber-950 font-bold">
-            ⚠️ Active Route Exception Logged: {activeJob.exception_notes}
+          <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 text-xs text-amber-950 font-semibold flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0" strokeWidth={1.75} />
+            <span>Active Route Exception Logged: {activeJob.exception_notes}</span>
           </div>
         )}
 
         {/* CREW & VEHICLE CREDENTIALS BAR */}
         <div className="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-100 border border-emerald-300 flex items-center justify-center text-lg">
-              👷
+            <div className="w-10 h-10 rounded-full bg-emerald-100 border border-emerald-300 text-[#004225] flex items-center justify-center shrink-0">
+              <UserCheck className="w-5 h-5" strokeWidth={1.75} />
             </div>
             <div>
-              <div className="text-xs font-extrabold text-[#0A0F0D]">
+              <div className="text-xs font-bold text-[#0A0F0D]">
                 Verified 2-Man Crew (3.5t LWB, XLWB &amp; Luton Specialist Network)
               </div>
               <div className="text-[11px] text-slate-600">
@@ -390,8 +426,9 @@ export function ConsumerTrackView({ selectedJobId }: { selectedJobId?: string | 
 
           {activeJob.signature_svg && (
             <div className="bg-white border border-emerald-200 rounded-lg px-3 py-1.5 flex items-center gap-2">
+              <PenTool className="w-3.5 h-3.5 text-emerald-700" strokeWidth={1.75} />
               <span className="text-[10px] font-bold text-emerald-800 uppercase">
-                ✍️ Customer Signature On File
+                Customer Signature On File
               </span>
             </div>
           )}

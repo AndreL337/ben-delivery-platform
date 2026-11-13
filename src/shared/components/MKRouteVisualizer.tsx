@@ -1,4 +1,5 @@
 import React from 'react'
+import { Navigation, ArrowUpRight } from 'lucide-react'
 
 export interface MKRouteVisualizerProps {
   routeId?: string | number
@@ -359,7 +360,7 @@ export const MKRouteVisualizer: React.FC<MKRouteVisualizerProps> = ({
                   fontSize="9.5"
                   fontWeight="900"
                 >
-                  {isDone ? '✓' : idx + 1}
+                  {isDone ? 'OK' : idx + 1}
                 </text>
                 <rect
                   x="-58"
@@ -403,10 +404,11 @@ export const MKRouteVisualizer: React.FC<MKRouteVisualizerProps> = ({
             href={googleMapsUrl}
             target="_blank"
             rel="noreferrer"
-            className="min-h-[48px] px-4 py-2.5 rounded-xl bg-[#004225] hover:bg-[#005A34] text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-md transition-all shrink-0"
+            className="min-h-[48px] px-4 py-2.5 rounded-xl bg-[#004225] hover:bg-[#005A34] text-white text-xs font-semibold flex items-center justify-center gap-2 shadow-md transition-all shrink-0"
           >
-            <span>🗺 Launch Turn-by-Turn in Google Maps</span>
-            <span>↗</span>
+            <Navigation className="w-3.5 h-3.5" strokeWidth={1.75} />
+            <span>Launch Turn-by-Turn in Google Maps</span>
+            <ArrowUpRight className="w-3.5 h-3.5" strokeWidth={1.75} />
           </a>
         </div>
       )}

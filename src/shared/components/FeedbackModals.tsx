@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Star, X } from 'lucide-react'
 import { supabase } from '../../config/supabaseClient'
 
 export function RatingStars({ value, onChange }: { value: number; onChange?: (n: number) => void }) {
@@ -10,11 +11,11 @@ export function RatingStars({ value, onChange }: { value: number; onChange?: (n:
           type="button"
           disabled={!onChange}
           onClick={() => onChange && onChange(n)}
-          className={`text-2xl leading-none ${n <= value ? 'text-amber-400' : 'text-slate-200'} ${
+          className={`p-0.5 ${n <= value ? 'text-amber-400' : 'text-slate-200'} ${
             onChange ? 'hover:text-amber-400 cursor-pointer' : ''
           }`}
         >
-          ★
+          <Star className="w-5 h-5 fill-current" strokeWidth={1.5} />
         </button>
       ))}
     </div>
@@ -202,9 +203,10 @@ export function DisputePanel({
           <h3 className="text-lg font-extrabold text-slate-900">Report an issue (48-Hr SLA)</h3>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+            className="text-slate-400 hover:text-slate-600 p-1"
+            aria-label="Close modal"
           >
-            ✕
+            <X className="w-4 h-4" strokeWidth={1.75} />
           </button>
         </div>
         <p className="text-sm text-slate-500">{job.pickup_address}</p>
