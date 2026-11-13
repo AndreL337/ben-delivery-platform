@@ -21,12 +21,15 @@ import { BookJobForm } from './modules/retailerAndCrew/BookJobForm'
 import { BenWordmark } from './shared/components/BenWordmark'
 import { BenLogo } from './shared/components/BenLogo'
 import { RateCardView } from './modules/marketing/RateCardView'
+import { RegionalHubView } from './modules/marketing/RegionalHubView'
+import { REGIONAL_HUBS } from './config/regionalHubs'
 import { LegalDocumentModal, type LegalDocType } from './shared/components/LegalModals'
 import './App.css'
 
 interface ParsedLocation {
   route: AppRoute
   trackedJobId: string | null
+  hubSlug?: string | null
 }
 
 function resolveRouteFromLocation(pathname: string, search: string): ParsedLocation {
@@ -69,7 +72,17 @@ function resolveRouteFromLocation(pathname: string, search: string): ParsedLocat
     return { route: 'rate-card', trackedJobId: null }
   }
 
-  // 7. Default / -> Public B2B Landing Page
+  // 7. /hubs/:citySlug -> Programmatic Regional Hub SEO Landing Page
+  const hubMatch = cleanPath.match(/^\/hubs\/([^/?#]+)$/i)
+  if (hubMatch) {
+    return {
+      route: 'hub',
+      trackedJobId: null,
+      hubSlug: decodeURIComponent(hubMatch[1]).toLowerCase()
+    }
+  }
+
+  // 8. Default / -> Public B2B Landing Page
   return { route: 'landing', trackedJobId: null }
 }
 
@@ -89,6 +102,7 @@ export default function App() {
 
   const [currentRoute, setCurrentRoute] = useState<AppRoute>(initialLoc.route)
   const [trackedJobId, setTrackedJobId] = useState<string | null>(initialLoc.trackedJobId)
+  const [hubSlug, setHubSlug] = useState<string | null>(initialLoc.hubSlug || null)
   const [session, setSession] = useState<any>(null)
   const [authChecking, setAuthChecking] = useState<boolean>(true)
   const [isAdminVerified, setIsAdminVerified] = useState<boolean>(false)
@@ -138,6 +152,7 @@ export default function App() {
     )
     setCurrentRoute(parsed.route)
     setTrackedJobId(parsed.trackedJobId)
+    setHubSlug(parsed.hubSlug || null)
     setAuthError('')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
@@ -192,6 +207,7 @@ export default function App() {
       )
       setCurrentRoute(parsed.route)
       setTrackedJobId(parsed.trackedJobId)
+      setHubSlug(parsed.hubSlug || null)
       setAuthError('')
     }
 
@@ -452,6 +468,8 @@ export default function App() {
                 ? 'Retailer Dispatch Workspace'
                 : currentRoute === 'rate-card'
                 ? '2026 Enterprise B2B Rate Card'
+                : currentRoute === 'hub'
+                ? 'Hub 01 Regional Dispatch Corridor'
                 : currentRoute === 'track'
                 ? 'Live Consumer Delivery Telemetry'
                 : 'UK Direct-to-Crew Logistics OS'}
@@ -461,7 +479,8 @@ export default function App() {
           {/* RIGHT: CLEAN TEXT LINKS + GHOST SIGN IN + PRIMARY BOOK DISPATCH */}
           {(currentRoute === 'landing' ||
             currentRoute === 'driver-waitlist' ||
-            currentRoute === 'rate-card') && (
+            currentRoute === 'rate-card' ||
+            currentRoute === 'hub') && (
             <div className="flex items-center gap-1 sm:gap-2">
               <button
                 type="button"
@@ -1407,6 +1426,13 @@ export default function App() {
         )}
 
         {/* =====================================================================
+            ROUTE 5C: /hubs/:citySlug (PROGRAMMATIC REGIONAL HUB SEO LANDING)
+           ===================================================================== */}
+        {currentRoute === 'hub' && (
+          <RegionalHubView hubSlug={hubSlug} onNavigate={navigate} />
+        )}
+
+        {/* =====================================================================
             ROUTE 6: /command (HIDDEN ADMIN COMMAND CENTER - STRICTLY GATED)
            ===================================================================== */}
         {currentRoute === 'command' && (
@@ -1518,34 +1544,60 @@ export default function App() {
             : 'border-[#E2E8F0] bg-[#FFFFFF] text-slate-500'
         }`}
       >
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <span>
-            &copy; 2026 Ben Logistics Ltd (
-            <BenWordmark variant={isFlightDeckMode ? 'dark' : 'light'} size="sm" className="mx-0.5" />{' '}
-            — UK Ltd Marketplace Agent). Not a carrier or employer.
-          </span>
-          <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] font-bold">
-            <button
-              type="button"
-              onClick={() => setActiveLegalDoc('terms')}
-              className="hover:underline text-emerald-700"
-            >
-              Platform Terms &amp; Conditions
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveLegalDoc('retailer_pilot')}
-              className="hover:underline text-emerald-700"
-            >
-              Pay-on-Success Pilot Agreement
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveLegalDoc('gdpr')}
-              className="hover:underline text-emerald-700"
-            >
-              UK GDPR &amp; 90-Day Data Retention
-            </button>
+        <div className="max-w-6xl mx-auto space-y-4">
+          {/* ACTIVE HUB 01 CORRIDOR INDEX FOR SEO & REGIONAL DISCOVERY */}
+          {!isFlightDeckMode && (
+            <div className="flex flex-wrap items-center justify-center sm:justify-between gap-2 pb-4 border-b border-slate-200/80">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                Active Hub 01 Corridors:
+              </span>
+              <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 text-[11px] font-semibold">
+                {REGIONAL_HUBS.map((hub) => (
+                  <a
+                    key={hub.slug}
+                    href={`/hubs/${hub.slug}`}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      navigate(`/hubs/${hub.slug}`)
+                    }}
+                    className="text-slate-600 hover:text-[#004225] hover:underline transition-colors"
+                  >
+                    {hub.city}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <span>
+              &copy; 2026 Ben Logistics Ltd (
+              <BenWordmark variant={isFlightDeckMode ? 'dark' : 'light'} size="sm" className="mx-0.5" />{' '}
+              — UK Ltd Marketplace Agent). Not a carrier or employer.
+            </span>
+            <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] font-bold">
+              <button
+                type="button"
+                onClick={() => setActiveLegalDoc('terms')}
+                className="hover:underline text-emerald-700"
+              >
+                Platform Terms &amp; Conditions
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveLegalDoc('retailer_pilot')}
+                className="hover:underline text-emerald-700"
+              >
+                Pay-on-Success Pilot Agreement
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveLegalDoc('gdpr')}
+                className="hover:underline text-emerald-700"
+              >
+                UK GDPR &amp; 90-Day Data Retention
+              </button>
+            </div>
           </div>
         </div>
       </footer>

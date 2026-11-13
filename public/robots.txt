@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /command
+Disallow: /cab
+
+Sitemap: https://benlogistics.co.uk/sitemap.xml
