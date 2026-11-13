@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ben Logistics — 2026 Milton Keynes Commercial Rate Card &amp; Showroom Pilot</title>
+  <title>ben. — 2026 Hub 01 Commercial Rate Card &amp; Showroom Pilot</title>
   <style>
     :root {
-      --forest: #064e3b;
-      --forest-light: #ecfdf5;
-      --amber: #eab308;
-      --amber-bg: #fefce8;
+      --brg: #004225;
+      --brg-hover: #005a34;
+      --brg-tint: #f0f7f4;
+      --primrose: #f6eb61;
+      --primrose-tint: #fefce8;
       --ink: #0f172a;
       --muted: #475569;
-      --border: #cbd5e1;
+      --border: #e2e8f0;
     }
     @page {
       size: A4 portrait;
-      margin: 12mm;
+      margin: 11mm;
     }
     * {
       box-sizing: border-box;
@@ -27,17 +28,35 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Arial, sans-serif;
       color: var(--ink);
       background: #f1f5f9;
-      line-height: 1.45;
+      line-height: 1.42;
+      font-variant-numeric: tabular-nums;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
+    }
+    .print-bar {
+      text-align: center;
+      padding: 12px;
+    }
+    .print-bar button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--brg);
+      color: #ffffff;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
     }
     .page {
       width: 210mm;
       min-height: 297mm;
-      margin: 16px auto;
+      margin: 8px auto 24px;
       background: #ffffff;
-      padding: 14mm 16mm;
-      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+      padding: 12mm 14mm;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.1);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -56,299 +75,460 @@
     .header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      border-bottom: 3px solid var(--forest);
-      padding-bottom: 12px;
-      margin-bottom: 14px;
+      align-items: center;
+      border-bottom: 2px solid var(--brg);
+      padding-bottom: 10px;
+      margin-bottom: 12px;
     }
     .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
-    .brand-badge {
-      background: var(--forest);
-      color: #ffffff;
-      font-weight: 900;
-      font-size: 20px;
-      padding: 6px 12px;
-      border-radius: 8px;
-      letter-spacing: 0.04em;
+    .brand img {
+      height: 34px;
+      width: auto;
+      mix-blend-mode: multiply;
+      display: block;
+    }
+    .brand-meta {
+      border-left: 1px solid var(--border);
+      padding-left: 12px;
+    }
+    .brand-title {
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--ink);
     }
     .brand-sub {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
     }
     .contact-pill {
       text-align: right;
-      font-size: 11px;
+      font-size: 10.5px;
       color: var(--muted);
     }
     .contact-pill strong {
-      color: var(--forest);
-      font-size: 12px;
+      color: var(--brg);
+      font-size: 11.5px;
       display: block;
     }
     .hero {
-      background: var(--forest);
+      background: var(--brg);
       color: #ffffff;
-      border-radius: 12px;
-      padding: 16px 20px;
-      margin-bottom: 14px;
-      border-left: 6px solid var(--amber);
+      border-radius: 10px;
+      padding: 13px 16px;
+      margin-bottom: 12px;
+      border-left: 5px solid var(--primrose);
     }
     .hero-tag {
       display: inline-block;
-      background: var(--amber);
+      background: var(--primrose);
       color: var(--ink);
-      font-size: 10px;
-      font-weight: 900;
+      font-size: 9.5px;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.08em;
-      padding: 3px 8px;
+      padding: 2.5px 8px;
       border-radius: 4px;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
     }
     .hero h1 {
-      font-size: 22px;
+      font-size: 19px;
       font-weight: 800;
+      letter-spacing: -0.015em;
       line-height: 1.2;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     .hero p {
-      font-size: 12px;
-      color: #d1fae5;
+      font-size: 11px;
+      color: #dcfce7;
     }
     h2 {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--forest);
-      margin-bottom: 8px;
-      margin-top: 4px;
+      letter-spacing: 0.07em;
+      color: var(--brg);
+      margin-bottom: 7px;
+      margin-top: 2px;
     }
     .rates-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 14px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 11px;
     }
     .rate-card {
       border: 1.5px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
+      border-radius: 9px;
+      padding: 10px;
       background: #ffffff;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
     .rate-card.featured {
-      border-color: var(--forest);
-      background: var(--forest-light);
+      border-color: var(--brg);
+      background: var(--brg-tint);
     }
     .rate-card .tier {
-      font-size: 11px;
+      font-size: 9.5px;
       font-weight: 800;
       text-transform: uppercase;
-      color: var(--forest);
+      letter-spacing: 0.04em;
+      color: var(--brg);
     }
     .rate-card .price {
-      font-size: 26px;
-      font-weight: 900;
+      font-size: 20px;
+      font-weight: 800;
       color: var(--ink);
-      margin: 4px 0;
+      margin: 4px 0 2px;
+      letter-spacing: -0.02em;
     }
-    .rate-card .price span {
-      font-size: 11px;
+    .rate-card .unit {
+      font-size: 9.5px;
       font-weight: 600;
       color: var(--muted);
+      margin-bottom: 6px;
+      display: block;
     }
     .rate-card ul {
       list-style: none;
-      font-size: 11px;
+      font-size: 9.8px;
       color: var(--muted);
-      margin-top: 6px;
+      border-top: 1px solid var(--border);
+      padding-top: 6px;
     }
     .rate-card li {
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
       margin-bottom: 3px;
     }
+    .rate-card li svg {
+      width: 11px;
+      height: 11px;
+      color: var(--brg);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
     .pilot-box {
-      background: var(--amber-bg);
-      border: 1.5px solid var(--amber);
-      border-radius: 10px;
-      padding: 12px 16px;
-      margin-bottom: 14px;
+      background: var(--primrose-tint);
+      border: 1.5px solid var(--primrose);
+      border-radius: 9px;
+      padding: 10px 13px;
+      margin-bottom: 11px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .pilot-box svg {
+      width: 18px;
+      height: 18px;
+      color: var(--brg);
+      flex-shrink: 0;
+      margin-top: 2px;
     }
     .pilot-box h3 {
-      font-size: 13px;
+      font-size: 11.5px;
       font-weight: 800;
-      color: #713f12;
-      margin-bottom: 4px;
+      color: var(--ink);
+      margin-bottom: 2px;
     }
     .pilot-box p {
-      font-size: 11.5px;
-      color: #422006;
+      font-size: 10.3px;
+      color: #334155;
+    }
+    .taxonomy-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 7px;
+      margin-bottom: 11px;
+    }
+    .tax-card {
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 8px;
+    }
+    .tax-card .tax-num {
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--brg);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+      display: block;
+    }
+    .tax-card .tax-name {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.25;
+      margin-bottom: 3px;
+    }
+    .tax-card .tax-detail {
+      font-size: 9px;
+      color: var(--muted);
+      line-height: 1.3;
     }
     .two-col {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 14px;
+      gap: 10px;
+      margin-bottom: 10px;
     }
     .info-panel {
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 14px;
+      border-radius: 9px;
+      padding: 10px 12px;
       background: #f8fafc;
     }
     .info-panel h3 {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
-      color: var(--forest);
-      margin-bottom: 6px;
+      color: var(--brg);
+      margin-bottom: 5px;
     }
     .info-panel ul {
-      padding-left: 16px;
-      font-size: 11px;
+      padding-left: 14px;
+      font-size: 10px;
       color: var(--ink);
     }
     .info-panel li {
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
     .footer {
-      border-top: 2px solid var(--border);
-      padding-top: 10px;
+      border-top: 1.5px solid var(--border);
+      padding-top: 9px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 10.5px;
+      font-size: 9.8px;
       color: var(--muted);
     }
+    .cta-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
     .cta-pill {
-      background: var(--forest);
+      background: var(--brg);
       color: #ffffff;
-      padding: 7px 14px;
-      border-radius: 6px;
-      font-weight: 800;
-      font-size: 11px;
-      text-decoration: none;
-    }
-    .print-bar {
-      text-align: center;
-      padding: 10px;
-    }
-    .print-bar button {
-      background: var(--forest);
-      color: #fff;
-      border: none;
-      padding: 8px 18px;
+      padding: 6px 12px;
       border-radius: 6px;
       font-weight: 700;
-      cursor: pointer;
+      font-size: 10px;
+      text-decoration: none;
+    }
+    .cta-secondary {
+      background: var(--brg-tint);
+      color: var(--brg);
+      border: 1px solid var(--brg);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 10px;
+      text-decoration: none;
     }
   </style>
 </head>
 <body>
   <div class="print-bar no-print">
-    <button onclick="window.print()">🖨 Print / Export A4 PDF</button>
+    <button onclick="window.print()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+        <rect x="6" y="14" width="12" height="8"></rect>
+      </svg>
+      <span>Print / Export A4 Rate Card PDF</span>
+    </button>
   </div>
 
   <div class="page">
     <div>
       <header class="header">
         <div class="brand">
-          <div class="brand-badge">BEN LOGISTICS</div>
-          <div>
-            <div style="font-weight:800;font-size:14px;color:var(--ink);">Milton Keynes 2-Man Bulky Network</div>
+          <img
+            src="/brand/ben-logo.png"
+            alt="ben."
+            onerror="this.onerror=null;this.src='https://benlogistics.co.uk/brand/ben-logo.png'"
+          />
+          <div class="brand-meta">
+            <div class="brand-title">Hub 01: M1 Corridor (Oxford–MK–Cambridge)</div>
             <div class="brand-sub">2026 Commercial Rate Card &amp; Showroom Pilot Sheet</div>
           </div>
         </div>
         <div class="contact-pill">
-          <strong>ops@benlogistics.co.uk</strong>
-          <span>Portal: https://benlogistics.co.uk/portal</span>
-          <br />
-          <span>Milton Keynes Hub (MK1–MK19 • 35-Mile Zone)</span>
+          <strong>andre@benlogistics.co.uk</strong>
+          <span>Portal: https://benlogistics.co.uk/portal</span><br />
+          <span>Live Tariff: https://benlogistics.co.uk/rate-card</span>
         </div>
       </header>
 
       <section class="hero">
         <span class="hero-tag">Showroom Pilot • Zero Upfront Retainer</span>
-        <h1>Enterprise 2-Man Bulky Dispatch Without 3PL Lock-In</h1>
+        <h1>Direct-to-Crew 2-Man Bulky Dispatch — Zero 3PL Markups</h1>
         <p>
-          Aptean-grade route matching, 3-stage live customer SMS tracking, depot pre-load condition checks, and photo + e-signature Proof of Delivery for Milton Keynes furniture, kitchen &amp; appliance showrooms.
+          Driver-first route matching, 3-stage live customer SMS tracking, depot pre-load Condition Gate strapping photos, and instant photo + e-signature Proof of Delivery across Milton Keynes, Bedford, Northampton, Bicester/Oxford &amp; Luton.
         </p>
       </section>
 
-      <h2>1. Transparent 2026 Flat-Rate Schedule (Milton Keynes Hub)</h2>
+      <h2>1. Transparent 2026 Flat-Rate Schedule (Hub 01 M1 Corridor)</h2>
       <div class="rates-grid">
         <div class="rate-card featured">
           <div>
-            <div class="tier">Standard 2-Man ROC</div>
-            <div class="price">£440 <span>/ day</span></div>
+            <div class="tier">Tier 01 • Standard ROC</div>
+            <div class="price">£440</div>
+            <span class="unit">per day (≤9 hrs)</span>
             <ul>
-              <li>✓ <strong>Up to 16 drops</strong> (≤9 hrs)</li>
-              <li>✓ 3.5t Luton Van + Tail-Lift</li>
-              <li>✓ Room-of-Choice (up to 2nd floor)</li>
-              <li>✓ £385 Crew / £55 Ben Fee (12.5%)</li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>12–16 drops</strong> • 3.5t LWB/Luton</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Room-of-Choice (to 2nd flr)</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>£385.00 Crew / £55.00 Fee</span>
+              </li>
             </ul>
           </div>
         </div>
 
         <div class="rate-card">
           <div>
-            <div class="tier">Delivery &amp; Assembly</div>
-            <div class="price">£520 <span>/ day</span></div>
+            <div class="tier">Tier 02 • Assembly</div>
+            <div class="price">£520</div>
+            <span class="unit">per day (≤9 hrs)</span>
             <ul>
-              <li>✓ <strong>Up to 8 drops</strong> (≤9 hrs)</li>
-              <li>✓ 2-Man White-Glove &amp; Tools</li>
-              <li>✓ Beds, Dining Tables &amp; Wardrobes</li>
-              <li>✓ £455 Crew / £65 Ben Fee (12.5%)</li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>5–8 drops</strong> • White-Glove</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Beds, Tables &amp; Wardrobes</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>£455.00 Crew / £65.00 Fee</span>
+              </li>
             </ul>
           </div>
         </div>
 
         <div class="rate-card">
           <div>
-            <div class="tier">Overflow / Friday Rescue</div>
-            <div class="price">£145 <span>/ flat</span></div>
+            <div class="tier">Tier 03 • Client Pod</div>
+            <div class="price">£350 / £410</div>
+            <span class="unit">ROC / Assembly (your van)</span>
             <ul>
-              <li>✓ <strong>1–4 drops</strong> (≤3.5 hrs / ≤20 mi)</li>
-              <li>✓ Same-Day / Next-Day Cover</li>
-              <li>✓ Ideal for missed drops or failed carriers</li>
-              <li>✓ Zero contract or minimum volume</li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>2-Man Labour Pod</strong></span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Runs on your fleet insurance</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Full Ben HUD &amp; LIFO Sheet</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="rate-card">
+          <div>
+            <div class="tier">Tier 04 • Rescue Loop</div>
+            <div class="price">£145</div>
+            <span class="unit">flat (1–4 drops, ≤3.5 hrs)</span>
+            <ul>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span><strong>≤20 mi</strong> urgent overflow</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Same/Next-Day rescue</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>£126.88 Crew / £18.12 Fee</span>
+              </li>
             </ul>
           </div>
         </div>
       </div>
 
       <div class="pilot-box">
-        <h3>🛡 "Pay-on-Success" Showroom Pilot Guarantee (First 3 Routes / 14 Days)</h3>
-        <p>
-          Put Ben to the test risk-free: your showroom pays the fixed route rate <strong>only upon verified photographic &amp; e-signature Proof of Delivery (PoD)</strong>. If a run fails due to crew error, transit damage, or platform fault, you are invoiced <strong>£0.00</strong>. All crews carry verified £20k–£50k+ Goods in Transit &amp; £1m+ Public Liability insurance (covering both Lead Driver &amp; Porter) with a 48-hour damage SLA.
-        </p>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          <path d="m9 12 2 2 4-4"></path>
+        </svg>
+        <div>
+          <h3>"Pay-on-Success" Showroom Pilot Guarantee (First 3 Routes / 14 Days)</h3>
+          <p>
+            Put Ben to the test risk-free: your showroom pays the fixed route rate <strong>only upon verified photographic &amp; e-signature Proof of Delivery (PoD)</strong>. If a run fails due to crew error, transit damage, or platform fault, you are invoiced <strong>£0.00</strong>. All marketplace crews carry verified £20k–£50k+ Goods in Transit &amp; £1m+ Public Liability insurance (covering both Lead Driver &amp; Porter) with a 48-hour damage SLA.
+          </p>
+        </div>
       </div>
 
-      <h2>2. Two Flexible Deployment Modes</h2>
+      <h2>2. 5-Class Inclusive UK Commercial Fleet Taxonomy</h2>
+      <div class="taxonomy-grid">
+        <div class="tax-card">
+          <span class="tax-num">Class 01</span>
+          <div class="tax-name">LWB / XLWB High-Roof Panel Van (3.5t)</div>
+          <div class="tax-detail">Sprinter, Transit Jumbo, Crafter, Master, Iveco Daily</div>
+        </div>
+        <div class="tax-card">
+          <span class="tax-num">Class 02</span>
+          <div class="tax-name">3.5t Luton / Low-Loader Box Van (Tail-Lift)</div>
+          <div class="tax-detail">2-Man Heavy Bulky &amp; White-Glove Room-of-Choice</div>
+        </div>
+        <div class="tax-card">
+          <span class="tax-num">Class 03</span>
+          <div class="tax-name">MWB / Urban Commercial &amp; EV Van</div>
+          <div class="tax-detail">Trade Counter &amp; High-Density Multi-Drop</div>
+        </div>
+        <div class="tax-card">
+          <span class="tax-num">Class 04</span>
+          <div class="tax-name">7.5t Box Truck (Tail-Lift)</div>
+          <div class="tax-detail">Heavy Commercial Trunking &amp; Consolidation</div>
+        </div>
+        <div class="tax-card">
+          <span class="tax-num">Class 05</span>
+          <div class="tax-name">On-Roster 2-Man Porter / Assembly</div>
+          <div class="tax-detail">Vetted Second Man / Client Vehicle Labour Pod</div>
+        </div>
+      </div>
+
+      <h2>3. Two Flexible Deployment Modes &amp; Fair-Use Guardrails</h2>
       <div class="two-col">
         <div class="info-panel">
           <h3>Option A: Marketplace (Vetted Ben 2-Man Crews)</h3>
           <ul>
-            <li><strong>Instant Surge Capacity:</strong> Dispatch onto the Milton Keynes Open Freight Board in 60 seconds.</li>
-            <li><strong>Tail-Lift &amp; Assembly Matching:</strong> Automatically restricts heavy &gt;100kg loads to verified 3.5t Luton tail-lift crews.</li>
-            <li><strong>Direct Day-1 Settlement:</strong> 87.5% paid directly to crew + 12.5% Ben platform fee invoiced on PoD.</li>
+            <li><strong>60-Second Dispatch:</strong> Drop stops into the Hub 01 Open Freight Board or paste your CSV/manifest.</li>
+            <li><strong>Compliance &amp; Asset Gating:</strong> Heavy &gt;100 kg loads auto-lock to verified Tail-Lift &amp; GIT/PL crews.</li>
+            <li><strong>Transparent Settlement:</strong> 87.5% direct crew payout + 12.5% Ben platform fee invoiced on verified PoD.</li>
           </ul>
         </div>
 
         <div class="info-panel">
-          <h3>Option B: In-House Van Software (Client Vehicle Pod)</h3>
+          <h3>Option B: Client Vehicle Labour Pod (£350 / £410)</h3>
           <ul>
-            <li><strong>Keep Your Own Vans (£350 ROC / £410 Assembly):</strong> Use Ben's 2-man labour pods or run your own fleet through our portal.</li>
-            <li><strong>Enterprise Telemetry Included:</strong> Depot pre-load photos, 3-stage customer `/track` links, and 90-day GDPR PoD archive.</li>
-            <li><strong>Fair-Use Guardrails:</strong> 35-mile MK9 radius (£2.20/mi out-of-zone), 1,200 kg payload cap, +£25 3rd-floor no-lift surcharge.</li>
+            <li><strong>Keep Your Own Liveried Vans:</strong> Deploy vetted Ben 2-man crews on your existing showroom vehicles.</li>
+            <li><strong>Enterprise Telemetry Included:</strong> Depot pre-load photos, LIFO load sheet, live /track links &amp; 90-day GDPR PoD.</li>
+            <li><strong>Fair-Use Guardrails:</strong> 35-mile MK9 radius (£2.20/mi out-of-zone), 1,200 kg payload cap, +£25 3rd-floor no-lift fee.</li>
           </ul>
         </div>
       </div>
@@ -357,9 +537,12 @@
     <footer class="footer">
       <div>
         <strong>Ben Logistics Ltd</strong> — Acting strictly as a UK B2B technology marketplace agent.<br />
-        35-mile MK9 radius • 48-hr damage SLA • UK GDPR 90-day automated PoD retention.
+        Hub 01: MK • Bedford • Northampton • Bicester/Oxford • Luton | 48-hr damage SLA | 90-day UK GDPR PoD archive.
       </div>
-      <a class="cta-pill" href="https://benlogistics.co.uk/portal">Book First Pilot Run → benlogistics.co.uk/portal</a>
+      <div class="cta-group">
+        <a class="cta-secondary" href="https://benlogistics.co.uk/rate-card">benlogistics.co.uk/rate-card</a>
+        <a class="cta-pill" href="https://benlogistics.co.uk/portal">Book Pilot → benlogistics.co.uk/portal</a>
+      </div>
     </footer>
   </div>
 </body>

@@ -3,13 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ben Logistics — Friday Rescue Line (A5 Desk Card)</title>
+  <title>ben. — Hub 01 Friday Rescue Line (A5 Desk Card)</title>
   <style>
     :root {
-      --forest: #064e3b;
-      --amber: #eab308;
+      --brg: #004225;
+      --brg-deep: #00311b;
+      --brg-tint: #f0f7f4;
+      --primrose: #f6eb61;
       --ink: #0f172a;
       --muted: #475569;
+      --border: #e2e8f0;
     }
     @page {
       size: A5 landscape;
@@ -24,22 +27,40 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Arial, sans-serif;
       background: #e2e8f0;
       color: var(--ink);
+      font-variant-numeric: tabular-nums;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
+    }
+    .print-bar {
+      text-align: center;
+      padding: 12px;
+    }
+    .print-bar button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--brg);
+      color: #ffffff;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
     }
     .card {
       width: 210mm;
       height: 148mm;
-      margin: 20px auto;
-      background: var(--forest);
+      margin: 12px auto 24px;
+      background: var(--brg);
       color: #ffffff;
       border-radius: 14px;
-      padding: 12mm 14mm;
+      padding: 10mm 12mm;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      border: 4px solid var(--amber);
-      box-shadow: 0 14px 34px rgba(15, 23, 42, 0.25);
+      border: 3px solid var(--primrose);
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.24);
     }
     @media print {
       body { background: #ffffff; }
@@ -55,122 +76,222 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 12px;
+    }
+    .logo-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.96);
+      padding: 5px 12px;
+      border-radius: 8px;
+    }
+    .logo-pill img {
+      height: 24px;
+      width: auto;
+      display: block;
+    }
+    .logo-pill span {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--brg);
+      border-left: 1px solid #cbd5e1;
+      padding-left: 8px;
     }
     .pill {
-      background: var(--amber);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primrose);
       color: var(--ink);
-      font-weight: 900;
+      font-weight: 800;
       font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      padding: 4px 10px;
+      letter-spacing: 0.08em;
+      padding: 5px 11px;
       border-radius: 999px;
     }
-    .brand {
-      font-weight: 900;
-      font-size: 15px;
-      letter-spacing: 0.06em;
-      color: #d1fae5;
-    }
     .headline {
-      font-size: 27px;
-      font-weight: 900;
+      font-size: 25px;
+      font-weight: 800;
       line-height: 1.12;
-      margin: 10px 0 8px;
+      letter-spacing: -0.02em;
+      margin: 6px 0 6px;
       color: #ffffff;
     }
     .headline span {
-      color: var(--amber);
+      color: var(--primrose);
     }
     .subcopy {
-      font-size: 12.5px;
-      color: #d1fae5;
-      max-width: 92%;
-      line-height: 1.45;
+      font-size: 11.5px;
+      color: #dcfce7;
+      max-width: 96%;
+      line-height: 1.42;
     }
     .grid {
       display: grid;
-      grid-template-columns: 1.35fr 0.85fr;
-      gap: 14px;
-      align-items: center;
-      margin-top: 10px;
+      grid-template-columns: 1.45fr 0.75fr;
+      gap: 12px;
+      align-items: stretch;
     }
     .bullets {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(0, 49, 27, 0.75);
+      border: 1px solid rgba(246, 235, 97, 0.28);
       border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 11.5px;
-      line-height: 1.55;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6px;
     }
-    .bullets strong {
-      color: var(--amber);
+    .bullet-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 11px;
+      line-height: 1.38;
+      color: #f8fafc;
+    }
+    .bullet-row svg {
+      width: 14px;
+      height: 14px;
+      color: var(--primrose);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .bullet-row strong {
+      color: var(--primrose);
+      font-weight: 700;
+    }
+    .tariff-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .tariff-chip {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 7px;
+      padding: 5px 7px;
+    }
+    .tariff-chip .t-label {
+      font-size: 8.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #bbf7d0;
+      display: block;
+    }
+    .tariff-chip .t-price {
+      font-size: 13px;
+      font-weight: 800;
+      color: #ffffff;
     }
     .qr-box {
       background: #ffffff;
       color: var(--ink);
       border-radius: 10px;
-      padding: 10px 12px;
+      padding: 10px;
       text-align: center;
-      border: 2px solid var(--amber);
-    }
-    .qr-placeholder {
-      width: 68px;
-      height: 68px;
-      margin: 0 auto 6px;
-      border: 2px dashed var(--forest);
-      border-radius: 8px;
+      border: 2px solid var(--primrose);
       display: flex;
-      align-items: center;
-      justify-content: center;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .qr-box .kicker {
       font-size: 9px;
       font-weight: 800;
-      color: var(--forest);
-      background: #ecfdf5;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--brg);
     }
-    .qr-box .url {
+    .qr-frame {
+      width: 62px;
+      height: 62px;
+      margin: 4px auto;
+      border: 1.5px solid var(--brg);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--brg-tint);
+      color: var(--brg);
+      font-size: 8.5px;
+      font-weight: 800;
+    }
+    .qr-box a {
       font-size: 10px;
-      font-weight: 900;
-      color: var(--forest);
+      font-weight: 800;
+      color: var(--brg);
+      text-decoration: none;
       display: block;
+    }
+    .qr-box .sub-link {
+      font-size: 8.5px;
+      color: var(--muted);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .fleet-bar {
+      font-size: 9px;
+      color: #dcfce7;
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 6px;
+      padding: 5px 9px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .fleet-bar strong {
+      color: var(--primrose);
     }
     .footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-top: 1px solid rgba(255, 255, 255, 0.2);
-      padding-top: 8px;
-      font-size: 11.5px;
-      color: #ecfdf5;
+      border-top: 1px solid rgba(255, 255, 255, 0.22);
+      padding-top: 7px;
+      font-size: 10.5px;
+      color: #dcfce7;
     }
     .footer strong {
-      color: var(--amber);
-      font-size: 13px;
-    }
-    .print-bar {
-      text-align: center;
-      padding: 10px;
-    }
-    .print-bar button {
-      background: var(--forest);
-      color: #fff;
-      border: none;
-      padding: 8px 18px;
-      border-radius: 6px;
-      font-weight: 700;
-      cursor: pointer;
+      color: var(--primrose);
+      font-size: 11.5px;
     }
   </style>
 </head>
 <body>
   <div class="print-bar no-print">
-    <button onclick="window.print()">🖨 Print / Export A5 Desk Card PDF</button>
+    <button onclick="window.print()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+        <rect x="6" y="14" width="12" height="8"></rect>
+      </svg>
+      <span>Print / Export A5 Desk Card PDF</span>
+    </button>
   </div>
 
   <div class="card">
     <div class="top-bar">
-      <span class="pill">⚡ Milton Keynes Friday Rescue Line</span>
-      <span class="brand">BEN LOGISTICS LTD</span>
+      <div class="logo-pill">
+        <img
+          src="/brand/ben-logo.png"
+          alt="ben."
+          onerror="this.onerror=null;this.src='https://benlogistics.co.uk/brand/ben-logo.png'"
+        />
+        <span>Hub 01: M1 Corridor</span>
+      </div>
+      <span class="pill">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        <span>Friday Rescue &amp; Surge Desk Card</span>
+      </span>
     </div>
 
     <div>
@@ -179,28 +300,77 @@
         <span>Put Us to the Test on One Run.</span>
       </h1>
       <p class="subcopy">
-        Zero-commitment emergency 2-man bulky &amp; white-glove cover across Milton Keynes (MK1–MK19). Keep this card on your dispatch desk for missed drops, sick drivers, or Friday showroom surges.
+        Zero-retainer 2-man bulky &amp; white-glove cover across Milton Keynes, Bedford, Northampton, Bicester/Oxford &amp; Luton. Keep this card on your dispatch desk for missed drops, sick drivers, or Friday showroom surges.
       </p>
     </div>
 
     <div class="grid">
       <div class="bullets">
-        <div><strong>£145 Flat Overflow Rescue:</strong> 1–4 drops (≤3.5 hrs / ≤20 mi)</div>
-        <div><strong>24-Hr Turnaround:</strong> Vetted 3.5t Luton Tail-Lift + 2-Man Crew</div>
-        <div><strong>Pay-on-Success Guarantee:</strong> £0.00 fee if we fail • Photo + Signature PoD</div>
-        <div><strong>Full Cover:</strong> £20k–£50k GIT + £1m+ PL Insurance Verified</div>
+        <div class="bullet-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <path d="m9 12 2 2 4-4"></path>
+          </svg>
+          <div><strong>Pay-on-Success Guarantee:</strong> £0.00 fee if we fail. Instant photographic + e-signature Proof of Delivery &amp; 48-hr damage SLA.</div>
+        </div>
+        <div class="bullet-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1" y="3" width="15" height="13"></rect>
+            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+          </svg>
+          <div><strong>5-Class UK Commercial Fleet:</strong> 3.5t LWB/XLWB Sprinters, Transits, Crafters, Masters, 3.5t Tail-Lift Lutons, 7.5t &amp; Client Vehicle Pods.</div>
+        </div>
+        <div class="tariff-strip">
+          <div class="tariff-chip">
+            <span class="t-label">Rescue Loop</span>
+            <span class="t-price">£145</span>
+          </div>
+          <div class="tariff-chip">
+            <span class="t-label">2-Man ROC</span>
+            <span class="t-price">£440</span>
+          </div>
+          <div class="tariff-chip">
+            <span class="t-label">Assembly</span>
+            <span class="t-price">£520</span>
+          </div>
+          <div class="tariff-chip">
+            <span class="t-label">Client Pod</span>
+            <span class="t-price">£350 / £410</span>
+          </div>
+        </div>
       </div>
 
       <div class="qr-box">
-        <div class="qr-placeholder">QR / PORTAL<br />BEN MK9</div>
-        <span class="url">benlogistics.co.uk/portal</span>
-        <span style="font-size:9px;color:#475569;">Instant Dispatch Desk</span>
+        <span class="kicker">60-Second Dispatch</span>
+        <div class="qr-frame">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+            <path d="M14 14h3v3h-3z"></path>
+            <path d="M19 14h2v2"></path>
+            <path d="M14 19h2v2"></path>
+            <path d="M18 18h3v3h-3z"></path>
+          </svg>
+          <span>PORTAL</span>
+        </div>
+        <a href="https://benlogistics.co.uk/portal">benlogistics.co.uk/portal</a>
+        <div class="sub-link">Tariff: benlogistics.co.uk/rate-card</div>
       </div>
     </div>
 
+    <div class="fleet-bar">
+      <span><strong>Included Telemetry:</strong> Depot Pre-Load Condition Gate</span>
+      <span>LIFO Van-Bay Load Sheet</span>
+      <span>3-Stage Live Customer /track SMS</span>
+      <span>£20k–£50k GIT + £1m+ PL</span>
+    </div>
+
     <footer class="footer">
-      <div>Direct Dispatch Desk: <strong>ops@benlogistics.co.uk</strong></div>
-      <div>Milton Keynes • Bletchley • Kiln Farm • Newport Pagnell</div>
+      <div>Direct Dispatch Desk: <strong>andre@benlogistics.co.uk</strong></div>
+      <div>Milton Keynes • Bedford • Northampton • Bicester/Oxford • Luton</div>
     </footer>
   </div>
 </body>
