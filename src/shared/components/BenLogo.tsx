@@ -7,65 +7,43 @@ export interface BenLogoProps {
 }
 
 /**
- * Reusable Inline SVG Component (<BenLogo />) — Concept B Lowercase Connected Wordmark (`ben.`)
- * - #004225 British Racing Green lettering on light surfaces (#FFFFFF on dark HUD overlays)
- * - Continuous horizontal route-bridge connecting the crossbar of `e` into the left stem of `n`
- *   with a crisp separation cut-line above the lower bowl of `e`
- * - Circular Primrose Yellow (#F6EB61) waypoint dot ringed with a 2.5px #004225 outer stroke
+ * Reusable Master Wordmark Component (<BenLogo />)
+ * Renders the approved Concept B lowercase connected `ben.` master PNG (`/brand/ben-logo.png`)
+ * with `mix-blend-multiply` so the #FFFFFF background blends transparently on light navbars & cards.
  */
 export const BenLogo: React.FC<BenLogoProps> = ({
   variant = 'light',
   size = 'md',
   className = ''
 }) => {
-  const fillPrimary = variant === 'dark' ? '#FFFFFF' : '#004225'
-  const heightMap: Record<NonNullable<BenLogoProps['size']>, number> = {
-    sm: 22,
-    md: 28,
-    lg: 34,
-    xl: 42
+  const heightClassMap: Record<NonNullable<BenLogoProps['size']>, string> = {
+    sm: 'h-6',
+    md: 'h-8',
+    lg: 'h-10',
+    xl: 'h-12'
   }
-  const heightPx = heightMap[size]
-  const widthPx = Math.round(heightPx * 3)
 
-  return (
-    <svg
-      width={widthPx}
-      height={heightPx}
-      viewBox="0 0 120 40"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label="ben."
-      className={`inline-block select-none shrink-0 ${className}`}
-    >
-      {/* Lowercase 'b': vertical ascender stem + geometric circular bowl */}
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M2.8 4.0C2.8 3.34 3.34 2.8 4.0 2.8H9.3C9.96 2.8 10.5 3.34 10.5 4.0V13.56A13.35 13.35 0 1 1 10.5 35.64V36.6C10.5 37.26 9.96 37.8 9.3 37.8H4.0C3.34 37.8 2.8 37.26 2.8 36.6V4.0ZM17.2 18.05A6.55 6.55 0 1 0 17.2 31.15A6.55 6.55 0 1 0 17.2 18.05Z"
-        fill={fillPrimary}
-      />
-
-      {/* Connected 'en' Ligature: Lowercase 'e' with continuous horizontal route-bridge into left stem of 'n' */}
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M60.74 21.3A13.35 13.35 0 1 0 60.22 29.5L53.19 28.5A6.65 6.65 0 0 1 41.56 26.9H66.3V36.6C66.3 37.26 66.84 37.8 67.5 37.8H72.8C73.46 37.8 74.0 37.26 74.0 36.6V24.8A6.7 6.7 0 0 1 87.4 24.8V36.6C87.4 37.26 87.94 37.8 88.6 37.8H93.8C94.46 37.8 95.0 37.26 95.0 36.6V23.45A12.2 12.2 0 0 0 74.0 15.0V12.8C74.0 12.14 73.46 11.6 72.8 11.6H67.5C66.84 11.6 66.3 12.14 66.3 12.8V21.3H60.74ZM42.03 21.3H53.57A6.65 6.65 0 0 0 42.03 21.3Z"
-        fill={fillPrimary}
-      />
-
-      {/* Terminal Waypoint Dot (`.`): Primrose Yellow (#F6EB61) with 2.5px British Racing Green (#004225) outer stroke */}
-      <circle
-        cx="106.2"
-        cy="31.3"
-        r="5.2"
-        fill="#F6EB61"
-        stroke="#004225"
-        strokeWidth="2.5"
-      />
-    </svg>
+  const imgElement = (
+    <img
+      src="/brand/ben-logo.png"
+      alt="ben."
+      className={`${heightClassMap[size]} w-auto object-contain mix-blend-multiply select-none shrink-0 ${
+        variant === 'light' ? className : ''
+      }`}
+    />
   )
+
+  if (variant === 'dark') {
+    return (
+      <span
+        className={`inline-flex items-center rounded-lg bg-white/95 px-2 py-1 select-none shrink-0 ${className}`}
+      >
+        {imgElement}
+      </span>
+    )
+  }
+
+  return imgElement
 }
 
 export default BenLogo
