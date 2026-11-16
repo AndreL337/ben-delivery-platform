@@ -1,7 +1,7 @@
 # Hub 01 (M1 / Oxford–MK–Cambridge) B2B Retailer Target Dossier
 
 **Prepared by:** Demand SDR Agent — `ben.` (`Ben Logistics Ltd`)  
-**Sender:** `andre@benlogistics.co.uk` (attach Gmail signature from `https://benlogistics.co.uk/email-signature.html`)  
+**Sender:** `andre@benlogistics.co.uk` (attach Gmail signature from `docs/outreach/email-signature.html`)  
 **Catchment:** Hub 01 M1 Corridor — Milton Keynes (Kiln Farm, Bletchley, Stacey Bushes, Wolverton, Winterhill, Central MK), Bedford, Northampton, Bicester/Oxford & Luton  
 **Live Links:** [Retailer Portal](https://benlogistics.co.uk/portal) • [2026 Enterprise Rate Card](https://benlogistics.co.uk/rate-card)
 
@@ -64,7 +64,7 @@
 
 ## Copy-Paste Outreach Templates (Send from `andre@benlogistics.co.uk`)
 
-> **Signature Reminder:** Append the HTML signature from `https://benlogistics.co.uk/email-signature.html` and link to `https://benlogistics.co.uk/rate-card`.
+> **Signature Reminder:** Append the HTML signature from `docs/outreach/email-signature.html` and link to `https://benlogistics.co.uk/rate-card`.
 
 ### Template A: The "Friday Rescue / Problem Corner" Cold Email (`£145` / `£440` Pay-on-Success Pilot)
 
@@ -89,7 +89,6 @@ Worth keeping me on file for next time you're short a van?
 
 Best,  
 **Andre** — `andre@benlogistics.co.uk`  
-*(Gmail signature: https://benlogistics.co.uk/email-signature.html)*
 
 ---
 
@@ -113,7 +112,6 @@ Happy to cover a single trial install this week so your team can judge the finis
 
 Best,  
 **Andre** — `andre@benlogistics.co.uk`  
-*(Gmail signature: https://benlogistics.co.uk/email-signature.html)*
 
 ---
 
