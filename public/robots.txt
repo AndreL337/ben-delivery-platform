@@ -3,4 +3,4 @@ Allow: /
 Disallow: /command
 Disallow: /cab
 
-Sitemap: https://benlogistics.co.uk/sitemap.xml
+Sitemap: https://www.benlogistics.co.uk/sitemap.xml
