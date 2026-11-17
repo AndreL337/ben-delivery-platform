@@ -1,8 +1,26 @@
 import { useState, useEffect } from 'react'
-import { Cpu, Zap, Database, Copy, Check, X } from 'lucide-react'
+import {
+  Cpu,
+  Zap,
+  Database,
+  Copy,
+  Check,
+  X,
+  Shield,
+  MessageSquare,
+  Mail,
+  ClipboardCheck,
+  RotateCcw
+} from 'lucide-react'
 import { supabase } from '../../config/supabaseClient'
 import { DEFAULT_AGENT_EVENTS } from '../../config/pricingMatrix2026'
 import type { AgentEventItem } from '../../types/logistics'
+import {
+  generateCommunityReply,
+  REPLY_SCENARIO_OPTIONS,
+  type ReplyChannel,
+  type ReplyScenario
+} from '../../utils/communityReplyGenerator'
 
 const AGENT_SQL_SNIPPET = `-- Initialize Ben Logistics Agent Command Center Table in Supabase (Admin RLS Locked)
 create table if not exists public.admins (
@@ -35,6 +53,19 @@ export function AgentCommandCenter() {
   const [showSql, setShowSql] = useState<boolean>(false)
   const [copiedSql, setCopiedSql] = useState<boolean>(false)
   const [loadingEvents, setLoadingEvents] = useState<boolean>(true)
+  const [activeTab, setActiveTab] = useState<'queue' | 'shield'>('queue')
+
+  // Community & Troll Shield Composer State
+  const [replyChannel, setReplyChannel] = useState<ReplyChannel>('facebook_group')
+  const [replyScenario, setReplyScenario] = useState<ReplyScenario>('auto')
+  const [inboundComment, setInboundComment] = useState<string>('')
+  const [draftReply, setDraftReply] = useState<string>(() =>
+    generateCommunityReply('', 'facebook_group', 'auto').draft
+  )
+  const [detectedScenarioLabel, setDetectedScenarioLabel] = useState<string>('Route Volume')
+  const [matchedSignals, setMatchedSignals] = useState<string[]>([])
+  const [copiedDraft, setCopiedDraft] = useState<boolean>(false)
+  const [loggingAudit, setLoggingAudit] = useState<boolean>(false)
 
   const loadAgentEvents = async () => {
     setLoadingEvents(true)
@@ -70,6 +101,86 @@ export function AgentCommandCenter() {
   useEffect(() => {
     loadAgentEvents()
   }, [])
+
+  useEffect(() => {
+    const generated = generateCommunityReply(inboundComment, replyChannel, replyScenario)
+    setDraftReply(generated.draft)
+    setDetectedScenarioLabel(generated.scenarioLabel)
+    setMatchedSignals(generated.matchedSignals)
+  }, [inboundComment, replyChannel, replyScenario])
+
+  const handleRegenerateDraft = () => {
+    const generated = generateCommunityReply(inboundComment, replyChannel, replyScenario)
+    setDraftReply(generated.draft)
+    setDetectedScenarioLabel(generated.scenarioLabel)
+    setMatchedSignals(generated.matchedSignals)
+  }
+
+  const handleCopyDraft = () => {
+    if (!draftReply.trim()) return
+    navigator.clipboard.writeText(draftReply)
+    setCopiedDraft(true)
+    setTimeout(() => setCopiedDraft(false), 2500)
+  }
+
+  const handleLogAuditNote = async () => {
+    if (!draftReply.trim() || loggingAudit) return
+    setLoggingAudit(true)
+
+    const channelLabel =
+      replyChannel === 'facebook_group'
+        ? 'Facebook Owner-Driver Group'
+        : 'Retailer / Showroom Email'
+    const previewSnippet = inboundComment.trim()
+      ? inboundComment.trim().slice(0, 90)
+      : 'Manual scenario composition'
+
+    const newEventPayload = {
+      agent_name: 'Community Shield' as const,
+      event_type: 'REPLY_DRAFTED',
+      summary: `Community & Troll Shield (${channelLabel} • ${detectedScenarioLabel}): Drafted ${draftReply.length}-char compliant response for "${previewSnippet}".`,
+      payload_meta: JSON.stringify({
+        channel: replyChannel,
+        scenario: detectedScenarioLabel,
+        char_count: draftReply.length,
+        inbound_excerpt: inboundComment.trim().slice(0, 140) || null,
+        draft_excerpt: draftReply.slice(0, 220)
+      }),
+      status: 'approved' as const
+    }
+
+    const fallbackEvent: AgentEventItem = {
+      id: `evt-shield-${Date.now()}`,
+      ...newEventPayload,
+      created_at: new Date().toISOString()
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('agent_events')
+        .insert([newEventPayload])
+        .select()
+
+      if (!error && data && data.length > 0) {
+        setEvents((prev) => [data[0] as AgentEventItem, ...prev])
+        setActionToast(
+          `Community Shield: Logged ${detectedScenarioLabel} draft (${draftReply.length} chars) to Supabase public.agent_events.`
+        )
+      } else {
+        setEvents((prev) => [fallbackEvent, ...prev])
+        setActionToast(
+          `Community Shield: Logged ${detectedScenarioLabel} draft (${draftReply.length} chars) to local audit queue.`
+        )
+      }
+    } catch {
+      setEvents((prev) => [fallbackEvent, ...prev])
+      setActionToast(
+        `Community Shield: Logged ${detectedScenarioLabel} draft (${draftReply.length} chars) to local audit queue.`
+      )
+    }
+
+    setLoggingAudit(false)
+  }
 
   // Execute atomic operational database side-effects when an operator approves an Agent event
   const handleDecision = async (id: string, decision: 'approved' | 'rejected') => {
@@ -170,11 +281,16 @@ export function AgentCommandCenter() {
       case 'Supply & Compliance Agent':
         return 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/40'
       case 'Demand SDR Agent':
+      case 'Demand SDR':
         return 'bg-[#00F5D4]/15 text-[#00F5D4] border-[#00F5D4]/40'
       case 'Dispatch Guardrail Agent':
         return 'bg-amber-500/15 text-amber-300 border-amber-400/40'
       case 'PoD & Settlement Agent':
         return 'bg-[#10B981]/20 text-emerald-300 border-[#10B981]/50'
+      case 'Community Shield':
+        return 'bg-sky-500/15 text-sky-300 border-sky-400/40'
+      default:
+        return 'bg-slate-800 text-slate-300 border-white/15'
     }
   }
 
@@ -364,7 +480,195 @@ export function AgentCommandCenter() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+        {/* FLIGHT DECK MODULE SWITCHER */}
+        <div className="flex flex-wrap items-center gap-2 mt-6 pt-5 border-t border-white/10">
+          <button
+            type="button"
+            onClick={() => setActiveTab('queue')}
+            className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-extrabold transition-all inline-flex items-center gap-2 border ${
+              activeTab === 'queue'
+                ? 'bg-[#00F5D4] text-slate-950 border-[#00F5D4] shadow-lg shadow-[#00F5D4]/15'
+                : 'bg-slate-900/80 text-slate-300 border-white/10 hover:bg-slate-800'
+            }`}
+          >
+            <Cpu className="w-4 h-4" strokeWidth={1.75} />
+            <span>Agent Event Queue ({events.length})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('shield')}
+            className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-extrabold transition-all inline-flex items-center gap-2 border ${
+              activeTab === 'shield'
+                ? 'bg-[#00F5D4] text-slate-950 border-[#00F5D4] shadow-lg shadow-[#00F5D4]/15'
+                : 'bg-slate-900/80 text-slate-300 border-white/10 hover:bg-slate-800'
+            }`}
+          >
+            <Shield className="w-4 h-4" strokeWidth={1.75} />
+            <span>Community &amp; Troll Shield</span>
+          </button>
+        </div>
+
+        {activeTab === 'shield' ? (
+          <div className="mt-6 rounded-2xl p-5 md:p-6 border border-white/10 bg-slate-950/75 space-y-5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-[#00F5D4]" strokeWidth={1.75} />
+                  <h3 className="text-lg font-extrabold text-white tracking-tight">
+                    Community &amp; Troll Shield Composer
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-400 mt-1">
+                  Paste any inbound Facebook owner-driver group comment or retailer reply to generate a compliant, copy-pasteable response grounded in 2026 Hub 01 facts.
+                </p>
+              </div>
+
+              {/* Source Channel Toggle */}
+              <div className="inline-flex rounded-xl p-1 bg-slate-900 border border-white/10 self-start">
+                <button
+                  type="button"
+                  onClick={() => setReplyChannel('facebook_group')}
+                  className={`min-h-[38px] px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all inline-flex items-center gap-1.5 ${
+                    replyChannel === 'facebook_group'
+                      ? 'bg-[#00F5D4] text-slate-950'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <MessageSquare className="w-3.5 h-3.5" strokeWidth={1.75} />
+                  <span>Facebook Owner-Driver Group</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReplyChannel('retailer_email')}
+                  className={`min-h-[38px] px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all inline-flex items-center gap-1.5 ${
+                    replyChannel === 'retailer_email'
+                      ? 'bg-[#00F5D4] text-slate-950'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <Mail className="w-3.5 h-3.5" strokeWidth={1.75} />
+                  <span>Retailer / Showroom Email</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Scenario Selector Pills */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+                  Response Scenario
+                </span>
+                <span className="text-[11px] font-bold text-[#00F5D4]">
+                  Active Profile: {detectedScenarioLabel}
+                  {replyScenario === 'auto' && matchedSignals.length > 0
+                    ? ` (matched: ${matchedSignals.slice(0, 3).join(', ')})`
+                    : ''}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {REPLY_SCENARIO_OPTIONS.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => setReplyScenario(option.id)}
+                    className={`min-h-[36px] px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                      replyScenario === option.id
+                        ? 'bg-[#10B981]/20 text-[#10B981] border-[#10B981]/60'
+                        : 'bg-slate-900/90 text-slate-300 border-white/10 hover:border-white/25'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {/* Inbound Comment / Reply Input */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="shield-inbound-input"
+                  className="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400"
+                >
+                  Inbound Comment or Reply
+                </label>
+                <textarea
+                  id="shield-inbound-input"
+                  rows={8}
+                  value={inboundComment}
+                  onChange={(e) => setInboundComment(e.target.value)}
+                  placeholder="Paste inbound Facebook comment or retailer reply..."
+                  className="w-full rounded-xl bg-slate-900/90 border border-white/15 focus:border-[#00F5D4] text-sm text-slate-100 placeholder:text-slate-500 p-4 outline-none transition-all resize-y leading-relaxed"
+                />
+              </div>
+
+              {/* Editable Generated Draft Output */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="shield-draft-output"
+                    className="block text-[11px] font-extrabold uppercase tracking-wider text-[#00F5D4]"
+                  >
+                    Generated Compliant Draft (Editable)
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[11px] font-mono text-slate-400 tabular-nums">
+                      {draftReply.length} chars
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleRegenerateDraft}
+                      className="text-[11px] font-bold text-slate-300 hover:text-[#00F5D4] inline-flex items-center gap-1 transition-colors"
+                    >
+                      <RotateCcw className="w-3 h-3" strokeWidth={1.75} />
+                      <span>Reset Draft</span>
+                    </button>
+                  </div>
+                </div>
+                <textarea
+                  id="shield-draft-output"
+                  rows={8}
+                  value={draftReply}
+                  onChange={(e) => setDraftReply(e.target.value)}
+                  className="w-full rounded-xl bg-slate-900/90 border border-[#00F5D4]/35 focus:border-[#00F5D4] text-sm text-slate-100 p-4 outline-none transition-all resize-y leading-relaxed"
+                />
+              </div>
+            </div>
+
+            {/* Action Bar */}
+            <div className="flex flex-wrap items-center justify-end gap-3 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={handleCopyDraft}
+                disabled={!draftReply.trim()}
+                className="min-h-[44px] px-5 py-2.5 rounded-xl text-xs font-extrabold bg-[#00F5D4] hover:bg-teal-300 text-slate-950 transition-all shadow-lg shadow-[#00F5D4]/15 inline-flex items-center gap-2 disabled:opacity-50"
+              >
+                {copiedDraft ? (
+                  <>
+                    <Check className="w-4 h-4" strokeWidth={2} />
+                    <span>Copied Draft</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" strokeWidth={1.75} />
+                    <span>Copy Draft to Clipboard</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleLogAuditNote}
+                disabled={!draftReply.trim() || loggingAudit}
+                className="min-h-[44px] px-5 py-2.5 rounded-xl text-xs font-extrabold bg-[#10B981] hover:bg-emerald-400 text-slate-950 transition-all shadow-lg shadow-emerald-500/20 inline-flex items-center gap-2 disabled:opacity-50"
+              >
+                <ClipboardCheck className="w-4 h-4" strokeWidth={1.75} />
+                <span>{loggingAudit ? 'Logging Audit...' : 'Log Audit Note'}</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
           {events.map((ev) => (
             <div
               key={ev.id}
@@ -449,6 +753,7 @@ export function AgentCommandCenter() {
             </div>
           ))}
         </div>
+        )}
       </div>
     </div>
   )

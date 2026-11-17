@@ -20,8 +20,10 @@ export interface AgentEventItem {
   agent_name:
     | 'Supply & Compliance Agent'
     | 'Demand SDR Agent'
+    | 'Demand SDR'
     | 'Dispatch Guardrail Agent'
     | 'PoD & Settlement Agent'
+    | 'Community Shield'
   event_type: string
   summary: string
   payload_meta: string
