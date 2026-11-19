@@ -9,8 +9,7 @@ import {
   AlertCircle,
   Lock,
   Smartphone,
-  FlaskConical,
-  KeyRound
+  FlaskConical
 } from 'lucide-react'
 import { supabase } from './config/supabaseClient'
 import { PRICING_MATRIX } from './config/pricingMatrix2026'
@@ -86,12 +85,11 @@ function resolveRouteFromLocation(pathname: string, search: string): ParsedLocat
   return { route: 'landing', trackedJobId: null }
 }
 
-const ADMIN_ALLOWLIST_EMAILS = new Set([
-  'admin@benlogistics.co.uk',
-  'ops@benlogistics.co.uk',
-  'pilot.admin@benlogistics.co.uk',
+const PILOT_BLOCKED_ADMIN_EMAILS = new Set([
   'retailer@benlogistics.co.uk',
-  'pilot.retailer@benlogistics.co.uk'
+  'pilot.retailer@benlogistics.co.uk',
+  'driver@benlogistics.co.uk',
+  'pilot.driver@benlogistics.co.uk'
 ])
 
 export default function App() {
@@ -106,7 +104,6 @@ export default function App() {
   const [session, setSession] = useState<any>(null)
   const [authChecking, setAuthChecking] = useState<boolean>(true)
   const [isAdminVerified, setIsAdminVerified] = useState<boolean>(false)
-  const [adminUnlockedInSession, setAdminUnlockedInSession] = useState<boolean>(false)
   const [activeLegalDoc, setActiveLegalDoc] = useState<LegalDocType | null>(null)
 
   // Auth Form States (isolated per protected route: /portal, /cab, /command)
@@ -157,47 +154,39 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [])
 
-  // Verify whether the current authenticated user holds Admin Command clearance
-  const checkAdminClearance = useCallback(
-    async (activeSession: any, explicitAdminUnlock = false) => {
-      if (!activeSession?.user) {
-        setIsAdminVerified(false)
-        return
-      }
-      const userEmail = String(activeSession.user.email || '')
-        .trim()
-        .toLowerCase()
-      const metaRole = String(activeSession.user.user_metadata?.role || '').toLowerCase()
-
-      if (
-        explicitAdminUnlock ||
-        adminUnlockedInSession ||
-        metaRole === 'admin' ||
-        ADMIN_ALLOWLIST_EMAILS.has(userEmail)
-      ) {
-        setIsAdminVerified(true)
-        return
-      }
-
-      try {
-        const { data } = await supabase
-          .from('admins')
-          .select('user_id')
-          .eq('user_id', activeSession.user.id)
-          .maybeSingle()
-
-        if (data?.user_id) {
-          setIsAdminVerified(true)
-          return
-        }
-      } catch {
-        // Table public.admins may be RLS-restricted; fall back to session role check
-      }
-
+  // Strictly verify whether the current authenticated user is registered in public.admins
+  const checkAdminClearance = useCallback(async (activeSession: any): Promise<boolean> => {
+    if (!activeSession?.user?.id) {
       setIsAdminVerified(false)
-    },
-    [adminUnlockedInSession]
-  )
+      return false
+    }
+
+    const userEmail = String(activeSession.user.email || '')
+      .trim()
+      .toLowerCase()
+    if (!userEmail || PILOT_BLOCKED_ADMIN_EMAILS.has(userEmail)) {
+      setIsAdminVerified(false)
+      return false
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('admins')
+        .select('user_id')
+        .eq('user_id', activeSession.user.id)
+        .maybeSingle()
+
+      if (!error && data?.user_id) {
+        setIsAdminVerified(true)
+        return true
+      }
+    } catch {
+      // RLS or network failure must fail closed
+    }
+
+    setIsAdminVerified(false)
+    return false
+  }, [])
 
   useEffect(() => {
     const handlePopState = () => {
@@ -260,13 +249,11 @@ export default function App() {
         password: rawPassword
       })
 
-      // Transparent failover if legacy manual SQL row in auth.users causes GoTrue 500 scan error
-      if (error) {
+      // Transparent failover if legacy manual SQL row in auth.users causes GoTrue 500 scan error (pilot accounts only)
+      if (error && targetContext !== 'admin') {
         const fallbackMap: Record<string, string> = {
           'retailer@benlogistics.co.uk': 'pilot.retailer@benlogistics.co.uk',
-          'driver@benlogistics.co.uk': 'pilot.driver@benlogistics.co.uk',
-          'admin@benlogistics.co.uk': 'pilot.retailer@benlogistics.co.uk',
-          'ops@benlogistics.co.uk': 'pilot.retailer@benlogistics.co.uk'
+          'driver@benlogistics.co.uk': 'pilot.driver@benlogistics.co.uk'
         }
         const fallbackEmail = fallbackMap[normalizedEmail]
         if (fallbackEmail) {
@@ -283,11 +270,9 @@ export default function App() {
 
       if (error) throw error
 
-      if (targetContext === 'admin') {
-        setAdminUnlockedInSession(true)
-        setIsAdminVerified(true)
-      } else {
-        await checkAdminClearance(data.session)
+      const verified = await checkAdminClearance(data.session)
+      if (targetContext === 'admin' && !verified) {
+        setAuthError('Access denied: this account does not hold public.admins executive clearance.')
       }
     } catch (error: any) {
       const message =
@@ -306,7 +291,7 @@ export default function App() {
     }
   }
 
-  const handleQuickPilotLogin = async (targetRole: 'retailer' | 'driver' | 'admin') => {
+  const handleQuickPilotLogin = async (targetRole: 'retailer' | 'driver') => {
     const targetEmail =
       targetRole === 'driver'
         ? 'driver@benlogistics.co.uk'
@@ -355,7 +340,6 @@ export default function App() {
     await supabase.auth.signOut()
     setSession(null)
     setIsAdminVerified(false)
-    setAdminUnlockedInSession(false)
   }
 
   const handleWaitlistSubmit = async (e: React.FormEvent) => {
@@ -1511,21 +1495,6 @@ export default function App() {
                         ? 'Verifying Admin Clearance...'
                         : 'Verify Admin & Unlock Flight Deck →'}
                     </button>
-
-                    <div className="pt-3 border-t border-white/10 space-y-2">
-                      <span className="block text-[10px] font-extrabold uppercase tracking-widest text-slate-400 text-center">
-                        Principal Architect / Pilot Executive Clearance
-                      </span>
-                      <button
-                        type="button"
-                        disabled={authLoading}
-                        onClick={() => handleQuickPilotLogin('admin')}
-                        className="min-h-[44px] w-full bg-slate-900 hover:bg-slate-800 border border-[#00F5D4]/40 text-[#00F5D4] text-xs font-semibold py-2.5 px-3 rounded-xl transition-all inline-flex items-center justify-center gap-2"
-                      >
-                        <KeyRound className="w-3.5 h-3.5" strokeWidth={1.75} />
-                        <span>Authenticate Pilot Admin Session</span>
-                      </button>
-                    </div>
                   </form>
                 </div>
               </div>

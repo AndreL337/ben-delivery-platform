@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import {
   Cpu,
-  Zap,
   Database,
   Copy,
   Check,
@@ -13,7 +12,6 @@ import {
   RotateCcw
 } from 'lucide-react'
 import { supabase } from '../../config/supabaseClient'
-import { DEFAULT_AGENT_EVENTS } from '../../config/pricingMatrix2026'
 import type { AgentEventItem } from '../../types/logistics'
 import {
   generateCommunityReply,
@@ -46,7 +44,7 @@ create policy "Admins full access on agent_events"
   with check (exists (select 1 from public.admins a where a.user_id::text = auth.uid()::text));`
 
 export function AgentCommandCenter() {
-  const [events, setEvents] = useState<AgentEventItem[]>(DEFAULT_AGENT_EVENTS)
+  const [events, setEvents] = useState<AgentEventItem[]>([])
   const [supabaseConnected, setSupabaseConnected] = useState<boolean | null>(null)
   const [syncNotice, setSyncNotice] = useState<string>('')
   const [actionToast, setActionToast] = useState<string>('')
@@ -77,23 +75,24 @@ export function AgentCommandCenter() {
         .limit(20)
 
       if (error) {
+        setEvents([])
         setSupabaseConnected(false)
         setSyncNotice(
-          'Running in resilient local fallback mode (table public.agent_events RLS-locked to admins or not yet initialized).'
+          'Unable to query public.agent_events (RLS-locked to public.admins or table not yet initialized).'
         )
       } else if (data && data.length > 0) {
         setEvents(data as AgentEventItem[])
         setSupabaseConnected(true)
         setSyncNotice('Live-synced with Supabase public.agent_events table.')
       } else {
+        setEvents([])
         setSupabaseConnected(true)
-        setSyncNotice(
-          'Connected to Supabase public.agent_events (showing seeded Milton Keynes operational queue).'
-        )
+        setSyncNotice('Connected to Supabase public.agent_events (0 live events in queue).')
       }
     } catch {
+      setEvents([])
       setSupabaseConnected(false)
-      setSyncNotice('Running in local fallback mode.')
+      setSyncNotice('Unable to reach Supabase public.agent_events.')
     }
     setLoadingEvents(false)
   }
@@ -243,30 +242,7 @@ export function AgentCommandCenter() {
         ])
       }
     } catch {
-      // Graceful local fallback preserved
-    }
-  }
-
-  const seedDefaultEventsToSupabase = async () => {
-    try {
-      const payload = DEFAULT_AGENT_EVENTS.map((ev) => ({
-        agent_name: ev.agent_name,
-        event_type: ev.event_type,
-        summary: ev.summary,
-        payload_meta: ev.payload_meta,
-        status: ev.status
-      }))
-      const { data, error } = await supabase.from('agent_events').insert(payload).select()
-      if (error) {
-        setSyncNotice(`Supabase RLS/table notice (${error.message}). Use the SQL initializer below.`)
-        setShowSql(true)
-      } else if (data) {
-        setEvents(data as AgentEventItem[])
-        setSupabaseConnected(true)
-        setSyncNotice('Seeded 4 live agent events into Supabase public.agent_events!')
-      }
-    } catch {
-      setShowSql(true)
+      // Graceful local state update preserved
     }
   }
 
@@ -412,14 +388,6 @@ export function AgentCommandCenter() {
               className="min-h-[44px] text-xs font-extrabold px-4 py-2 rounded-xl border border-white/15 bg-slate-900/90 hover:bg-slate-800 text-slate-100 transition-all"
             >
               {loadingEvents ? 'Refreshing...' : 'Sync Queue'}
-            </button>
-            <button
-              type="button"
-              onClick={seedDefaultEventsToSupabase}
-              className="min-h-[44px] text-xs font-extrabold px-4 py-2 rounded-xl border border-[#00F5D4]/40 bg-[#00F5D4]/10 hover:bg-[#00F5D4]/20 text-[#00F5D4] transition-all inline-flex items-center gap-1.5"
-            >
-              <Zap className="w-3.5 h-3.5" strokeWidth={1.75} />
-              <span>Push Seed Events</span>
             </button>
             <button
               type="button"
@@ -666,6 +634,16 @@ export function AgentCommandCenter() {
                 <span>{loggingAudit ? 'Logging Audit...' : 'Log Audit Note'}</span>
               </button>
             </div>
+          </div>
+        ) : events.length === 0 ? (
+          <div className="mt-6 rounded-2xl p-8 border border-white/10 bg-slate-950/75 text-center space-y-2">
+            <Cpu className="w-6 h-6 text-[#00F5D4] mx-auto" strokeWidth={1.75} />
+            <p className="text-sm font-extrabold text-white">
+              No live agent events in <code className="text-[#00F5D4]">public.agent_events</code>
+            </p>
+            <p className="text-xs text-slate-400 max-w-md mx-auto">
+              Queue is clean with zero dummy or seeded rows. Live operational alerts and Community Shield audit notes will appear here as they are logged.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
