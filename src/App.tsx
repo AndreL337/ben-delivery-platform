@@ -1445,12 +1445,8 @@ export default function App() {
                         <span>Restricted Executive Node • /command</span>
                       </span>
                       <h2 className="text-2xl font-extrabold text-white mt-2.5">
-                        Admin Command Center Gate
+                        Admin Command Centre Gate
                       </h2>
-                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                        Strictly gated behind Admin Auth verification for monitoring{' '}
-                        <code className="text-[#00F5D4]">public.agent_events</code> and executing 1-click human-in-the-loop escrow &amp; Gate A6 approvals.
-                      </p>
                     </div>
 
                     {session && !isAdminVerified && (
@@ -1471,7 +1467,7 @@ export default function App() {
 
                     <input
                       type="email"
-                      placeholder="Admin Operator Email"
+                      placeholder="Executive Email"
                       value={authEmail}
                       onChange={(e) => setAuthEmail(e.target.value)}
                       className="min-h-[48px] bg-slate-950/90 border border-white/15 focus:border-[#00F5D4] text-white rounded-xl py-3 px-4 outline-none transition-all text-sm"
@@ -1479,7 +1475,7 @@ export default function App() {
                     />
                     <input
                       type="password"
-                      placeholder="Admin Security Key"
+                      placeholder="Password"
                       value={authPassword}
                       onChange={(e) => setAuthPassword(e.target.value)}
                       className="min-h-[48px] bg-slate-950/90 border border-white/15 focus:border-[#00F5D4] text-white rounded-xl py-3 px-4 outline-none transition-all text-sm"
